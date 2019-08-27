@@ -1,6 +1,7 @@
 #ifndef __RV_LINK_TAP_H__
 #define __RV_LINK_TAP_H__
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 

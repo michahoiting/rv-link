@@ -37,7 +37,8 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
-src/tap/rvl_tap.c
+src/tap/rvl_tap.c \
+src/main.c
 
 
 # ASM sources
@@ -56,7 +57,7 @@ PERIFLIB_SOURCES =
 # binaries
 #######################################
 BINPATH = 
-PREFIX = /home/user/tools/FreedomStudio/SiFive/riscv64-unknown-elf-gcc-20171231-x86_64-linux-centos6/bin/riscv64-unknown-elf-
+PREFIX = riscv64-unknown-elf-
 CC = $(PREFIX)gcc
 AS = $(PREFIX)gcc -x assembler-with-cpp
 CP = $(PREFIX)objcopy
@@ -64,13 +65,14 @@ AR = $(PREFIX)ar
 SZ = $(PREFIX)size
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
+DUMP = $(PREFIX)objdump
  
 #######################################
 # CFLAGS
 #######################################
 
 # mcu
-MCU = -march=rv32imac -mabi=ilp32 -mcmodel=medany -msmall-data-limit=8
+MCU = -march=rv32i -mabi=ilp32 -mcmodel=medany -msmall-data-limit=8
 
 # macros for gcc
 # AS defines
@@ -87,6 +89,7 @@ AS_INCLUDES =
 C_INCLUDES =  \
 -Isrc/tap \
 -Isrc/lib \
+-Isrc/link/hifive1 \
 -Isrc/link/hifive1/include
 
 
@@ -117,7 +120,7 @@ LIBDIR =
 LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 # default action: build all
-all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
+all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin $(BUILD_DIR)/$(TARGET).disasm
 
 
 #######################################
@@ -145,6 +148,9 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@	
+	
+$(BUILD_DIR)/%.disasm: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+	$(DUMP) -d $< > $@	
 	
 $(BUILD_DIR):
 	mkdir $@		

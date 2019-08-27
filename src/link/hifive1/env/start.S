@@ -46,9 +46,9 @@ _start:
 2:
 
 	/* Call global constructors */
-	la a0, __libc_fini_array
-	call atexit
-	call __libc_init_array
+	//la a0, __libc_fini_array
+	//call atexit
+	//call __libc_init_array
 
 #ifndef __riscv_float_abi_soft
 	/* Enable FPU */
@@ -80,7 +80,7 @@ _start:
 	li a0, 0
 	li a1, 0
 	call main
-	tail exit
+	//tail exit
 1:
 	j 1b
 

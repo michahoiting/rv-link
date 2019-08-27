@@ -38,6 +38,7 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 src/tap/rvl_tap.c \
+src/link/hifive1/rvl_jtag.c \
 src/main.c
 
 
@@ -90,7 +91,9 @@ C_INCLUDES =  \
 -Isrc/tap \
 -Isrc/lib \
 -Isrc/link/hifive1 \
--Isrc/link/hifive1/include
+-Isrc/link/hifive1/include \
+-Isrc/link/hifive1/env \
+-Isrc/link/hifive1/env/freedom-e300-hifive1
 
 
 # compile gcc flags

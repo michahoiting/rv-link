@@ -27,6 +27,10 @@ typedef enum rvl_tap_state_e
 }rvl_tap_state_t;
 
 int rvl_tap_tick(int tms, int tdi);
-rvl_tap_state_t rvl_tap_state(int tms);
+rvl_tap_state_t rvl_tap_trace_state(int tms);
+void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len);
+void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len);
+void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len);
+void rvl_tap_go_idle(void);
 
 #endif /* __RV_LINK_TAP_H__ */

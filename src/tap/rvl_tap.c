@@ -25,86 +25,89 @@ int rvl_tap_tick(int tms, int tdi)
   rvl_jtag_delay_half_period();
   rvl_jtag_tck_put(0);
 
+  rvl_tap_trace_state(tms);
+
   return tdo;
 }
 
 
-static rvl_tap_state_t _rvl_tap_state = RVL_TAP_STATE_TEST_LOGIC_RESET;
-rvl_tap_state_t rvl_tap_state(int tms)
+static rvl_tap_state_t rvl_tap_current_state = RVL_TAP_STATE_TEST_LOGIC_RESET;
+
+rvl_tap_state_t rvl_tap_trace_state(int tms)
 {
-  switch(_rvl_tap_state) {
+  switch(rvl_tap_current_state) {
   case RVL_TAP_STATE_TEST_LOGIC_RESET:
-    if(!tms) { _rvl_tap_state = RVL_TAP_STATE_RUN_TEST_IDLE;}
+    if(!tms) { rvl_tap_current_state = RVL_TAP_STATE_RUN_TEST_IDLE;}
     break;
 
   case RVL_TAP_STATE_RUN_TEST_IDLE:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_SELECT_DR_SCAN;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_SELECT_DR_SCAN;}
     break;
 
   case RVL_TAP_STATE_SELECT_DR_SCAN:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_SELECT_IR_SCAN;}
-    else { _rvl_tap_state = RVL_TAP_STATE_CAPTURE_DR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_SELECT_IR_SCAN;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_CAPTURE_DR;}
     break;
 
   case RVL_TAP_STATE_SELECT_IR_SCAN:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_TEST_LOGIC_RESET;}
-    else { _rvl_tap_state = RVL_TAP_STATE_CAPTURE_IR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_TEST_LOGIC_RESET;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_CAPTURE_IR;}
     break;
 
   case RVL_TAP_STATE_CAPTURE_DR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_EXIT1_DR;}
-    else { _rvl_tap_state = RVL_TAP_STATE_SHIFT_DR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_EXIT1_DR;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_SHIFT_DR;}
     break;
 
   case RVL_TAP_STATE_SHIFT_DR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_EXIT1_DR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_EXIT1_DR;}
     break;
 
   case RVL_TAP_STATE_EXIT1_DR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_UPDATE_DR;}
-    else { _rvl_tap_state = RVL_TAP_STATE_PAUSE_DR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_UPDATE_DR;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_PAUSE_DR;}
     break;
 
   case RVL_TAP_STATE_PAUSE_DR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_EXIT2_DR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_EXIT2_DR;}
     break;
 
   case RVL_TAP_STATE_EXIT2_DR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_UPDATE_DR;}
-    else { _rvl_tap_state = RVL_TAP_STATE_SHIFT_DR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_UPDATE_DR;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_SHIFT_DR;}
     break;
 
   case RVL_TAP_STATE_UPDATE_DR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_SELECT_DR_SCAN;}
-    else { _rvl_tap_state = RVL_TAP_STATE_RUN_TEST_IDLE;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_SELECT_DR_SCAN;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_RUN_TEST_IDLE;}
     break;
 
   case RVL_TAP_STATE_CAPTURE_IR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_EXIT1_IR;}
-    else { _rvl_tap_state = RVL_TAP_STATE_SHIFT_IR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_EXIT1_IR;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_SHIFT_IR;}
     break;
 
   case RVL_TAP_STATE_SHIFT_IR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_EXIT1_IR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_EXIT1_IR;}
     break;
 
   case RVL_TAP_STATE_EXIT1_IR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_UPDATE_IR;}
-    else { _rvl_tap_state = RVL_TAP_STATE_PAUSE_IR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_UPDATE_IR;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_PAUSE_IR;}
     break;
 
   case RVL_TAP_STATE_PAUSE_IR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_EXIT2_IR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_EXIT2_IR;}
     break;
 
   case RVL_TAP_STATE_EXIT2_IR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_UPDATE_IR;}
-    else { _rvl_tap_state = RVL_TAP_STATE_SHIFT_IR;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_UPDATE_IR;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_SHIFT_IR;}
     break;
 
   case RVL_TAP_STATE_UPDATE_IR:
-    if(tms) { _rvl_tap_state = RVL_TAP_STATE_SELECT_DR_SCAN;}
-    else { _rvl_tap_state = RVL_TAP_STATE_RUN_TEST_IDLE;}
+    if(tms) { rvl_tap_current_state = RVL_TAP_STATE_SELECT_DR_SCAN;}
+    else { rvl_tap_current_state = RVL_TAP_STATE_RUN_TEST_IDLE;}
     break;
 
   default:
@@ -112,6 +115,75 @@ rvl_tap_state_t rvl_tap_state(int tms)
     break;
   }
 
-  return _rvl_tap_state;
+  return rvl_tap_current_state;
+}
+
+void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len)
+{
+  // Start state: Select-DR-Scan/Select-IR-Scan
+  // End state: Run-Test/Idle
+
+  int tdo;
+  int tdi;
+  size_t i;
+
+  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_SELECT_DR_SCAN
+      || rvl_tap_current_state == RVL_TAP_STATE_SELECT_IR_SCAN);
+  rvl_assert(old);
+  rvl_assert(new);
+  rvl_assert(len > 0);
+
+  rvl_tap_tick(0, 0); // Capture-DR/IR
+  rvl_tap_tick(0, 0); // Shift-DR/IR
+
+  for(i = 0; i < len; i++) {
+    tdi = (new[i / 32] >> (i % 32)) & 1;
+    if(i == len - 1) {
+      tdo = rvl_tap_tick(1, tdi); // Exit1-DR/IR
+    } else {
+      tdo = rvl_tap_tick(0, tdi);
+    }
+    old[i / 32] |= tdo << (i % 32);
+  }
+
+  rvl_tap_tick(1, 0); // Update-DR/IR
+  rvl_tap_tick(0, 0); // Run-Test/Idle
+
+  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+}
+
+
+void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len)
+{
+  // Start state: Run-Test/Idle
+  // End state: Run-Test/Idle
+
+  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+
+  rvl_tap_tick(1, 0); // Select-DR-Scan
+
+  rvl_tap_shift(old_dr, new_dr, dr_len);
+}
+
+void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
+{
+  // Start state: Run-Test/Idle
+  // End state: Run-Test/Idle
+
+  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+
+  rvl_tap_tick(1, 0); // Select-DR-Scan
+  rvl_tap_tick(1, 0); // Select-IR-Scan
+
+  rvl_tap_shift(old_ir, new_ir, ir_len);
+}
+
+void rvl_tap_go_idle(void)
+{
+  int i;
+  for(i = 0; i < 10; i++){
+    rvl_tap_tick(1, 0);
+  }
+  rvl_tap_tick(0, 0);
 }
 

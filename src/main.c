@@ -1,3 +1,4 @@
+#include "rvl_jtag.h"
 #include "rvl_tap.h"
 
 uint32_t old_reg[1];
@@ -17,9 +18,10 @@ uint32_t dtmcs_idle;
 
 int main(void)
 {
+	rvl_jtag_init();
 	rvl_tap_go_idle();
 
-	// idcode
+	// idcode, FE310-G000's idcode: 0x10e31913 (mfg: 0x489 (SiFive, Inc.), part: 0x0e31, ver: 0x1)
 	new_reg[0] = 0x01;
 	rvl_tap_shift_ir(old_reg, new_reg, 5);
 

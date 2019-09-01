@@ -5,15 +5,30 @@ link/gd32vf103c-start/RISCV/gcc/handlers.c \
 link/gd32vf103c-start/RISCV/drivers/n200_func.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/system_gd32vf103.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_gpio.c \
+link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_rcu.c \
+link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_timer.c \
+link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_eclic.c \
+link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_exti.c \
+link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_pmu.c \
+link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/drv_usb_core.c \
+link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/drv_usb_dev.c \
+link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/drv_usbd_int.c \
+link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/usbd_core.c \
+link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/usbd_enum.c \
+link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/usbd_transc.c \
+link/gd32vf103c-start/gd32vf103_hw.c \
+link/gd32vf103c-start/gd32vf103_it.c \
+link/gd32vf103c-start/cdc_acm_core.c \
 link/gd32vf103c-start/rvl_jtag.c
 
 C_INCLUDES =  \
 -Ilink/gd32vf103c-start \
 -Ilink/gd32vf103c-start/GD32VF103_standard_peripheral \
 -Ilink/gd32vf103c-start/GD32VF103_standard_peripheral/Include \
+-Ilink/gd32vf103c-start/GD32VF103_usbfs_driver/Include \
 -Ilink/gd32vf103c-start/RISCV/drivers
 
-C_DEFS = -DGD32VF103C_START
+C_DEFS = -DGD32VF103C_START -DUSE_STDPERIPH_DRIVER -DUSE_USB_FS
 
 
 ASM_SOURCES =  \
@@ -27,9 +42,9 @@ AS_DEFS =
 
 PREFIX = riscv-none-embed-
 MACHINE = -march=rv32i -mabi=ilp32 -mcmodel=medany -msmall-data-limit=8
-CFLAGS = $(MACHINE)
+CFLAGS = $(MACHINE) -includesys/cdefs.h
 ASFLAGS = $(MACHINE)
 LDSCRIPT = link/gd32vf103c-start/RISCV/gcc/GD32VF103xB.lds
-LIBS = -nostartfiles -nostdlib
+LIBS = -nostartfiles
 LIBDIR = 
 LDFLAGS = $(MACHINE) -specs=nano.specs -T$(LDSCRIPT)

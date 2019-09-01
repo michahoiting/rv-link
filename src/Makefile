@@ -1,26 +1,41 @@
 
 
-
+###############################################################################
+#
 ifeq ($(LINK),)
 	LINK = hifive1
 endif
 
 include link/$(LINK)/Makefile
 
+
+###############################################################################
+#
+ifeq ($(APP),)
+	APP = riscv-prober
+endif
+
+include app/$(APP)/Makefile
+
+###############################################################################
+#
 TARGET = k210
 
+###############################################################################
+#
 BUILD_DIR = build
-EXE = $(LINK)-$(TARGET)
+EXE = $(LINK)+$(APP)+$(TARGET)
 
 
 C_SOURCES +=  \
-tap/rvl_tap.c \
-main.c
+tap/rvl_tap.c
 
 C_INCLUDES +=  \
 -Itap \
 -Ilib 
 
+###############################################################################
+#
 CC   = $(PREFIX)gcc
 AS   = $(PREFIX)gcc -x assembler-with-cpp
 COPY = $(PREFIX)objcopy
@@ -43,7 +58,8 @@ ASFLAGS += -g $(OPT) $(C_DEFS) $(C_INCLUDES) $(AS_DEFS) $(AS_INCLUDES)
 LDFLAGS += -g $(OPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(EXE).map,--cref -Wl,--gc-sections
 
 
-
+###############################################################################
+#
 
 all: $(BUILD_DIR)/$(EXE).elf $(BUILD_DIR)/$(EXE).hex $(BUILD_DIR)/$(EXE).bin $(BUILD_DIR)/$(EXE).disasm
 

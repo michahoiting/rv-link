@@ -1,7 +1,7 @@
 # RV-LINK
 
 #### 介绍
-用RISC-V开发板实现的RISC-V仿真器。
+用RISC-V开发板实现的RISC-V仿真器。点击[这里](https://blog.csdn.net/zoomdy/article/category/9258422)查阅更多关于RV-LINK的内容。
 
 #### 软件架构
 软件架构说明

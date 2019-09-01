@@ -26,7 +26,7 @@ void _init()
 	
     /* Before enter into main, add the cycle/instret disable by default to save power,
     only use them when needed to measure the cycle/instret */
-	disable_mcycle_minstret();
+//	disable_mcycle_minstret();
 }
 
 void _fini()

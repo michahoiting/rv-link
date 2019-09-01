@@ -232,16 +232,17 @@ _start0800:
 	/*enable mcycle_minstret*/
     csrci CSR_MCOUNTINHIBIT, 0x5
 	/* Call global constructors */
-	la a0, __libc_fini_array
-	call atexit
-	call __libc_init_array
+//	la a0, __libc_fini_array
+//	call atexit
+//	call __libc_init_array
+	call _init
 
 
 	/* argc = argv = 0 */
 	li a0, 0
 	li a1, 0
 	call main
-	tail exit
+//	tail exit
 
 1:
 	j 1b

@@ -23,7 +23,8 @@ TARGET = k210
 
 ###############################################################################
 #
-BUILD_DIR = build
+BUILD_DIR = ../build
+OUTPUT_DIR = ../output
 EXE = $(LINK)+$(APP)+$(TARGET)
 
 
@@ -60,7 +61,7 @@ LDFLAGS += -g $(OPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(EXE).map,--cref -
 ###############################################################################
 #
 
-all: $(BUILD_DIR)/$(EXE).elf $(BUILD_DIR)/$(EXE).hex $(BUILD_DIR)/$(EXE).bin $(BUILD_DIR)/$(EXE).disasm
+all: $(OUTPUT_DIR)/$(EXE).elf $(OUTPUT_DIR)/$(EXE).hex $(OUTPUT_DIR)/$(EXE).bin $(BUILD_DIR)/$(EXE).disasm
 
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
@@ -75,20 +76,23 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR)
 	$(AS) -c $(ASFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(EXE).elf: $(OBJECTS) Makefile link/$(LINK)/Makefile
+$(OUTPUT_DIR)/$(EXE).elf: $(OBJECTS) Makefile link/$(LINK)/Makefile | $(OUTPUT_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SIZE) $@
 
-$(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+$(OUTPUT_DIR)/%.hex: $(OUTPUT_DIR)/%.elf | $(OUTPUT_DIR)
 	$(HEX) $< $@
 	
-$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+$(OUTPUT_DIR)/%.bin: $(OUTPUT_DIR)/%.elf | $(OUTPUT_DIR)
 	$(BIN) $< $@	
 	
-$(BUILD_DIR)/%.disasm: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+$(BUILD_DIR)/%.disasm: $(OUTPUT_DIR)/%.elf | $(BUILD_DIR)
 	$(DUMP) -d $< > $@	
 	
 $(BUILD_DIR):
+	mkdir $@
+
+$(OUTPUT_DIR):
 	mkdir $@
 
 #######################################

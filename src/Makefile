@@ -5,7 +5,7 @@ ifeq ($(LINK),)
 	LINK = hifive1
 endif
 
-include src/link/$(LINK)/Makefile
+include link/$(LINK)/Makefile
 
 TARGET = k210
 
@@ -14,12 +14,12 @@ EXE = $(LINK)-$(TARGET)
 
 
 C_SOURCES +=  \
-src/tap/rvl_tap.c \
-src/main.c
+tap/rvl_tap.c \
+main.c
 
 C_INCLUDES +=  \
--Isrc/tap \
--Isrc/lib 
+-Itap \
+-Ilib 
 
 CC   = $(PREFIX)gcc
 AS   = $(PREFIX)gcc -x assembler-with-cpp
@@ -60,7 +60,7 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR)
 	$(AS) -c $(ASFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(EXE).elf: $(OBJECTS) Makefile
+$(BUILD_DIR)/$(EXE).elf: $(OBJECTS) Makefile link/$(LINK)/Makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SIZE) $@
 

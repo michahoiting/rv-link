@@ -28,11 +28,10 @@ EXE = $(LINK)+$(APP)+$(TARGET)
 
 
 C_SOURCES +=  \
-tap/rvl_tap.c
+common/rvl_tap.c
 
 C_INCLUDES +=  \
--Itap \
--Ilib 
+-Icommon
 
 ###############################################################################
 #

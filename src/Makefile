@@ -90,6 +90,8 @@ $(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR)
 $(OUTPUT_DIR)/$(EXE).elf: $(OBJECTS) Makefile link/$(LINK)/Makefile | $(OUTPUT_DIR)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SIZE) $@
+	rm -f $(OUTPUT_DIR)/rv-link.elf
+	ln -s $(EXE).elf $(OUTPUT_DIR)/rv-link.elf
 
 $(OUTPUT_DIR)/%.hex: $(OUTPUT_DIR)/%.elf | $(OUTPUT_DIR)
 	$(HEX) $< $@

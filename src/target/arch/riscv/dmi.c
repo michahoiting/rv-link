@@ -2,7 +2,7 @@
 
 #include "dmi.h"
 #include "dtm-jtag.h"
-#include "rvl_assert.h"
+#include "rvl-assert.h"
 
 typedef struct rvl_dmi_s
 {

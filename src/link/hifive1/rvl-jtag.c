@@ -1,6 +1,6 @@
 #include "platform.h"
 #include "encoding.h"
-#include "rvl_jtag.h"
+#include "rvl-jtag.h"
 
 #define TCK_PIN		5 // GPIO5, Arduino D13
 #define TMS_PIN		4 // GPIO4, Arduino D12

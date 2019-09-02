@@ -1,9 +1,9 @@
 #include "pt.h"
-#include "rvl_jtag.h"
-#include "rvl_tap.h"
+#include "rvl-jtag.h"
+#include "rvl-tap.h"
 #include "dtm-jtag.h"
 #include "dmi.h"
-#include "rvl_assert.h"
+#include "rvl-assert.h"
 
 
 typedef struct task_jtag_s

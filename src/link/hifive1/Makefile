@@ -1,6 +1,6 @@
 
 C_SOURCES =  \
-link/hifive1/rvl_jtag.c 
+link/hifive1/rvl-jtag.c 
 
 C_INCLUDES =  \
 -Ilink/hifive1 \

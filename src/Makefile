@@ -35,7 +35,7 @@ EXE = $(LINK)+$(APP)+$(TARGET)
 
 
 C_SOURCES +=  \
-common/rvl_tap.c \
+common/rvl-tap.c \
 pt/timer.c
 
 C_INCLUDES +=  \

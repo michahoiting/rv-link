@@ -1,6 +1,6 @@
-#include "rvl_jtag.h"
-#include "rvl_tap.h"
-#include "rvl_assert.h"
+#include "rvl-jtag.h"
+#include "rvl-tap.h"
+#include "rvl-assert.h"
 
 void rvl_tap_init(void)
 {

@@ -1,6 +1,6 @@
 #include "dtm-jtag.h"
-#include "rvl_tap.h"
-#include "rvl_assert.h"
+#include "rvl-tap.h"
+#include "rvl-assert.h"
 
 typedef struct rvl_dtm_s {
     struct pt pt;

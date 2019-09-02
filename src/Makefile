@@ -29,10 +29,12 @@ EXE = $(LINK)+$(APP)+$(TARGET)
 
 
 C_SOURCES +=  \
-common/rvl_tap.c
+common/rvl_tap.c \
+pt/timer.c
 
 C_INCLUDES +=  \
--Icommon
+-Icommon \
+-Ipt
 
 ###############################################################################
 #

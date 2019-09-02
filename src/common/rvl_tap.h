@@ -27,6 +27,7 @@ typedef enum rvl_tap_state_e
   RVL_TAP_STATE_UPDATE_IR,
 }rvl_tap_state_t;
 
+void rvl_tap_init(void);
 int rvl_tap_tick(int tms, int tdi);
 rvl_tap_state_t rvl_tap_trace_state(int tms);
 void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len);

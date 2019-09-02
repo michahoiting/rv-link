@@ -4,6 +4,7 @@
 
 void rvl_tap_init(void)
 {
+  rvl_jtag_init();
   rvl_jtag_tms_put(1);
   rvl_jtag_tdi_put(1);
   rvl_jtag_tck_put(0);

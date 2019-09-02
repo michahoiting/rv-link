@@ -31,6 +31,7 @@ void rvl_dtm_init(void)
     self.last_jtag_reg = 0;
 
     rvl_tap_init();
+    rvl_tap_go_idle();
 }
 
 
@@ -47,6 +48,8 @@ PT_THREAD(rvl_dtm_idcode(uint32_t* idcode))
 
     self.in[0] = 0;
     rvl_tap_shift_dr(self.out, self.in, 32);
+    PT_YIELD(&self.pt);
+
     *idcode = self.out[0];
 
     PT_END(&self.pt);
@@ -66,6 +69,8 @@ PT_THREAD(rvl_dtm_dtmcs(uint32_t* dtmcs))
 
     self.in[0] = 0;
     rvl_tap_shift_dr(self.out, self.in, 32);
+    PT_YIELD(&self.pt);
+
     *dtmcs = self.out[0];
 
     self.abits = (self.out[0] >> 4) & 0x3f;
@@ -90,6 +95,7 @@ PT_THREAD(rvl_dtm_dtmcs_dmireset(void))
 
     self.in[0] = RISCV_DTMCS_DMI_RESET;
     rvl_tap_shift_dr(self.out, self.in, 32);
+    PT_YIELD(&self.pt);
 
     PT_END(&self.pt);
 }
@@ -108,6 +114,7 @@ PT_THREAD(rvl_dtm_dtmcs_dmihardreset(void))
 
     self.in[0] = RISCV_DTMCS_DMI_HARD_RESET;
     rvl_tap_shift_dr(self.out, self.in, 32);
+    PT_YIELD(&self.pt);
 
     PT_END(&self.pt);
 }
@@ -131,6 +138,7 @@ PT_THREAD(rvl_dtm_dmi(uint32_t addr, uint32_t* data, uint32_t* op))
     self.in[0] = (*data << 2) | (*op & 0x3);
     self.in[1] = (*data >> 30) | (addr << 2);
     rvl_tap_shift_dr(self.out, self.in, 32 + 2 + self.abits);
+    PT_YIELD(&self.pt);
 
     *op = self.out[0] & 0x3;
     *data = (self.out[0] >> 2) | (self.out[1] << 30);

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
 #include "dmi.h"
-#include "dtm-jtag.h"
+#include "dtm.h"
 #include "rvl-assert.h"
 
 typedef struct rvl_dmi_s

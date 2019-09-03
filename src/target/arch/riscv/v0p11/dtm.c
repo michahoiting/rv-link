@@ -1,4 +1,4 @@
-#include "dtm-jtag.h"
+#include "dtm.h"
 #include "rvl-tap.h"
 #include "rvl-assert.h"
 

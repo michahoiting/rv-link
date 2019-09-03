@@ -6,6 +6,7 @@
  */
 
 #include <stdint.h>
+#include "riscv-debug.h"
 #include "pt.h"
 
 void rvl_dmi_init(void);

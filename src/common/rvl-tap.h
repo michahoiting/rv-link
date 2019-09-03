@@ -34,5 +34,6 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len);
 void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len);
 void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len);
 void rvl_tap_go_idle(void);
+void rvl_tap_run(uint32_t ticks);
 
 #endif /* __RV_LINK_TAP_H__ */

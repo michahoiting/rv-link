@@ -5,4 +5,6 @@
  * Debug Module (DM)
  */
 
+#include "riscv-debug.h"
+
 #endif /* __RISCV_DM_H__ */

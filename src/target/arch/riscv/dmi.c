@@ -20,6 +20,14 @@ static rvl_dmi_t rvl_dmi_i;
 #define RISCV_DMI_OP_READ       1
 #define RISCV_DMI_OP_WRITE      2
 
+#define RISCV_DMI_RESULT_DONE   0
+#define RISCV_DMI_RESULT_FAIL   2
+#define RISCV_DMI_RESULT_BUSY   3
+
+#ifndef RVL_DMI_RETRIES
+#define RVL_DMI_RETRIES         6
+#endif
+
 void rvl_dmi_init(void)
 {
     PT_INIT(&self.pt);
@@ -50,12 +58,20 @@ PT_THREAD(rvl_dmi_read(uint32_t addr, uint32_t* data, uint32_t *result))
 
     PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(addr, &self.data, &self.op));
 
-    self.data = 0;
-    self.op = RISCV_DMI_OP_NOP;
+    for(self.i = 0; self.i < RVL_DMI_RETRIES; self.i++) {
+        self.data = 0;
+        self.op = RISCV_DMI_OP_NOP;
 
-    PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(0, &self.data, &self.op));
+        PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(0, &self.data, &self.op));
 
-    if(self.op != 0)
+        if(self.op == RISCV_DMI_RESULT_BUSY) {
+            PT_WAIT_THREAD(&self.pt, rvl_dtm_run(32));
+        } else {
+            break;
+        }
+    }
+
+    if(self.op != RISCV_DMI_RESULT_DONE)
     {
         PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmireset());
     } else {
@@ -84,7 +100,7 @@ PT_THREAD(rvl_dmi_write(uint32_t addr, uint32_t data, uint32_t *result))
 
     PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(0, &self.data, &self.op));
 
-    if(self.op != 0)
+    if(self.op != RISCV_DMI_RESULT_DONE)
     {
         PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmireset());
     }
@@ -115,7 +131,7 @@ PT_THREAD(rvl_dmi_read_vector(uint32_t start_addr, uint32_t* buffer, uint32_t le
     PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(0, &self.data, &self.op));
     buffer[self.i - 1] = self.data;
 
-    if(self.op != 0)
+    if(self.op != RISCV_DMI_RESULT_DONE)
     {
         PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmireset());
     }
@@ -140,7 +156,7 @@ PT_THREAD(rvl_dmi_write_vector(uint32_t start_addr, const uint32_t* buffer, uint
 
     PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(0, &self.data, &self.op));
 
-    if(self.op != 0)
+    if(self.op != RISCV_DMI_RESULT_DONE)
     {
         PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmireset());
     }

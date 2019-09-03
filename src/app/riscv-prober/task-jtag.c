@@ -66,7 +66,7 @@ PT_THREAD(task_jtag_poll(void))
 #else
     for(self.i = 0; self.i < 3; self.i++) {
         PT_WAIT_THREAD(&self.pt, rvl_dtm_idcode(self.idcode));
-        PT_YIELD(&self.pt);
+//        PT_YIELD(&self.pt);
     }
 #endif
 
@@ -91,7 +91,7 @@ PT_THREAD(task_jtag_poll(void))
 #else
     for(self.i = 0; self.i < 3; self.i++) {
         PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs(self.dtmcs));
-        PT_YIELD(&self.pt);
+//        PT_YIELD(&self.pt);
     }
 #endif
 
@@ -101,8 +101,10 @@ PT_THREAD(task_jtag_poll(void))
     self.dtmcs_dmistat = (self.dtmcs[0] >> 10) & 0x3;
     self.dtmcs_idle = (self.dtmcs[0] >> 12) & 0x7;
 
+//    PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmihardreset());
+
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(0x11, &self.dmstatus, &self.dmi_result));
-    PT_YIELD(&self.pt);
+//    PT_YIELD(&self.pt);
 
     //
     for(;;) {

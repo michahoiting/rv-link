@@ -135,8 +135,8 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len)
   rvl_assert(new);
   rvl_assert(len > 0);
 
-  rvl_tap_tick(0, 0); // Capture-DR/IR
-  rvl_tap_tick(0, 0); // Shift-DR/IR
+  rvl_tap_tick(0, 1); // Capture-DR/IR
+  rvl_tap_tick(0, 1); // Shift-DR/IR
 
   for(i = 0; i < len; i++) {
     tdi = (new[i / 32] >> (i % 32)) & 1;
@@ -152,8 +152,8 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len)
     }
   }
 
-  rvl_tap_tick(1, 0); // Update-DR/IR
-  rvl_tap_tick(0, 0); // Run-Test/Idle
+  rvl_tap_tick(1, 1); // Update-DR/IR
+  rvl_tap_tick(0, 1); // Run-Test/Idle
 
   rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
 }
@@ -166,7 +166,7 @@ void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len)
 
   rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
 
-  rvl_tap_tick(1, 0); // Select-DR-Scan
+  rvl_tap_tick(1, 1); // Select-DR-Scan
 
   rvl_tap_shift(old_dr, new_dr, dr_len);
 }
@@ -178,8 +178,8 @@ void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
 
   rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
 
-  rvl_tap_tick(1, 0); // Select-DR-Scan
-  rvl_tap_tick(1, 0); // Select-IR-Scan
+  rvl_tap_tick(1, 1); // Select-DR-Scan
+  rvl_tap_tick(1, 1); // Select-IR-Scan
 
   rvl_tap_shift(old_ir, new_ir, ir_len);
 }
@@ -187,9 +187,23 @@ void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
 void rvl_tap_go_idle(void)
 {
   int i;
-  for(i = 0; i < 10; i++){
-    rvl_tap_tick(1, 0);
+  for(i = 0; i < 6; i++){
+    rvl_tap_tick(1, 1);
   }
-  rvl_tap_tick(0, 0);
+  rvl_tap_tick(0, 1);
+
+  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
 }
 
+void rvl_tap_run(uint32_t ticks)
+{
+    uint32_t i;
+
+    rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+
+    for(i = 0; i < ticks; i++) {
+        rvl_tap_tick(0, 1);
+    }
+
+    rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+}

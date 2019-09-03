@@ -1,4 +1,4 @@
-#include "dtm.h"
+#include "v0p13/dtm.h"
 #include "rvl-tap.h"
 #include "rvl-assert.h"
 
@@ -16,45 +16,7 @@ static rvl_dtm_t rvl_dtm_i;
 #define self rvl_dtm_i
 
 
-#define RISCV_DTM_JTAG_REG_IDCODE           0x01
-#define RISCV_DTM_JTAG_REG_DTMCS            0x10
-#define RISCV_DTM_JTAG_REG_DMI              0x11
-#define RISCV_DTM_JTAG_REG_BYPASS           0x1f
-
-
-#define RISCV_DTMCS_DMI_RESET           (1 << 16)
-#define RISCV_DTMCS_DMI_HARD_RESET      (1 << 17)
-
-
-void rvl_dtm_init(void)
-{
-    PT_INIT(&self.pt);
-    self.last_jtag_reg = 0;
-
-    rvl_tap_init();
-    rvl_tap_go_idle();
-}
-
-
-PT_THREAD(rvl_dtm_idcode(uint32_t* idcode))
-{
-    PT_BEGIN(&self.pt);
-
-    if(self.last_jtag_reg != RISCV_DTM_JTAG_REG_IDCODE) {
-        self.in[0] = RISCV_DTM_JTAG_REG_IDCODE;
-        self.last_jtag_reg = RISCV_DTM_JTAG_REG_IDCODE;
-        rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
-    }
-
-    self.in[0] = 0;
-    rvl_tap_shift_dr(self.out, self.in, 32);
-    PT_YIELD(&self.pt);
-
-    *idcode = self.out[0];
-
-    PT_END(&self.pt);
-}
+#include "common/dtm.inc"
 
 
 PT_THREAD(rvl_dtm_dtmcs(uint32_t* dtmcs))
@@ -85,31 +47,6 @@ PT_THREAD(rvl_dtm_dtmcs(uint32_t* dtmcs))
     }
 
     rvl_assert(self.abits > 0 && self.abits <= 32);
-
-    PT_END(&self.pt);
-}
-
-
-
-PT_THREAD(rvl_dtm_dtmcs_dmireset(void))
-{
-    PT_BEGIN(&self.pt);
-
-    if(self.last_jtag_reg != RISCV_DTM_JTAG_REG_DTMCS) {
-        self.in[0] = RISCV_DTM_JTAG_REG_DTMCS;
-        self.last_jtag_reg = RISCV_DTM_JTAG_REG_DTMCS;
-        rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
-    }
-
-    self.in[0] = RISCV_DTMCS_DMI_RESET;
-    rvl_tap_shift_dr(self.out, self.in, 32);
-    PT_YIELD(&self.pt);
-
-    if(self.idle) {
-        rvl_tap_run(self.idle);
-        PT_YIELD(&self.pt);
-    }
 
     PT_END(&self.pt);
 }
@@ -170,13 +107,3 @@ PT_THREAD(rvl_dtm_dmi(uint32_t addr, uint32_t* data, uint32_t* op))
     PT_END(&self.pt);
 }
 
-
-PT_THREAD(rvl_dtm_run(uint32_t ticks))
-{
-    PT_BEGIN(&self.pt);
-
-    rvl_tap_run(ticks);
-    PT_YIELD(&self.pt);
-
-    PT_END(&self.pt);
-}

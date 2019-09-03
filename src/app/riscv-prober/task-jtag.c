@@ -1,8 +1,8 @@
 #include "pt.h"
 #include "rvl-jtag.h"
 #include "rvl-tap.h"
-#include "dtm.h"
-#include "dmi.h"
+#include "v0p11/dtm.h"
+#include "v0p11/dmi.h"
 #include "rvl-assert.h"
 
 

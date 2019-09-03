@@ -104,6 +104,7 @@ PT_THREAD(task_jtag_poll(void))
 //    PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmihardreset());
 
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(0x11, &self.dmstatus, &self.dmi_result));
+    rvl_assert(self.dmstatus == 0x3c21);
 //    PT_YIELD(&self.pt);
 
     //

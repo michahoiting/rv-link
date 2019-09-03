@@ -145,7 +145,11 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len)
     } else {
       tdo = rvl_tap_tick(0, tdi);
     }
-    old[i / 32] |= tdo << (i % 32);
+    if(tdo) {
+        old[i / 32] |= 1 << (i % 32);
+    } else {
+        old[i / 32] &= ~(1 << (i % 32));
+    }
   }
 
   rvl_tap_tick(1, 0); // Update-DR/IR

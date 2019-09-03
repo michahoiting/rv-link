@@ -46,9 +46,17 @@ void task_usb_init(void)
     usbd_init (&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
 }
 
+uint8_t usb_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
+uint8_t usb_send_buffer[CDC_ACM_DATA_PACKET_SIZE * 2];
 
 PT_THREAD(task_usb_poll(void))
 {
+    uint32_t i;
+    uint32_t len_recv;
+    uint32_t len_send;
+    uint8_t *p;
+    uint8_t *q;
+
     PT_BEGIN(&self.pt);
 
     PT_WAIT_UNTIL(&self.pt, USBD_CONFIGURED == USB_OTG_dev.dev.cur_status);
@@ -57,6 +65,38 @@ PT_THREAD(task_usb_poll(void))
 //    while (USBD_CONFIGURED != USB_OTG_dev.dev.cur_status) {
 //    }
 
+
+    while (1) {
+        packet_receive = 0;
+        usbd_ep_recev(&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, (uint8_t*)(usb_recv_buffer), CDC_ACM_DATA_PACKET_SIZE);
+
+        PT_WAIT_UNTIL(&self.pt, packet_receive == 1);
+
+        len_recv = receive_length;
+        p = usb_recv_buffer;
+        q = usb_send_buffer;
+        len_send = 0;
+        for(i = 0; i < len_recv; i++) {
+            if(p[i] >= 'A' && p[i] <= 'Z') {
+                q[len_send] = p[i] + ('a' - 'A');
+            } else if(p[i] >= 'a' && p[i] <= 'z') {
+                q[len_send] = p[i] - ('a' - 'A');
+            } else if(p[i] == '\r'){
+                q[len_send] = '\r';
+                len_send++;
+                q[len_send] = '\n';
+            } else {
+                q[len_send] = p[i];
+            }
+            len_send++;
+        }
+
+        packet_sent = 0;
+        usbd_ep_send(&USB_OTG_dev, CDC_ACM_DATA_IN_EP, (uint8_t*)(usb_send_buffer), len_send);
+
+        PT_WAIT_UNTIL(&self.pt, packet_sent == 1);
+    }
+#if 0
     while (1) {
         if (USBD_CONFIGURED == USB_OTG_dev.dev.cur_status) {
             if (1 == packet_receive && 1 == packet_sent) {
@@ -73,6 +113,6 @@ PT_THREAD(task_usb_poll(void))
         }
         PT_YIELD(&self.pt);
     }
-
+#endif
     PT_END(&self.pt);
 }

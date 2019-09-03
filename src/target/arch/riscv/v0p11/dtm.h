@@ -6,7 +6,7 @@
  */
 
 #include <stdint.h>
-#include "riscv-debug.h"
+#include "riscv-debug-spec.h"
 #include "pt.h"
 
 void rvl_dtm_init(void);

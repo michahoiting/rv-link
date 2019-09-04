@@ -19,6 +19,7 @@ link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/usbd_transc.c \
 link/gd32vf103c-start/gd32vf103_hw.c \
 link/gd32vf103c-start/gd32vf103_it.c \
 link/gd32vf103c-start/cdc_acm_core.c \
+link/gd32vf103c-start/usb-serial.c \
 link/gd32vf103c-start/rvl-jtag.c
 
 C_INCLUDES =  \

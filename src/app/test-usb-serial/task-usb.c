@@ -46,7 +46,7 @@ void task_usb_init(void)
     usbd_init (&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
 }
 
-uint8_t usb_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
+uint8_t usb_serial_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
 uint8_t usb_send_buffer[CDC_ACM_DATA_PACKET_SIZE * 2];
 
 PT_THREAD(task_usb_poll(void))
@@ -68,12 +68,12 @@ PT_THREAD(task_usb_poll(void))
 
     while (1) {
         packet_receive = 0;
-        usbd_ep_recev(&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, (uint8_t*)(usb_recv_buffer), CDC_ACM_DATA_PACKET_SIZE);
+        usbd_ep_recev(&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, (uint8_t*)(usb_serial_recv_buffer), CDC_ACM_DATA_PACKET_SIZE);
 
         PT_WAIT_UNTIL(&self.pt, packet_receive == 1);
 
         len_recv = receive_length;
-        p = usb_recv_buffer;
+        p = usb_serial_recv_buffer;
         q = usb_send_buffer;
         len_send = 0;
         for(i = 0; i < len_recv; i++) {

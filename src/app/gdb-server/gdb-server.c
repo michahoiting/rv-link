@@ -60,15 +60,15 @@ PT_THREAD(gdb_server_poll(void))
 }
 
 
+const char qSupported_res[] = "PacketSize=400;QStartNoAckMode+";
+
 PT_THREAD(gdb_server_cmd_q(void))
 {
-    size_t len;
-
     PT_BEGIN(&self.pt_cmd);
 
     if(strncmp(self.cmd, "qSupported:", self.cmd_len)){
-        len = gdb_server_strncpy(self.res, "PacketSize=400;QStartNoAckMode+", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
-        gdb_serial_response_done(len, GDB_SERIAL_SEND_FLAG_ALL);
+        strncpy(self.res, qSupported_res, GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+        gdb_serial_response_done(strlen(qSupported_res), GDB_SERIAL_SEND_FLAG_ALL);
     }
 
     PT_END(&self.pt_cmd);

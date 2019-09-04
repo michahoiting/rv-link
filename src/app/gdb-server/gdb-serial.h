@@ -9,6 +9,7 @@
 
 #define GDB_SERIAL_SEND_FLAG_DOLLAR             (1 << 0)
 #define GDB_SERIAL_SEND_FLAG_SHARP              (1 << 1)
+#define GDB_SERIAL_SEND_FLAG_ALL                (GDB_SERIAL_SEND_FLAG_DOLLAR | GDB_SERIAL_SEND_FLAG_SHARP)
 
 void gdb_serial_init(void);
 

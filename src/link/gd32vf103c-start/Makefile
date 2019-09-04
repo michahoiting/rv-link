@@ -2,6 +2,7 @@
 C_SOURCES =  \
 link/gd32vf103c-start/RISCV/gcc/init.c \
 link/gd32vf103c-start/RISCV/gcc/handlers.c \
+link/gd32vf103c-start/RISCV/stubs/sbrk.c \
 link/gd32vf103c-start/RISCV/drivers/n200_func.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/system_gd32vf103.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_gpio.c \

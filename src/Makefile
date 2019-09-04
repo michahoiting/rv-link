@@ -40,7 +40,8 @@ pt/timer.c
 
 C_INCLUDES +=  \
 -Icommon \
--Ipt
+-Ipt \
+-I.
 
 C_DEFS += \
 -DRVL_ASSERT_EN

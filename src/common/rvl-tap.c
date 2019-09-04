@@ -1,4 +1,4 @@
-#include "rvl-jtag.h"
+#include "interface/jtag.h"
 #include "rvl-tap.h"
 #include "rvl-assert.h"
 

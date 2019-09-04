@@ -1,6 +1,6 @@
 #include "gd32vf103.h"
 #include "riscv_encoding.h"
-#include "rvl-jtag.h"
+#include "interface/jtag.h"
 
 #define TCK_PORT    GPIOB
 #define TCK_PIN     GPIO_PIN_13

@@ -21,6 +21,7 @@ static gdb_server_t gdb_server_i;
 void gdb_server_init(void)
 {
     PT_INIT(&self.pt_server);
+    PT_INIT(&self.pt_cmd);
 }
 
 
@@ -41,7 +42,7 @@ PT_THREAD(gdb_server_poll(void))
         PT_WAIT_UNTIL(&self.pt_server, (self.cmd = gdb_serial_command_buffer()) != NULL);
         self.cmd_len = gdb_serial_command_length();
 
-        PT_WAIT_UNTIL(&self.pt_cmd, (self.res = gdb_serial_response_buffer()) != NULL);
+        PT_WAIT_UNTIL(&self.pt_server, (self.res = gdb_serial_response_buffer()) != NULL);
         self.res_len = 0;
 
         c = *self.cmd;
@@ -66,7 +67,7 @@ PT_THREAD(gdb_server_cmd_q(void))
 {
     PT_BEGIN(&self.pt_cmd);
 
-    if(strncmp(self.cmd, "qSupported:", self.cmd_len)){
+    if(strncmp(self.cmd, "qSupported:", 11) == 0){
         strncpy(self.res, qSupported_res, GDB_SERIAL_RESPONSE_BUFFER_SIZE);
         gdb_serial_response_done(strlen(qSupported_res), GDB_SERIAL_SEND_FLAG_ALL);
     }

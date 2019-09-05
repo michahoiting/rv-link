@@ -68,7 +68,7 @@ DUMP = $(PREFIX)objdump
 
 OPT = -Og
 
-CFLAGS += -Wall -fdata-sections -ffunction-sections
+CFLAGS += -Wall -fdata-sections -ffunction-sections -fshort-wchar
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 CFLAGS += -fstack-usage
 CFLAGS += -g $(OPT) $(C_DEFS) $(C_INCLUDES)

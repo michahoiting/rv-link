@@ -50,7 +50,7 @@ void            gdb_serial_response_done(size_t len, uint32_t send_flags);
 /*
  * 进入 NoAckMode
  */
-void            gdb_serial_no_ack_mode(void);
+void            gdb_serial_no_ack_mode(bool no_ack_mode);
 
 /*
  ******************************************************************************

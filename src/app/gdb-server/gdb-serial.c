@@ -134,11 +134,11 @@ void gdb_serial_response_done(size_t len, uint32_t send_flags)
     }
 
     if(send_flags & GDB_SERIAL_SEND_FLAG_SHARP) {
-        response.buffer[response.total_len] = '#';
+        response.buffer[response.total_len + response.index_start] = '#';
         response.total_len++;
 
         checksum = gdb_serial_checksum((const uint8_t*)&response.buffer[2], len);
-        snprintf(&response.buffer[response.total_len], 3, "%02x", checksum);
+        snprintf(&response.buffer[response.total_len + response.index_start], 3, "%02x", checksum);
         response.total_len += 2;
     }
 }
@@ -160,9 +160,9 @@ void gdb_serial_response_sent(void)
     response.gdb_server_own = true;
 }
 
-void gdb_serial_no_ack_mode(void)
+void gdb_serial_no_ack_mode(bool no_ack_mode)
 {
-    response.no_ack_mode = true;
+    response.no_ack_mode = no_ack_mode;
 }
 
 

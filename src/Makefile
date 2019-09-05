@@ -8,6 +8,8 @@ endif
 
 include link/$(LINK)/Makefile
 
+LINK_DEF_ = LINK_$(subst -,_,$(LINK))
+LINK_DEF = $(shell echo $(LINK_DEF_) | tr a-z A-Z)
 
 ###############################################################################
 #
@@ -17,6 +19,8 @@ endif
 
 include target/family/$(TARGET)/Makefile
 
+TARGET_DEF_ = TARGET_$(subst -,_,$(TARGET))
+TARGET_DEF = $(shell echo $(TARGET_DEF_) | tr a-z A-Z)
 
 ###############################################################################
 #
@@ -26,6 +30,8 @@ endif
 
 include app/$(APP)/Makefile
 
+APP_DEF_ = APP_$(subst -,_,$(APP))
+APP_DEF = $(shell echo $(APP_DEF_) | tr a-z A-Z)
 
 ###############################################################################
 #
@@ -44,6 +50,9 @@ C_INCLUDES +=  \
 -I.
 
 C_DEFS += \
+-D$(LINK_DEF) \
+-D$(TARGET_DEF) \
+-D$(APP_DEF) \
 -DRVL_ASSERT_EN
 
 ###############################################################################

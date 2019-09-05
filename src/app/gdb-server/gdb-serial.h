@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 #define GDB_SERIAL_COMMAND_BUFFER_SIZE          1024
 #define GDB_SERIAL_RESPONSE_BUFFER_SIZE         1024

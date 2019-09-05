@@ -244,11 +244,13 @@ usb_status usb_txfifo_write (usb_core_regs *usb_regs,
                              uint16_t byte_count)
 {
     uint32_t word_count = (byte_count + 3U) / 4U;
+    uint32_t word;
 
     __IO uint32_t *fifo = usb_regs->DFIFO[fifo_num];
 
     while (word_count-- > 0) {
-        *fifo = *((__packed uint32_t *)src_buf);
+        word = src_buf[0] | (src_buf[1] << 8) | (src_buf[2] << 16) | (src_buf[3] << 24);
+        *fifo = word;
 
         src_buf += 4U;
     }
@@ -267,11 +269,16 @@ usb_status usb_txfifo_write (usb_core_regs *usb_regs,
 void *usb_rxfifo_read (usb_core_regs *usb_regs, uint8_t *dest_buf, uint16_t byte_count)
 {
     uint32_t word_count = (byte_count + 3U) / 4U;
+    uint32_t word;
 
     __IO uint32_t *fifo = usb_regs->DFIFO[0];
 
     while (word_count-- > 0) {
-        *(__packed uint32_t *)dest_buf = *fifo;
+        word = *fifo;
+        dest_buf[0] = word & 0xff;
+        dest_buf[1] = (word >> 8) & 0xff;
+        dest_buf[2] = (word >> 16) & 0xff;
+        dest_buf[3] = (word >> 24) & 0xff;
 
         dest_buf += 4U;
     }

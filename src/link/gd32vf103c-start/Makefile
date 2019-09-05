@@ -44,7 +44,7 @@ AS_DEFS =
 
 PREFIX = riscv-none-embed-
 MACHINE = -march=rv32i -mabi=ilp32 -mcmodel=medany -msmall-data-limit=8
-CFLAGS = $(MACHINE) -includesys/cdefs.h
+CFLAGS = $(MACHINE)
 ASFLAGS = $(MACHINE)
 LDSCRIPT = link/gd32vf103c-start/RISCV/gcc/GD32VF103xB.lds
 LIBS = -nostartfiles

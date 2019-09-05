@@ -168,5 +168,13 @@ void gdb_serial_no_ack_mode(void)
 
 static uint8_t gdb_serial_checksum(const uint8_t* p, size_t len)
 {
-    return 0;
+    uint32_t checksum = 0;
+    size_t i;
+
+    for(i = 0; i < len; i++) {
+        checksum += p[i];
+    }
+    checksum &= 0xff;
+
+    return (uint8_t)checksum;
 }

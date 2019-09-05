@@ -5,6 +5,7 @@
 #include "drv_usb_hw.h"
 #include "cdc_acm_core.h"
 #include "pt.h"
+#include "interface/usb-serial.h"
 #include "gdb-serial.h"
 
 extern uint8_t packet_sent, packet_receive;
@@ -25,14 +26,14 @@ typedef struct usb_serial_s
 {
     struct pt pt_recv;
     struct pt pt_send;
-    const char *send_buffer;
+    const uint8_t *send_buffer;
     size_t send_len;
 }usb_serial_t;
 
 static usb_serial_t usb_serial_i;
 #define self usb_serial_i
 
-static char usb_serial_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
+static uint8_t usb_serial_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
 
 
 void usb_serial_init(void)
@@ -62,7 +63,7 @@ PT_THREAD(usb_serial_recv_poll(void))
 
         PT_WAIT_UNTIL(&self.pt_recv, packet_receive == 1);
 
-        PT_WAIT_UNTIL(&self.pt_recv, gdb_serial_command_recv(usb_serial_recv_buffer, receive_length));
+        PT_WAIT_UNTIL(&self.pt_recv, usb_serial_put_recv_data(usb_serial_recv_buffer, receive_length));
     }
 
     PT_END(&self.pt_recv);
@@ -76,13 +77,13 @@ PT_THREAD(usb_serial_send_poll(void))
     PT_WAIT_UNTIL(&self.pt_send, USBD_CONFIGURED == USB_OTG_dev.dev.cur_status);
 
     while (1) {
-        PT_WAIT_UNTIL(&self.pt_send, (self.send_buffer = gdb_serial_response_send(&self.send_len)) != NULL);
+        PT_WAIT_UNTIL(&self.pt_send, (self.send_buffer = usb_serial_get_send_data(&self.send_len)) != NULL);
 
         packet_sent = 0;
         usbd_ep_send(&USB_OTG_dev, CDC_ACM_DATA_IN_EP, (uint8_t*)(self.send_buffer), self.send_len);
 
         PT_WAIT_UNTIL(&self.pt_send, packet_sent == 1);
-        gdb_serial_response_sent();
+        usb_serial_data_sent();
     }
 
     PT_END(&self.pt_send);

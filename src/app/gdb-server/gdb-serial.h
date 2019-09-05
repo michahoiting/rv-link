@@ -15,11 +15,6 @@
 void gdb_serial_init(void);
 
 /*
- ******************************************************************************
- * interface for gdb server
- */
-
-/*
  * GDB Server 调用 gdb_serial_command_buffer 获得命令的首地址，不包括 '$'，
  * 如果返回 NULL 说明 USB Serial 真正接收命令，暂时不能被 GDB Server 使用
  */
@@ -52,28 +47,5 @@ void            gdb_serial_response_done(size_t len, uint32_t send_flags);
  * 进入 NoAckMode
  */
 void            gdb_serial_no_ack_mode(bool no_ack_mode);
-
-/*
- ******************************************************************************
- * interface for usb serial
- */
-/*
- * USB Serial 接收到数据后调用 gdb_serial_command_recv 传入数据，
- * 如果返回值为 false，那么 command 缓冲满了，稍候再试
- */
-bool            gdb_serial_command_recv(const char* buffer, size_t len);
-
-/*
- * USB Serial 任务检查是否由响应要发送，如果返回为 NULL ，说明没数据，非 NULL，说明有数据，
- * 数据长度有 len 返回
- */
-const char*     gdb_serial_response_send(size_t* len);
-
-/*
- * USB Serial 发送响应完成后调用 gdb_serial_response_sent
- */
-void            gdb_serial_response_sent(void);
-
-
 
 #endif /* __GDB_SERIAL_H__ */

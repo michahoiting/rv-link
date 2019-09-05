@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "interface/usb-serial.h"
 #include "gdb-serial.h"
 
 typedef struct gdb_serial_command_s
@@ -88,7 +89,7 @@ void gdb_serial_command_done(void)
 }
 
 
-bool gdb_serial_command_recv(const char* buffer, size_t len)
+bool usb_serial_put_recv_data(const uint8_t* buffer, size_t len)
 {
     if(command.gdb_server_own) {
         return false;
@@ -144,17 +145,17 @@ void gdb_serial_response_done(size_t len, uint32_t send_flags)
 }
 
 
-const char* gdb_serial_response_send(size_t* len)
+const uint8_t* usb_serial_get_send_data(size_t* len)
 {
     if(response.gdb_server_own) {
         return NULL;
     } else {
         *len = response.total_len;
-        return &response.buffer[response.index_start];
+        return (uint8_t*)(&response.buffer[response.index_start]);
     }
 }
 
-void gdb_serial_response_sent(void)
+void usb_serial_data_sent(void)
 {
     response.total_len = 0;
     response.gdb_server_own = true;

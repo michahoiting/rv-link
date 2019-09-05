@@ -6,7 +6,6 @@
 #include "cdc_acm_core.h"
 #include "pt.h"
 #include "interface/usb-serial.h"
-#include "gdb-serial.h"
 
 extern uint8_t packet_sent, packet_receive;
 extern uint32_t receive_length;

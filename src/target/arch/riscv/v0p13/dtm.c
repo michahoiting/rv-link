@@ -37,16 +37,12 @@ PT_THREAD(rvl_dtm_dtmcs(uint32_t* dtmcs))
     *dtmcs = self.out[0];
 
     self.version = (self.out[0]) & 0xf;
-    rvl_assert(self.version == RISCV_DEBUG_VERSION_V0P13);
-
     self.abits = (self.out[0] >> 4) & 0x3f;
     self.idle = (self.out[0] >> 12) & 0x7;
 
     if(self.idle > 0) {
         self.idle -= 1;
     }
-
-    rvl_assert(self.abits > 0 && self.abits <= 32);
 
     PT_END(&self.pt);
 }

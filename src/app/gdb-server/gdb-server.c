@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "interface/led.h"
 #include "gdb-server.h"
 #include "gdb-serial.h"
 
@@ -229,11 +230,12 @@ static void gdb_server_reply_empty(void)
 static void gdb_server_connected(void)
 {
     gdb_serial_no_ack_mode(false);
+    rvl_led_gdb_connect(1);
 }
 
 
 static void gdb_server_disconnected(void)
 {
-
+    rvl_led_gdb_connect(0);
 }
 

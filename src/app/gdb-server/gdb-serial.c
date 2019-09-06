@@ -66,7 +66,11 @@ const char* gdb_serial_command_buffer(void)
         command.gdb_server_own = true;
         command.cmd_len = command.index_sharp - command.index_dollar - 1;
         return &command.buffer[command.index_dollar + 1];
-    } else {
+    } else if(command.total_len == 1 && command.buffer[0] == '\x03') {
+        command.gdb_server_own = true;
+        command.cmd_len = 1;
+        return &command.buffer[0];
+    }else {
         return NULL;
     }
 }

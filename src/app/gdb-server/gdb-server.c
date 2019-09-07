@@ -5,6 +5,8 @@
 #include "riscv_encoding.h"
 #include "interface/led.h"
 #include "gdb-server.h"
+
+#include "interface/rvl-target.h"
 #include "gdb-serial.h"
 
 typedef int16_t gdb_server_tid_t;
@@ -21,6 +23,11 @@ typedef struct gdb_server_s
     bool gdb_connected;
     uint32_t target_pc;
     uint32_t continue_start;
+    rvl_target_addr_t mem_addr;
+    size_t mem_len;
+    uint8_t mem_buffer[GDB_SERIAL_RESPONSE_BUFFER_SIZE / 2];
+    int i;
+    rvl_target_reg_t regs[RVL_TARGET_REG_NUM];
 
     gdb_server_tid_t tid_g;
     gdb_server_tid_t tid_G;
@@ -36,10 +43,11 @@ static gdb_server_t gdb_server_i;
 PT_THREAD(gdb_server_cmd_q(void));
 PT_THREAD(gdb_server_cmd_Q(void));
 PT_THREAD(gdb_server_cmd_H(void));
-PT_THREAD(gdb_server_cmd_question_mark(void));
 PT_THREAD(gdb_server_cmd_g(void));
 PT_THREAD(gdb_server_cmd_k(void));
 PT_THREAD(gdb_server_cmd_c(void));
+PT_THREAD(gdb_server_cmd_m(void));
+PT_THREAD(gdb_server_cmd_question_mark(void));
 PT_THREAD(gdb_server_cmd_ctrl_c(void));
 
 PT_THREAD(gdb_server_check_target(void));
@@ -49,6 +57,11 @@ static void gdb_server_disconnected(void);
 
 static void gdb_server_reply_ok(void);
 static void gdb_server_reply_empty(void);
+
+static void bin_to_hex(const uint8_t *bin, char *hex, size_t nbyte);
+static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte);
+static void word_to_hex_le(uint32_t word, char *hex);
+static void hex_to_word_le(const char *hex, uint32_t *word);
 
 
 void gdb_server_init(void)
@@ -102,6 +115,8 @@ PT_THREAD(gdb_server_poll(void))
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_k());
             } else if(c == 'c') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_c());
+            } else if(c == 'm') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_m());
             } else {
                 gdb_server_reply_empty();
             }
@@ -220,12 +235,45 @@ PT_THREAD(gdb_server_cmd_g(void))
 
     PT_BEGIN(&self.pt_cmd);
 
-    for(i = 0; i < 32; i++) {
-        snprintf(&self.res[i * 8], GDB_SERIAL_RESPONSE_BUFFER_SIZE - i * 8, "%08x", i);
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_read_registers(&self.regs[0]));
+
+    for(i = 0; i < RVL_TARGET_REG_NUM; i++) {
+        word_to_hex_le(self.regs[i], &self.res[i * (RVL_TARGET_REG_WIDTH / 8 * 2)]);
     }
-    snprintf(&self.res[i * 8], GDB_SERIAL_RESPONSE_BUFFER_SIZE - i * 8, "%02x%02x%02x%02x",
-           (int)self.target_pc & 0xff, (int)(self.target_pc >> 8) & 0xff, (int)(self.target_pc >> 16) & 0xff, (int)(self.target_pc >> 24) & 0xff);
-    gdb_serial_response_done(8 * 33, GDB_SERIAL_SEND_FLAG_ALL);
+
+    gdb_serial_response_done(RVL_TARGET_REG_WIDTH / 8 * 2 * RVL_TARGET_REG_NUM, GDB_SERIAL_SEND_FLAG_ALL);
+
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
+ * ‘m addr,length’
+ * Read length addressable memory units starting at address addr.
+ * Note that addr may not be aligned to any particular boundary.
+ */
+PT_THREAD(gdb_server_cmd_m(void))
+{
+    char *p;
+
+    PT_BEGIN(&self.pt_cmd);
+
+    p = strchr(&self.cmd[1], ',');
+    p++;
+#if RVL_TARGET_ADDR_WIDTH == 32
+    sscanf(&self.cmd[1], "%x", (unsigned int*)(&self.mem_addr));
+#else
+#error
+#endif
+    sscanf(p, "%x", (unsigned int*)(&self.mem_len));
+    if(self.mem_len > sizeof(self.mem_buffer)) {
+        self.mem_len = sizeof(self.mem_buffer);
+    }
+
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_read_memory(self.mem_buffer, self.mem_addr, self.mem_len));
+
+    bin_to_hex(self.mem_buffer, self.res, self.mem_len);
+    gdb_serial_response_done(self.mem_len * 2, GDB_SERIAL_SEND_FLAG_ALL);
 
     PT_END(&self.pt_cmd);
 }
@@ -335,3 +383,81 @@ static void gdb_server_disconnected(void)
     self.gdb_connected = false;
 }
 
+
+static void bin_to_hex(const uint8_t *bin, char *hex, size_t nbyte)
+{
+    size_t i;
+    uint8_t hi;
+    uint8_t lo;
+
+    for(i = 0; i < nbyte; i++) {
+        hi = (*bin >> 4) & 0xf;
+        lo = *bin & 0xf;
+
+        if(hi < 10) {
+            *hex = '0' + hi;
+        } else {
+            *hex = 'a' + hi - 10;
+        }
+
+        hex++;
+
+        if(lo < 10) {
+            *hex = '0' + lo;
+        } else {
+            *hex = 'a' + lo - 10;
+        }
+
+        hex++;
+        bin++;
+    }
+}
+
+
+static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte)
+{
+    size_t i;
+    uint8_t hi, lo;
+    for(i = 0; i < nbyte; i++) {
+        if(hex[i * 2] <= '9') {
+            hi = hex[i * 2] - '0';
+        } else if(hex[i * 2] <= 'F') {
+            hi = hex[i * 2] - 'A' + 10;
+        } else {
+            hi = hex[i * 2] - 'a' + 10;
+        }
+
+        if(hex[i * 2 + 1] <= '9') {
+            lo = hex[i * 2 + 1] - '0';
+        } else if(hex[i * 2 + 1] <= 'F') {
+            lo = hex[i * 2 + 1] - 'A' + 10;
+        } else {
+            lo = hex[i * 2 + 1] - 'a' + 10;
+        }
+
+        bin[i] = (hi << 4) | lo;
+    }
+}
+
+
+static void word_to_hex_le(uint32_t word, char *hex)
+{
+    uint8_t bytes[4];
+
+    bytes[0] = word & 0xff;
+    bytes[1] = (word >> 8) & 0xff;
+    bytes[2] = (word >> 16) & 0xff;
+    bytes[3] = (word >> 24) & 0xff;
+
+    bin_to_hex(bytes, hex, 4);
+}
+
+
+static void hex_to_word_le(const char *hex, uint32_t *word)
+{
+    uint8_t bytes[4];
+
+    hex_to_bin(hex, bytes, 4);
+
+    *word = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
+}

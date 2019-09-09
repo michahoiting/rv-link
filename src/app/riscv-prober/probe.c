@@ -7,37 +7,24 @@
 #include "rvl-tap.h"
 #include "dtm.h"
 #include "dmi.h"
+#include "dm.h"
 #include "rvl-assert.h"
 
 
 typedef struct task_probe_s
 {
     struct pt pt;
+    bool probe_start;
     int i;
 
-    uint32_t old_reg[1];
-    uint32_t new_reg[1];
-
     rvl_dtm_idcode_t idcode;
-//    uint32_t idcode_version;
-//    uint32_t idcode_part_number;
-//    uint32_t idcode_manufid;
-//    uint32_t idcode_lsb;
-
     rvl_dtm_dtmcs_t dtmcs;
-//    uint32_t dtmcs_version;
-//    uint32_t dtmcs_abits;
-//    uint32_t dtmcs_dmistat;
-//    uint32_t dtmcs_idle;
-
-    rvl_dmi_reg_t dmstatus;
     uint32_t dmi_result;
+    riscv_dm_t dm;
 
     char serial_buffer[1024];
     bool serial_buffer_probe_own;
     size_t serial_data_len;
-
-    bool probe_start;
 }task_probe_t;
 
 static task_probe_t task_probe_i;
@@ -50,8 +37,15 @@ static task_probe_t task_probe_i;
         snprintf(self.serial_buffer, sizeof(self.serial_buffer), x); \
         self.serial_data_len = strlen(self.serial_buffer); \
         self.serial_buffer_probe_own = false; \
-    }while(0);
+    }while(0)
 
+#define exit() \
+        do { \
+            rvl_dmi_fini(); \
+            rvl_led_link_run(0); \
+            self.probe_start = false; \
+            PT_EXIT(&self.pt); \
+        }while(0)
 
 void task_probe_init(void)
 {
@@ -67,42 +61,53 @@ PT_THREAD(task_probe_poll(void))
     PT_BEGIN(&self.pt);
 
     PT_WAIT_UNTIL(&self.pt, self.probe_start);
-    rvl_led_link_run(1);
 
+    rvl_led_link_run(1);
     rvl_dmi_init();
 
-    // idcode
-    for(self.i = 0; self.i < 3; self.i++) {
-        PT_WAIT_THREAD(&self.pt, rvl_dtm_idcode(&self.idcode));
+    /*
+     * idcode *****************************************************************
+     */
+    PT_WAIT_THREAD(&self.pt, rvl_dtm_idcode(&self.idcode));
+
+    if(self.idcode.word == 0 || self.idcode.word == 0xffffffff) {
+        print("ERROR: bad idcode: 0x%08x\r\n", (int)self.idcode.word);
+        exit();
+    } else {
+        print("idcode: 0x%08x\r\n", (int)self.idcode.word);
+        print("idcode.version: %d\r\n", (int)self.idcode.version);
+        print("idcode.PartNumber: 0x%x\r\n", (int)self.idcode.part_number);
+        print("idcode.ManufId: 0x%x\r\n", (int)self.idcode.manuf_id);
     }
 
-//    rvl_assert(self.idcode[0] == 0x4e4796b);
-//    self.idcode_version = self.idcode[0] >> 28;
-//    self.idcode_part_number = (self.idcode[0] >> 12) & 0xffff;
-//    self.idcode_manufid = (self.idcode[0] >> 1) & 0x7ff;
-//    self.idcode_lsb = self.idcode[0] & 0x1;
-
-    print("IDCODE: %08x\r\n", (int)self.idcode.word);
-    print("DTM Version: %d\r\n", (int)self.idcode.version);
-
-    // dtmcs
-    for(self.i = 0; self.i < 3; self.i++) {
-        PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs(&self.dtmcs));
+    /*
+     * dtmcs ******************************************************************
+     */
+    PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs(&self.dtmcs));
+    if(self.dtmcs.word == 0 || self.dtmcs.word == 0xffffffff) {
+        print("ERROR: bad dtmcs: 0x%08x\r\n", (int)self.dtmcs.word);
+        exit();
+    } else {
+        print("dtmcs: 0x%08x\r\n", (int)self.dtmcs.word);
+        print("dtmcs.version: %d\r\n", (int)self.dtmcs.version);
+        if(self.dtmcs.version != RISCV_DEBUG_VERSION) {
+            print("ERROR: this prober only support dtmcs.version = %d, but the target's dtmcs.version = %d\r\n",
+                    RISCV_DEBUG_VERSION, (int)self.dtmcs.version);
+            exit();
+        }
+        print("dtmcs.abits: %d\r\n", (int)rvl_dtm_get_dtmcs_abits());
+        print("dtmcs.idle: %d\r\n", (int)rvl_dtm_get_dtmcs_idle);
     }
 
-//    rvl_assert(self.dtmcs[0] == 0x1450);
-//    self.dtmcs_version = self.dtmcs[0] & 0xf;
-//    self.dtmcs_abits = (self.dtmcs[0] >> 4) & 0x3f;
-//    self.dtmcs_dmistat = (self.dtmcs[0] >> 10) & 0x3;
-//    self.dtmcs_idle = (self.dtmcs[0] >> 12) & 0x7;
+#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read_vector(0, (rvl_dmi_reg_t*)(&self.dm), sizeof(self.dm) / sizeof(rvl_dmi_reg_t), &self.dmi_result));
+#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+#else
+#error
+#endif
 
-    // dmstatus
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(0x11, &self.dmstatus, &self.dmi_result));
-//    rvl_assert(self.dmstatus == 0x3c21);
-
-    rvl_led_link_run(0);
-    self.probe_start = false;
-
+    exit();
     PT_END(&self.pt);
 }
 

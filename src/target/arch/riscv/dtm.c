@@ -81,63 +81,40 @@ PT_THREAD(rvl_dtm_run(uint32_t ticks))
 }
 
 
+PT_THREAD(rvl_dtm_dtmcs(rvl_dtm_dtmcs_t* dtmcs))
+{
+    PT_BEGIN(&self.pt);
+
+    if(self.last_jtag_reg != RISCV_DTM_JTAG_REG_DTMCS) {
+        self.in[0] = RISCV_DTM_JTAG_REG_DTMCS;
+        self.last_jtag_reg = RISCV_DTM_JTAG_REG_DTMCS;
+        rvl_tap_shift_ir(self.out, self.in, 5);
+        PT_YIELD(&self.pt);
+    }
+
+    self.in[0] = 0;
+    rvl_tap_shift_dr(self.out, self.in, 32);
+    PT_YIELD(&self.pt);
+
+    dtmcs->word = self.out[0];
 
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
-PT_THREAD(rvl_dtm_dtmcs(rvl_dtm_dtmcs_t* dtmcs))
-{
-    PT_BEGIN(&self.pt);
-
-    if(self.last_jtag_reg != RISCV_DTM_JTAG_REG_DTMCS) {
-        self.in[0] = RISCV_DTM_JTAG_REG_DTMCS;
-        self.last_jtag_reg = RISCV_DTM_JTAG_REG_DTMCS;
-        rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
-    }
-
-    self.in[0] = 0;
-    rvl_tap_shift_dr(self.out, self.in, 32);
-    PT_YIELD(&self.pt);
-
-    dtmcs->word = self.out[0];
-
     self.abits = dtmcs->abits;
-    self.idle = dtmcs->idle;
-
-    if(self.idle > 0) {
-        self.idle -= 1;
-    }
-
-    PT_END(&self.pt);
-}
 #elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
-PT_THREAD(rvl_dtm_dtmcs(rvl_dtm_dtmcs_t* dtmcs))
-{
-    PT_BEGIN(&self.pt);
-
-    if(self.last_jtag_reg != RISCV_DTM_JTAG_REG_DTMCS) {
-        self.in[0] = RISCV_DTM_JTAG_REG_DTMCS;
-        self.last_jtag_reg = RISCV_DTM_JTAG_REG_DTMCS;
-        rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
-    }
-
-    self.in[0] = 0;
-    rvl_tap_shift_dr(self.out, self.in, 32);
-    PT_YIELD(&self.pt);
-
-    dtmcs->word = self.out[0];
-
     self.abits = dtmcs->loabits | (dtmcs->hiabits << 4);
-    self.idle = dtmcs->idle;
-    if(self.idle > 0) {
-        self.idle -= 1;
-    }
-
-    PT_END(&self.pt);
-}
 #else
 #error
 #endif
+
+    self.idle = dtmcs->idle;
+
+    if(self.idle > 0) {
+        self.idle -= 1;
+    }
+
+    PT_END(&self.pt);
+}
+
 
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
 PT_THREAD(rvl_dtm_dtmcs_dmihardreset(void))
@@ -165,8 +142,8 @@ PT_THREAD(rvl_dtm_dtmcs_dmihardreset(void))
 #endif
 
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
-PT_THREAD(rvl_dtm_dmi(uint32_t addr, uint32_t* data, uint32_t* op))
+
+PT_THREAD(rvl_dtm_dmi(uint32_t addr, rvl_dmi_reg_t* data, uint32_t* op))
 {
     PT_BEGIN(&self.pt);
 
@@ -181,53 +158,34 @@ PT_THREAD(rvl_dtm_dmi(uint32_t addr, uint32_t* data, uint32_t* op))
         PT_YIELD(&self.pt);
     }
 
+#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
     self.in[0] = (*data << 2) | (*op & 0x3);
     self.in[1] = (*data >> 30) | (addr << 2);
     rvl_tap_shift_dr(self.out, self.in, 32 + 2 + self.abits);
-    PT_YIELD(&self.pt);
-
-    if(self.idle) {
-        rvl_tap_run(self.idle);
-        PT_YIELD(&self.pt);
-    }
-
-    *op = self.out[0] & 0x3;
-    *data = (self.out[0] >> 2) | (self.out[1] << 30);
-
-    PT_END(&self.pt);
-}
 #elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
-PT_THREAD(rvl_dtm_dmi(uint32_t addr, uint32_t* data, uint32_t* op))
-{
-    PT_BEGIN(&self.pt);
-
-    rvl_assert(addr <= ((1 << self.abits) - 1));
-    rvl_assert(data != NULL);
-    rvl_assert(op != NULL && *op <= 3);
-
-    if(self.last_jtag_reg != RISCV_DTM_JTAG_REG_DMI) {
-        self.in[0] = RISCV_DTM_JTAG_REG_DMI;
-        self.last_jtag_reg = RISCV_DTM_JTAG_REG_DMI;
-        rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
-    }
-
     self.in[0] = (*data << 2) | (*op & 0x3);
-    self.in[1] = (*data >> 30) | (addr << 4);
+    self.in[1] = ((*data >> 30) & 0xf) | (addr << 4);
     rvl_tap_shift_dr(self.out, self.in, 34 + 2 + self.abits);
-    PT_YIELD(&self.pt);
-
-    if(self.idle) {
-        rvl_tap_run(self.idle);
-        PT_YIELD(&self.pt);
-    }
-
-    *op = self.out[0] & 0x3;
-    *data = (self.out[0] >> 2) | (self.out[1] << 30);
-
-    PT_END(&self.pt);
-}
 #else
 #error
 #endif
+    PT_YIELD(&self.pt);
+
+    if(self.idle) {
+        rvl_tap_run(self.idle);
+        PT_YIELD(&self.pt);
+    }
+
+#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+    *op = self.out[0] & 0x3;
+    *data = (self.out[0] >> 2) | (self.out[1] << 30);
+#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+    *op = self.out[0] & 0x3;
+    *data = (self.out[0] >> 2) | ((self.out[1] & 0xf) << 30);
+#else
+#error
+#endif
+
+    PT_END(&self.pt);
+}
 

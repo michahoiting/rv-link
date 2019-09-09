@@ -30,7 +30,7 @@ typedef struct task_probe_s
 //    uint32_t dtmcs_dmistat;
 //    uint32_t dtmcs_idle;
 
-    uint32_t dmstatus;
+    rvl_dmi_reg_t dmstatus;
     uint32_t dmi_result;
 
     char serial_buffer[1024];

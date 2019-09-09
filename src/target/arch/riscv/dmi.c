@@ -8,7 +8,7 @@ typedef struct rvl_dmi_s
 {
     struct pt pt;
     uint32_t i;
-    uint32_t data;
+    rvl_dmi_reg_t data;
     uint32_t op;
 }rvl_dmi_t;
 
@@ -49,7 +49,7 @@ PT_THREAD(rvl_dmi_nop(void))
 }
 
 
-PT_THREAD(rvl_dmi_read(uint32_t addr, uint32_t* data, uint32_t *result))
+PT_THREAD(rvl_dmi_read(uint32_t addr, rvl_dmi_reg_t* data, uint32_t *result))
 {
     PT_BEGIN(&self.pt);
 
@@ -86,7 +86,7 @@ PT_THREAD(rvl_dmi_read(uint32_t addr, uint32_t* data, uint32_t *result))
 }
 
 
-PT_THREAD(rvl_dmi_write(uint32_t addr, uint32_t data, uint32_t *result))
+PT_THREAD(rvl_dmi_write(uint32_t addr, rvl_dmi_reg_t data, uint32_t *result))
 {
     PT_BEGIN(&self.pt);
 
@@ -112,7 +112,8 @@ PT_THREAD(rvl_dmi_write(uint32_t addr, uint32_t data, uint32_t *result))
     PT_END(&self.pt);
 }
 
-PT_THREAD(rvl_dmi_read_vector(uint32_t start_addr, uint32_t* buffer, uint32_t len, uint32_t *result))
+
+PT_THREAD(rvl_dmi_read_vector(uint32_t start_addr, rvl_dmi_reg_t* buffer, uint32_t len, uint32_t *result))
 {
     PT_BEGIN(&self.pt);
 
@@ -141,7 +142,8 @@ PT_THREAD(rvl_dmi_read_vector(uint32_t start_addr, uint32_t* buffer, uint32_t le
     PT_END(&self.pt);
 }
 
-PT_THREAD(rvl_dmi_write_vector(uint32_t start_addr, const uint32_t* buffer, uint32_t len, uint32_t *result))
+
+PT_THREAD(rvl_dmi_write_vector(uint32_t start_addr, const rvl_dmi_reg_t* buffer, uint32_t len, uint32_t *result))
 {
     PT_BEGIN(&self.pt);
 

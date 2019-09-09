@@ -71,6 +71,15 @@ typedef struct rvl_dtm_dtmcs_s
 #endif
 
 
+#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+    typedef uint32_t rvl_dmi_reg_t;
+#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+    typedef uint64_t rvl_dmi_reg_t;
+#else
+#error
+#endif
+
+
 void rvl_dtm_init(void);
 PT_THREAD(rvl_dtm_idcode(rvl_dtm_idcode_t* idcode));
 PT_THREAD(rvl_dtm_dtmcs(rvl_dtm_dtmcs_t* dtmcs));
@@ -80,7 +89,7 @@ PT_THREAD(rvl_dtm_dtmcs_dmireset(void));
 PT_THREAD(rvl_dtm_dtmcs_dmihardreset(void));
 #endif
 
-PT_THREAD(rvl_dtm_dmi(uint32_t addr, uint32_t* data, uint32_t* op));
+PT_THREAD(rvl_dtm_dmi(uint32_t addr, rvl_dmi_reg_t* data, uint32_t* op));
 PT_THREAD(rvl_dtm_run(uint32_t ticks));
 
 

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
-#include "v0p11/dmi.h"
-#include "v0p11/dtm.h"
+#include "dmi.h"
+#include "dtm.h"
 #include "rvl-assert.h"
 
 typedef struct rvl_dmi_s
@@ -24,8 +24,8 @@ static rvl_dmi_t rvl_dmi_i;
 #define RISCV_DMI_RESULT_FAIL   2
 #define RISCV_DMI_RESULT_BUSY   3
 
-#ifndef RVL_DMI_RETRIES
-#define RVL_DMI_RETRIES         6
+#ifndef RVL_RISCV_DMI_RETRIES
+#define RVL_RISCV_DMI_RETRIES   6
 #endif
 
 void rvl_dmi_init(void)
@@ -58,7 +58,7 @@ PT_THREAD(rvl_dmi_read(uint32_t addr, uint32_t* data, uint32_t *result))
 
     PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(addr, &self.data, &self.op));
 
-    for(self.i = 0; self.i < RVL_DMI_RETRIES; self.i++) {
+    for(self.i = 0; self.i < RVL_RISCV_DMI_RETRIES; self.i++) {
         self.data = 0;
         self.op = RISCV_DMI_OP_NOP;
 

@@ -5,8 +5,8 @@
 #include "interface/usb-serial.h"
 #include "interface/led.h"
 #include "rvl-tap.h"
-#include "v0p11/dtm.h"
-#include "v0p11/dmi.h"
+#include "dtm.h"
+#include "dmi.h"
 #include "rvl-assert.h"
 
 
@@ -18,17 +18,17 @@ typedef struct task_probe_s
     uint32_t old_reg[1];
     uint32_t new_reg[1];
 
-    uint32_t idcode[1];
-    uint32_t idcode_version;
-    uint32_t idcode_part_number;
-    uint32_t idcode_manufid;
-    uint32_t idcode_lsb;
+    rvl_dtm_idcode_t idcode;
+//    uint32_t idcode_version;
+//    uint32_t idcode_part_number;
+//    uint32_t idcode_manufid;
+//    uint32_t idcode_lsb;
 
-    uint32_t dtmcs[1];
-    uint32_t dtmcs_version;
-    uint32_t dtmcs_abits;
-    uint32_t dtmcs_dmistat;
-    uint32_t dtmcs_idle;
+    rvl_dtm_dtmcs_t dtmcs;
+//    uint32_t dtmcs_version;
+//    uint32_t dtmcs_abits;
+//    uint32_t dtmcs_dmistat;
+//    uint32_t dtmcs_idle;
 
     uint32_t dmstatus;
     uint32_t dmi_result;
@@ -73,28 +73,28 @@ PT_THREAD(task_probe_poll(void))
 
     // idcode
     for(self.i = 0; self.i < 3; self.i++) {
-        PT_WAIT_THREAD(&self.pt, rvl_dtm_idcode(self.idcode));
+        PT_WAIT_THREAD(&self.pt, rvl_dtm_idcode(&self.idcode));
     }
 
 //    rvl_assert(self.idcode[0] == 0x4e4796b);
-    self.idcode_version = self.idcode[0] >> 28;
-    self.idcode_part_number = (self.idcode[0] >> 12) & 0xffff;
-    self.idcode_manufid = (self.idcode[0] >> 1) & 0x7ff;
-    self.idcode_lsb = self.idcode[0] & 0x1;
+//    self.idcode_version = self.idcode[0] >> 28;
+//    self.idcode_part_number = (self.idcode[0] >> 12) & 0xffff;
+//    self.idcode_manufid = (self.idcode[0] >> 1) & 0x7ff;
+//    self.idcode_lsb = self.idcode[0] & 0x1;
 
-    print("IDCODE: %08x\r\n", (int)self.idcode[0]);
-    print("DTM Version: %d\r\n", (int)self.idcode_version);
+    print("IDCODE: %08x\r\n", (int)self.idcode.word);
+    print("DTM Version: %d\r\n", (int)self.idcode.version);
 
     // dtmcs
     for(self.i = 0; self.i < 3; self.i++) {
-        PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs(self.dtmcs));
+        PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs(&self.dtmcs));
     }
 
 //    rvl_assert(self.dtmcs[0] == 0x1450);
-    self.dtmcs_version = self.dtmcs[0] & 0xf;
-    self.dtmcs_abits = (self.dtmcs[0] >> 4) & 0x3f;
-    self.dtmcs_dmistat = (self.dtmcs[0] >> 10) & 0x3;
-    self.dtmcs_idle = (self.dtmcs[0] >> 12) & 0x7;
+//    self.dtmcs_version = self.dtmcs[0] & 0xf;
+//    self.dtmcs_abits = (self.dtmcs[0] >> 4) & 0x3f;
+//    self.dtmcs_dmistat = (self.dtmcs[0] >> 10) & 0x3;
+//    self.dtmcs_idle = (self.dtmcs[0] >> 12) & 0x7;
 
     // dmstatus
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(0x11, &self.dmstatus, &self.dmi_result));

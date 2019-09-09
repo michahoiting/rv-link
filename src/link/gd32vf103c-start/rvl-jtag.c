@@ -23,6 +23,16 @@ void rvl_jtag_init(void)
     gpio_init(TDO_PORT, GPIO_MODE_IPU, GPIO_OSPEED_10MHZ, TDO_PIN);
 }
 
+
+void rvl_jtag_fini(void)
+{
+    gpio_init(TCK_PORT, GPIO_MODE_AIN, 0, TCK_PIN);
+    gpio_init(TMS_PORT, GPIO_MODE_AIN, 0, TMS_PIN);
+    gpio_init(TDI_PORT, GPIO_MODE_AIN, 0, TDI_PIN);
+    gpio_init(TDO_PORT, GPIO_MODE_AIN, 0, TDO_PIN);
+}
+
+
 void rvl_jtag_tms_put(int tms)
 {
     if (tms) {

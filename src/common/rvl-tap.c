@@ -2,13 +2,24 @@
 #include "rvl-tap.h"
 #include "rvl-assert.h"
 
+static rvl_tap_state_t rvl_tap_current_state;
+
 void rvl_tap_init(void)
 {
   rvl_jtag_init();
   rvl_jtag_tms_put(1);
   rvl_jtag_tdi_put(1);
   rvl_jtag_tck_put(0);
+
+  rvl_tap_current_state = RVL_TAP_STATE_TEST_LOGIC_RESET;
 }
+
+
+void rvl_tap_fini(void)
+{
+    rvl_jtag_fini();
+}
+
 
 int rvl_tap_tick(int tms, int tdi)
 {
@@ -32,8 +43,6 @@ int rvl_tap_tick(int tms, int tdi)
   return tdo;
 }
 
-
-static rvl_tap_state_t rvl_tap_current_state = RVL_TAP_STATE_TEST_LOGIC_RESET;
 
 rvl_tap_state_t rvl_tap_trace_state(int tms)
 {

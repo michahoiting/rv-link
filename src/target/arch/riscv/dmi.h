@@ -12,6 +12,7 @@
 
 
 void rvl_dmi_init(void);
+void rvl_dmi_fini(void);
 PT_THREAD(rvl_dmi_nop(void));
 PT_THREAD(rvl_dmi_read(uint32_t addr, rvl_dmi_reg_t* data, uint32_t *result));
 PT_THREAD(rvl_dmi_write(uint32_t addr, rvl_dmi_reg_t data, uint32_t *result));

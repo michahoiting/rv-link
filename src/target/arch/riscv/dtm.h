@@ -20,50 +20,44 @@
 #define RISCV_DTMCS_DMI_HARD_RESET      (1 << 17)
 
 
-typedef struct rvl_dtm_idcode_s {
-    union {
-        uint32_t word;
-        struct {
-            unsigned int fixed_one:     1;
-            unsigned int manuf_id:      11;
-            unsigned int part_number:   16;
-            unsigned int version:       4;
-        };
+typedef union rvl_dtm_idcode_u {
+    uint32_t word;
+    struct {
+        unsigned int fixed_one:     1;
+        unsigned int manuf_id:      11;
+        unsigned int part_number:   16;
+        unsigned int version:       4;
     };
 }rvl_dtm_idcode_t;
 
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
-typedef struct rvl_dtm_dtmcs_s
+typedef union rvl_dtm_dtmcs_u
 {
-    union {
-        uint32_t word;
-        struct {
-            unsigned int version:       4;
-            unsigned int abits:         6;
-            unsigned int dmistat:       2;
-            unsigned int idle:          3;
-            unsigned int reserved15:    1;
-            unsigned int dmireset:      1;
-            unsigned int dmihardreset:  1;
-            unsigned int reserved18:    14;
-        };
+    uint32_t word;
+    struct {
+        unsigned int version:       4;
+        unsigned int abits:         6;
+        unsigned int dmistat:       2;
+        unsigned int idle:          3;
+        unsigned int reserved15:    1;
+        unsigned int dmireset:      1;
+        unsigned int dmihardreset:  1;
+        unsigned int reserved18:    14;
     };
 }rvl_dtm_dtmcs_t;
 #elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
-typedef struct rvl_dtm_dtmcs_s
+typedef union rvl_dtm_dtmcs_s
 {
-    union {
-        uint32_t word;
-        struct {
-            unsigned int version:       4;
-            unsigned int loabits:       4;
-            unsigned int dmistat:       2;
-            unsigned int idle:          3;
-            unsigned int hiabits:       2;
-            unsigned int reserved15:    1;
-            unsigned int dmireset:      1;
-            unsigned int reserved17:    15;
-        };
+    uint32_t word;
+    struct {
+        unsigned int version:       4;
+        unsigned int loabits:       4;
+        unsigned int dmistat:       2;
+        unsigned int idle:          3;
+        unsigned int hiabits:       2;
+        unsigned int reserved15:    1;
+        unsigned int dmireset:      1;
+        unsigned int reserved17:    15;
     };
 }rvl_dtm_dtmcs_t;
 #else
@@ -81,6 +75,7 @@ typedef struct rvl_dtm_dtmcs_s
 
 
 void rvl_dtm_init(void);
+void rvl_dtm_fini(void);
 PT_THREAD(rvl_dtm_idcode(rvl_dtm_idcode_t* idcode));
 PT_THREAD(rvl_dtm_dtmcs(rvl_dtm_dtmcs_t* dtmcs));
 PT_THREAD(rvl_dtm_dtmcs_dmireset(void));
@@ -91,6 +86,8 @@ PT_THREAD(rvl_dtm_dtmcs_dmihardreset(void));
 
 PT_THREAD(rvl_dtm_dmi(uint32_t addr, rvl_dmi_reg_t* data, uint32_t* op));
 PT_THREAD(rvl_dtm_run(uint32_t ticks));
+uint32_t rvl_dtm_get_dtmcs_abits(void);
+uint32_t rvl_dtm_get_dtmcs_idle(void);
 
 
 

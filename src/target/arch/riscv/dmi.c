@@ -36,6 +36,12 @@ void rvl_dmi_init(void)
 }
 
 
+void rvl_dmi_fini(void)
+{
+    rvl_dtm_fini();
+}
+
+
 PT_THREAD(rvl_dmi_nop(void))
 {
     PT_BEGIN(&self.pt);

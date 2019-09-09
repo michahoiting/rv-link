@@ -2,6 +2,7 @@
 #define __INTERFACE_JTAG_H__
 
 void rvl_jtag_init(void);
+void rvl_jtag_fini(void);
 void rvl_jtag_tms_put(int tms);
 void rvl_jtag_tdi_put(int tdi);
 void rvl_jtag_tck_put(int tck);

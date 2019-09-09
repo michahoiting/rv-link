@@ -25,6 +25,12 @@ void rvl_dtm_init(void)
 }
 
 
+void rvl_dtm_fini(void)
+{
+    rvl_tap_fini();
+}
+
+
 PT_THREAD(rvl_dtm_idcode(rvl_dtm_idcode_t* idcode))
 {
     PT_BEGIN(&self.pt);
@@ -189,3 +195,14 @@ PT_THREAD(rvl_dtm_dmi(uint32_t addr, rvl_dmi_reg_t* data, uint32_t* op))
     PT_END(&self.pt);
 }
 
+
+uint32_t rvl_dtm_get_dtmcs_abits(void)
+{
+    return (uint32_t)self.abits;
+}
+
+
+uint32_t rvl_dtm_get_dtmcs_idle(void)
+{
+    return (uint32_t)self.idle;
+}

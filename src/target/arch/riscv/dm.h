@@ -278,6 +278,141 @@ typedef struct riscv_dm_s
 }riscv_dm_t;
 
 #elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+#define RISCV_DM_CONTROL        0x10 // Control (dmcontrol, at 0x10)
+#define RISCV_DM_INFO           0x11 // Info (dminfo, at 0x11)
+#define RISCV_DM_AUTH_DATA0     0x12 // Authentication Data (authdata0, at 0x12)
+#define RISCV_DM_AUTH_DATA1     0x13 // Authentication Data (authdata1, at 0x13)
+#define RISCV_DM_SER_DATA       0x14 // Serial Data (serdata, at 0x14)
+#define RISCV_DM_SER_STATUS     0x15 // Serial Status (serstatus, at 0x15)
+#define RISCV_DM_SB_ADDR0       0x16 // System Bus Address 31:0 (sbaddress0, at 0x16)
+#define RISCV_DM_SB_ADDR1       0x17 // System Bus Address 63:32 (sbaddress1, at 0x17)
+#define RISCV_DM_SB_DATA0       0x18 // System Bus Data 31:0 (sbdata0, at 0x18)
+#define RISCV_DM_SB_DATA1       0x19 // System Bus Data 63:32 (sbdata1, at 0x19)
+#define RISCV_DM_HALT_SUM       0x1b // Halt Notification Summary (haltsum, at 0x1b)
+#define RISCV_DM_SB_ADDR2       0x3d // System Bus Address 95:64 (sbaddress2, at 0x3d)
+#define RISCV_DM_SB_DATA2       0x3e // System Bus Data 95:64 (sbdata2, at 0x3e)
+#define RISCV_DM_SB_DATA3       0x3f // System Bus Data 127:96 (sbdata3, at 0x3f)
+
+typedef union riscv_dmcontrol_u
+{
+    rvl_dmi_reg_t reg;
+    struct {
+        unsigned int fullreset: 1;
+        unsigned int ndreset: 1;
+        unsigned int hartid: 10;
+        unsigned int access: 3;
+        unsigned int autoincrement: 1;
+        unsigned int serial: 3;
+        unsigned int buserror: 3;
+        unsigned int reserved22: 10;
+        unsigned int haltnot: 1;
+        unsigned int interrupt: 1;
+    };
+}riscv_dmcontrol_t;
+
+typedef union riscv_dminfo_u
+{
+    rvl_dmi_reg_t reg;
+    struct {
+        unsigned int loversion_1_0: 2;
+        unsigned int authtype: 2;
+        unsigned int authbusy: 1;
+        unsigned int authenticated: 1;
+        unsigned int loversion_3_2: 2;
+        unsigned int reserved8: 1;
+        unsigned int haltsum: 1;
+        unsigned int dramsize: 6;
+        unsigned int access8: 1;
+        unsigned int access16: 1;
+        unsigned int access32: 1;
+        unsigned int access64: 1;
+        unsigned int access128: 1;
+        unsigned int serialcount: 4;
+        unsigned int abussize: 7;
+    };
+}riscv_dminfo_t;
+
+typedef union riscv_serdata_u
+{
+    rvl_dmi_reg_t reg;
+    struct {
+        unsigned int data: 32;
+        unsigned int full_overflow: 1;
+        unsigned int write_valid: 1;
+    };
+}riscv_serdata_t;
+
+typedef union riscv_serstatus_u
+{
+    rvl_dmi_reg_t reg;
+    struct {
+        unsigned int full_overflow0: 1;
+        unsigned int valid0: 1;
+        unsigned int full_overflow1: 1;
+        unsigned int valid1: 1;
+        unsigned int full_overflow2: 1;
+        unsigned int valid2: 1;
+        unsigned int full_overflow3: 1;
+        unsigned int valid3: 1;
+        unsigned int full_overflow4: 1;
+        unsigned int valid4: 1;
+        unsigned int full_overflow5: 1;
+        unsigned int valid5: 1;
+        unsigned int full_overflow6: 1;
+        unsigned int valid6: 1;
+        unsigned int full_overflow7: 1;
+        unsigned int valid7: 1;
+    };
+}riscv_serstatus_t;
+
+typedef union riscv_sbaddress_u
+{
+    rvl_dmi_reg_t reg;
+    struct {
+        unsigned int data: 32;
+        unsigned int read: 1;
+        unsigned int busy: 1;
+    };
+}riscv_sbaddress_t;
+
+typedef union riscv_sbdata_u
+{
+    rvl_dmi_reg_t reg;
+    struct {
+        unsigned int data: 32;
+        unsigned int write_busy: 1;
+        unsigned int read_valid: 1;
+    };
+}riscv_sbdata_t;
+
+typedef union riscv_haltsum_u
+{
+    rvl_dmi_reg_t reg;
+    struct {
+        unsigned int ack: 32;
+        unsigned int serialvalid: 1;
+        unsigned int serialfull: 1;
+    };
+}riscv_haltsum_t;
+
+typedef struct riscv_dm_s
+{
+    rvl_dmi_reg_t dram[16];
+    riscv_dmcontrol_t dmcontrol;
+    riscv_dminfo_t dminfo;
+    rvl_dmi_reg_t authdata[2];
+    riscv_serdata_t serdata;
+    riscv_serstatus_t serstatus;
+    riscv_sbaddress_t sbaddress[2];
+    riscv_sbdata_t sbdata[2];
+    rvl_dmi_reg_t reserved_0x1a[1];
+    riscv_haltsum_t haltsum;
+    rvl_dmi_reg_t halt[33];
+    riscv_sbaddress_t sbaddress3;
+    riscv_sbdata_t sbdata3;
+    riscv_sbdata_t sbdata4;
+}riscv_dm_t;
+
 #else
 #error
 #endif

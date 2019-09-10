@@ -74,7 +74,7 @@ PT_THREAD(task_probe_poll(void))
         print("ERROR: bad idcode: 0x%08x\r\n", (int)self.idcode.word);
         exit();
     } else {
-        print("idcode: 0x%08x\r\n", (int)self.idcode.word);
+        print("\r\nidcode: 0x%08x\r\n", (int)self.idcode.word);
         print("idcode.version: %d\r\n", (int)self.idcode.version);
         print("idcode.part_number: 0x%x\r\n", (int)self.idcode.part_number);
         print("idcode.manuf_id: 0x%x\r\n", (int)self.idcode.manuf_id);
@@ -88,7 +88,7 @@ PT_THREAD(task_probe_poll(void))
         print("ERROR: bad dtmcs: 0x%08x\r\n", (int)self.dtmcs.word);
         exit();
     } else {
-        print("dtmcs: 0x%08x\r\n", (int)self.dtmcs.word);
+        print("\r\ndtmcs: 0x%08x\r\n", (int)self.dtmcs.word);
         print("dtmcs.version: %d\r\n", (int)self.dtmcs.version);
         if(self.dtmcs.version != RISCV_DEBUG_VERSION) {
             print("ERROR: this prober only support dtmcs.version = %d, but the target's dtmcs.version = %d\r\n",
@@ -96,7 +96,7 @@ PT_THREAD(task_probe_poll(void))
             exit();
         }
         print("dtmcs.abits: %d\r\n", (int)rvl_dtm_get_dtmcs_abits());
-        print("dtmcs.idle: %d\r\n", (int)rvl_dtm_get_dtmcs_idle);
+        print("dtmcs.idle: %d\r\n", (int)rvl_dtm_get_dtmcs_idle());
     }
 
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
@@ -104,7 +104,7 @@ PT_THREAD(task_probe_poll(void))
      * dmstatus ***************************************************************
      */
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus.reg), &self.dmi_result));
-    print("dmstatus: 0x%08x\r\n", (int)self.dm.dmstatus.reg);
+    print("\r\ndmstatus: 0x%08x\r\n", (int)self.dm.dmstatus.reg);
     print("dmstatus.version: %d\r\n", (int)self.dm.dmstatus.version);
     if(self.dm.dmstatus.version != RISCV_DEBUG_VERSION + 1) {
         print("ERROR: this prober only support dmstatus.version = %d, but the target's dmstatus.version = %d\r\n",
@@ -120,7 +120,7 @@ PT_THREAD(task_probe_poll(void))
      * hartinfo ***************************************************************
      */
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_HART_INFO, (rvl_dmi_reg_t*)(&self.dm.hartinfo.reg), &self.dmi_result));
-    print("hartinfo: 0x%08x\r\n", (int)self.dm.hartinfo.reg);
+    print("\r\nhartinfo: 0x%08x\r\n", (int)self.dm.hartinfo.reg);
     print("hartinfo.dataaddr: %d\r\n", (int)self.dm.hartinfo.dataaddr);
     print("hartinfo.datasize: %d\r\n", (int)self.dm.hartinfo.datasize);
     print("hartinfo.dataaccess: %d, %s\r\n", (int)self.dm.hartinfo.dataaccess,
@@ -131,7 +131,7 @@ PT_THREAD(task_probe_poll(void))
      * abstractcs *************************************************************
      */
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
-    print("abstractcs: 0x%08x\r\n", (int)self.dm.abstractcs.reg);
+    print("\r\nabstractcs: 0x%08x\r\n", (int)self.dm.abstractcs.reg);
     print("abstractcs.datacount : %d\r\n", (int)self.dm.abstractcs.datacount);
     print("abstractcs.progbufsize : %d\r\n", (int)self.dm.abstractcs.progbufsize);
 
@@ -139,7 +139,7 @@ PT_THREAD(task_probe_poll(void))
      * sbcs *******************************************************************
      */
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_SB_CS, (rvl_dmi_reg_t*)(&self.dm.sbcs.reg), &self.dmi_result));
-        print("sbcs: 0x%08x\r\n", (int)self.dm.sbcs.reg);
+        print("\r\nsbcs: 0x%08x\r\n", (int)self.dm.sbcs.reg);
         print("sbcs.sbaccess8 : %d\r\n", (int)self.dm.sbcs.sbaccess8);
         print("sbcs.sbaccess16 : %d\r\n", (int)self.dm.sbcs.sbaccess16);
         print("sbcs.sbaccess32 : %d\r\n", (int)self.dm.sbcs.sbaccess32);
@@ -151,11 +151,11 @@ PT_THREAD(task_probe_poll(void))
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read_vector(0, (rvl_dmi_reg_t*)(&self.dm), sizeof(self.dm) / sizeof(rvl_dmi_reg_t), &self.dmi_result));
 #elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_INFO, (rvl_dmi_reg_t*)(&self.dm.dminfo.reg), &self.dmi_result));
-        print("dminfo: 0x%08x\r\n", (int)self.dm.dminfo.reg);
-        print("dminfo.version: %d\r\n", (int)(self.dm.dminfo.loversion_1_0 | (self.dm.dminfo.loversion_1_0 << 2)));
+        print("\r\ndminfo: 0x%08x\r\n", (int)self.dm.dminfo.reg);
+        print("dminfo.version: %d\r\n", (int)(self.dm.dminfo.loversion_1_0 | (self.dm.dminfo.loversion_3_2 << 2)));
         print("dminfo.authtype: %d\r\n", (int)self.dm.dminfo.authtype);
         print("dminfo.authenticated: %d\r\n", (int)self.dm.dminfo.authenticated);
-        print("dminfo.dramsize: %d\r\n", (int)self.dm.dminfo.dramsize);
+        print("dminfo.dramsize: %d words\r\n", (int)self.dm.dminfo.dramsize + 1);
         print("dminfo.access8: %d\r\n", (int)self.dm.dminfo.access8);
         print("dminfo.access16: %d\r\n", (int)self.dm.dminfo.access16);
         print("dminfo.access32: %d\r\n", (int)self.dm.dminfo.access32);

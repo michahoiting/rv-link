@@ -150,6 +150,20 @@ PT_THREAD(task_probe_poll(void))
 
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read_vector(0, (rvl_dmi_reg_t*)(&self.dm), sizeof(self.dm) / sizeof(rvl_dmi_reg_t), &self.dmi_result));
 #elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_INFO, (rvl_dmi_reg_t*)(&self.dm.dminfo.reg), &self.dmi_result));
+        print("dminfo: 0x%08x\r\n", (int)self.dm.dminfo.reg);
+        print("dminfo.version: %d\r\n", (int)(self.dm.dminfo.loversion_1_0 | (self.dm.dminfo.loversion_1_0 << 2)));
+        print("dminfo.authtype: %d\r\n", (int)self.dm.dminfo.authtype);
+        print("dminfo.authenticated: %d\r\n", (int)self.dm.dminfo.authenticated);
+        print("dminfo.dramsize: %d\r\n", (int)self.dm.dminfo.dramsize);
+        print("dminfo.access8: %d\r\n", (int)self.dm.dminfo.access8);
+        print("dminfo.access16: %d\r\n", (int)self.dm.dminfo.access16);
+        print("dminfo.access32: %d\r\n", (int)self.dm.dminfo.access32);
+        print("dminfo.access64: %d\r\n", (int)self.dm.dminfo.access64);
+        print("dminfo.access128: %d\r\n", (int)self.dm.dminfo.access128);
+        print("dminfo.serialcount: %d\r\n", (int)self.dm.dminfo.serialcount);
+        print("dminfo.abussize: %d\r\n", (int)self.dm.dminfo.abussize);
+
 #else
 #error
 #endif

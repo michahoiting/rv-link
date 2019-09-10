@@ -2,117 +2,112 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "drv_usb_hw.h"
-#include "cdc_acm_core.h"
+#include "interface/usb-serial.h"
+#include "interface/led.h"
 #include "pt.h"
 
-
-extern uint8_t packet_sent, packet_receive;
-extern uint32_t receive_length;
-
-usb_core_driver USB_OTG_dev =
-{
-    .dev = {
-        .desc = {
-            .dev_desc       = (uint8_t *)&device_descriptor,
-            .config_desc    = (uint8_t *)&configuration_descriptor,
-            .strings        = usbd_strings,
-        }
-    }
-};
 
 typedef struct task_usb_s
 {
     struct pt pt;
+
+    char serial_buffer_rx[1024];
+    char serial_buffer_tx[1024];
+    bool serial_buffer_rx_own;
+    bool serial_buffer_tx_own;
+    size_t serial_rx_len;
+    size_t serial_tx_len;
 }task_usb_t;
 
 static task_usb_t task_usb_i;
 #define self task_usb_i
 
+
 void task_usb_init(void)
 {
     PT_INIT(&self.pt);
 
-    eclic_global_interrupt_enable();
-
-    eclic_priority_group_set(ECLIC_PRIGROUP_LEVEL2_PRIO2);
-
-    usb_rcu_config();
-
-    usb_timer_init();
-
-    usb_intr_config();
-
-    usbd_init (&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
+    self.serial_buffer_rx_own = false;
+    self.serial_buffer_tx_own = true;
+    self.serial_rx_len = 0;
 }
 
-uint8_t usb_serial_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
-uint8_t usb_send_buffer[CDC_ACM_DATA_PACKET_SIZE * 2];
 
 PT_THREAD(task_usb_poll(void))
 {
     uint32_t i;
-    uint32_t len_recv;
-    uint32_t len_send;
-    uint8_t *p;
-    uint8_t *q;
+    const char *p;
+    char *q;
 
     PT_BEGIN(&self.pt);
 
-    PT_WAIT_UNTIL(&self.pt, USBD_CONFIGURED == USB_OTG_dev.dev.cur_status);
-
-//    /* check if USB device is enumerated successfully */
-//    while (USBD_CONFIGURED != USB_OTG_dev.dev.cur_status) {
-//    }
-
-
     while (1) {
-        packet_receive = 0;
-        usbd_ep_recev(&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, (uint8_t*)(usb_serial_recv_buffer), CDC_ACM_DATA_PACKET_SIZE);
+        PT_WAIT_UNTIL(&self.pt, self.serial_rx_len > 0);
+        self.serial_buffer_rx_own = true;
 
-        PT_WAIT_UNTIL(&self.pt, packet_receive == 1);
+        PT_WAIT_UNTIL(&self.pt, self.serial_buffer_tx_own);
 
-        len_recv = receive_length;
-        p = usb_serial_recv_buffer;
-        q = usb_send_buffer;
-        len_send = 0;
-        for(i = 0; i < len_recv; i++) {
+        self.serial_tx_len = 0;
+        p = self.serial_buffer_rx;
+        q = self.serial_buffer_tx;
+
+        for(i = 0; i < self.serial_rx_len; i++) {
             if(p[i] >= 'A' && p[i] <= 'Z') {
-                q[len_send] = p[i] + ('a' - 'A');
+                q[self.serial_tx_len] = p[i] + ('a' - 'A');
             } else if(p[i] >= 'a' && p[i] <= 'z') {
-                q[len_send] = p[i] - ('a' - 'A');
+                q[self.serial_tx_len] = p[i] - ('a' - 'A');
             } else if(p[i] == '\r'){
-                q[len_send] = '\r';
-                len_send++;
-                q[len_send] = '\n';
+                q[self.serial_tx_len] = '\r';
+                self.serial_tx_len++;
+                q[self.serial_tx_len] = '\n';
             } else {
-                q[len_send] = p[i];
+                q[self.serial_tx_len] = p[i];
             }
-            len_send++;
+            self.serial_tx_len++;
         }
 
-        packet_sent = 0;
-        usbd_ep_send(&USB_OTG_dev, CDC_ACM_DATA_IN_EP, (uint8_t*)(usb_send_buffer), len_send);
+        self.serial_rx_len = 0;
+        self.serial_buffer_rx_own = false;
+        self.serial_buffer_tx_own = false;
+    }
 
-        PT_WAIT_UNTIL(&self.pt, packet_sent == 1);
-    }
-#if 0
-    while (1) {
-        if (USBD_CONFIGURED == USB_OTG_dev.dev.cur_status) {
-            if (1 == packet_receive && 1 == packet_sent) {
-                packet_sent = 0;
-                /* receive datas from the host when the last packet datas have sent to the host */
-                cdc_acm_data_receive(&USB_OTG_dev);
-            } else {
-                if (0 != receive_length) {
-                    /* send receive datas */
-                    cdc_acm_data_send(&USB_OTG_dev, receive_length);
-                    receive_length = 0;
-                }
-            }
-        }
-        PT_YIELD(&self.pt);
-    }
-#endif
     PT_END(&self.pt);
 }
+
+
+bool usb_serial_put_recv_data(const uint8_t* buffer, size_t len)
+{
+    if(self.serial_buffer_rx_own) {
+        return false;
+    } else {
+        if(sizeof(self.serial_buffer_rx) - self.serial_rx_len > len) {
+            rvl_led_link_run(1);
+            memcpy(&self.serial_buffer_rx[self.serial_rx_len], buffer, len);
+            self.serial_rx_len += len;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+const uint8_t* usb_serial_get_send_data(size_t* len)
+{
+    if(self.serial_buffer_tx_own) {
+        return NULL;
+    } else {
+        *len = self.serial_tx_len;
+        return (uint8_t*)self.serial_buffer_tx;
+    }
+}
+
+
+void usb_serial_data_sent(void)
+{
+    self.serial_buffer_tx_own = true;
+    rvl_led_link_run(0);
+}
+

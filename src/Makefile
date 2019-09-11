@@ -1,4 +1,26 @@
 
+###############################################################################
+# Verbosity control. Use  make V=1  to get verbose builds.
+
+ifeq ($(V),1)
+  TRACE_CC =
+  TRACE_LD =
+  TRACE_AR =
+  TRACE_AS =
+  TRACE_SIZE =
+  TRACE_COPY =
+  TRACE_DUMP =
+  Q=
+else
+  TRACE_CC   = @echo "  CC   " $<
+  TRACE_LD   = @echo "  LD   " $@
+  TRACE_AR   = @echo "  AR   " $@
+  TRACE_AS   = @echo "  AS   " $<
+  TRACE_SIZE = @echo "  SIZE " $@
+  TRACE_COPY = @echo "  COPY " $@
+  TRACE_DUMP = @echo "  DUMP " $@
+  Q=@
+endif
 
 ###############################################################################
 #
@@ -62,14 +84,12 @@ AS   = $(PREFIX)gcc -x assembler-with-cpp
 COPY = $(PREFIX)objcopy
 AR   = $(PREFIX)ar
 SIZE = $(PREFIX)size
-HEX  = $(COPY) -O ihex
-BIN  = $(COPY) -O binary -S
 DUMP = $(PREFIX)objdump
 
 OPT = -Og
 
 CFLAGS += -Wall -fdata-sections -ffunction-sections -fshort-wchar
-CFLAGS += -MMD -MF"$(@:%.o=%.d)" 
+CFLAGS += -MMD -MF"$(@:%.o=%.d)"
 CFLAGS += -fstack-usage
 CFLAGS += -g $(OPT) $(C_DEFS) $(C_INCLUDES)
 
@@ -83,7 +103,13 @@ LDFLAGS += -g $(OPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(EXE).map,--cref -
 ###############################################################################
 #
 
-all: $(OUTPUT_DIR)/$(EXE).elf $(OUTPUT_DIR)/$(EXE).hex $(OUTPUT_DIR)/$(EXE).bin $(BUILD_DIR)/$(EXE).disasm
+all: \
+$(OUTPUT_DIR)/$(EXE).elf \
+$(OUTPUT_DIR)/$(EXE).hex \
+$(OUTPUT_DIR)/$(EXE).bin \
+$(OUTPUT_DIR)/$(EXE).disasm \
+$(OUTPUT_DIR)/rv-link.elf \
+$(OUTPUT_DIR)/$(EXE).size
 
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
@@ -92,32 +118,43 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.S=.o)))
 vpath %.S $(sort $(dir $(ASM_SOURCES)))
 
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
-	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
+	$(TRACE_CC)
+	$(Q)$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR)
-	$(AS) -c $(ASFLAGS) $< -o $@
+	$(TRACE_AS)
+	$(Q)$(AS) -c $(ASFLAGS) $< -o $@
 
 $(OUTPUT_DIR)/$(EXE).elf: $(OBJECTS) Makefile link/$(LINK)/Makefile | $(OUTPUT_DIR)
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-	$(SIZE) $@
-	rm -f $(OUTPUT_DIR)/rv-link.elf
-	ln -s $(EXE).elf $(OUTPUT_DIR)/rv-link.elf
+	$(TRACE_LD)
+	$(Q)$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+
+$(OUTPUT_DIR)/$(EXE).size: $(OUTPUT_DIR)/$(EXE).elf | $(OUTPUT_DIR)
+	$(TRACE_SIZE)
+	$(Q)$(SIZE) $< | tee $@
+
+$(OUTPUT_DIR)/rv-link.elf: $(OUTPUT_DIR)/$(EXE).elf | $(OUTPUT_DIR)
+	$(Q)rm -f $(OUTPUT_DIR)/rv-link.elf
+	$(Q)ln -s $(EXE).elf $(OUTPUT_DIR)/rv-link.elf
 
 $(OUTPUT_DIR)/%.hex: $(OUTPUT_DIR)/%.elf | $(OUTPUT_DIR)
-	$(HEX) $< $@
-	
+	$(TRACE_COPY)
+	$(Q)$(COPY) -O ihex $< $@
+
 $(OUTPUT_DIR)/%.bin: $(OUTPUT_DIR)/%.elf | $(OUTPUT_DIR)
-	$(BIN) $< $@	
-	
-$(BUILD_DIR)/%.disasm: $(OUTPUT_DIR)/%.elf | $(BUILD_DIR)
-	$(DUMP) -d $< > $@	
-	
+	$(TRACE_COPY)
+	$(Q)$(COPY) -O binary -S $< $@
+
+$(OUTPUT_DIR)/%.disasm: $(OUTPUT_DIR)/%.elf | $(OUTPUT_DIR)
+	$(TRACE_DUMP)
+	$(Q)$(DUMP) -d $< > $@
+
 $(BUILD_DIR):
-	mkdir $@
+	$(Q)mkdir $@
 
 $(OUTPUT_DIR):
-	mkdir $@
+	$(Q)mkdir $@
 
 #######################################
 # clean up

@@ -69,11 +69,12 @@ DUMP = $(PREFIX)objdump
 OPT = -Og
 
 CFLAGS += -Wall -fdata-sections -ffunction-sections -fshort-wchar
-CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
+CFLAGS += -MMD -MF"$(@:%.o=%.d)" 
 CFLAGS += -fstack-usage
 CFLAGS += -g $(OPT) $(C_DEFS) $(C_INCLUDES)
 
 ASFLAGS += -Wall -fdata-sections -ffunction-sections
+ASFLAGS += -MMD -MF"$(@:%.o=%.d)" 
 ASFLAGS += -g $(OPT) $(C_DEFS) $(C_INCLUDES) $(AS_DEFS) $(AS_INCLUDES)
 
 LDFLAGS += -g $(OPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(EXE).map,--cref -Wl,--gc-sections
@@ -122,9 +123,9 @@ $(OUTPUT_DIR):
 # clean up
 #######################################
 clean:
-	-rm -fR .dep $(BUILD_DIR)
-  
+	-rm -fR $(BUILD_DIR)
+
 #######################################
 # dependencies
 #######################################
--include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
+-include  $(wildcard $(BUILD_DIR)/*.d)

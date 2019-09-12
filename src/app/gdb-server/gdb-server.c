@@ -49,6 +49,7 @@ PT_THREAD(gdb_server_cmd_H(void));
 PT_THREAD(gdb_server_cmd_g(void));
 PT_THREAD(gdb_server_cmd_k(void));
 PT_THREAD(gdb_server_cmd_c(void));
+PT_THREAD(gdb_server_cmd_s(void));
 PT_THREAD(gdb_server_cmd_m(void));
 PT_THREAD(gdb_server_cmd_p(void));
 PT_THREAD(gdb_server_cmd_question_mark(void));
@@ -63,9 +64,11 @@ static void gdb_server_reply_ok(void);
 static void gdb_server_reply_empty(void);
 
 static void bin_to_hex(const uint8_t *bin, char *hex, size_t nbyte);
-static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte);
 static void word_to_hex_le(uint32_t word, char *hex);
+#if 0
+static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte);
 static void hex_to_word_le(const char *hex, uint32_t *word);
+#endif
 
 
 void gdb_server_init(void)
@@ -123,6 +126,8 @@ PT_THREAD(gdb_server_poll(void))
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_m());
             } else if(c == 'p') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_p());
+            } else if(c == 's') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_s());
             } else {
                 gdb_server_reply_empty();
             }
@@ -371,6 +376,21 @@ PT_THREAD(gdb_server_cmd_c(void))
 
 
 /*
+ * ‘s [addr]’
+ * Single step, resuming at addr. If addr is omitted, resume at same address.
+ */
+PT_THREAD(gdb_server_cmd_s(void))
+{
+    PT_BEGIN(&self.pt_cmd);
+
+    strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+    gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
  * Ctrl+C
  */
 PT_THREAD(gdb_server_cmd_ctrl_c(void))
@@ -474,6 +494,19 @@ static void bin_to_hex(const uint8_t *bin, char *hex, size_t nbyte)
 }
 
 
+static void word_to_hex_le(uint32_t word, char *hex)
+{
+    uint8_t bytes[4];
+
+    bytes[0] = word & 0xff;
+    bytes[1] = (word >> 8) & 0xff;
+    bytes[2] = (word >> 16) & 0xff;
+    bytes[3] = (word >> 24) & 0xff;
+
+    bin_to_hex(bytes, hex, 4);
+}
+
+#if 0
 static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte)
 {
     size_t i;
@@ -500,19 +533,6 @@ static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte)
 }
 
 
-static void word_to_hex_le(uint32_t word, char *hex)
-{
-    uint8_t bytes[4];
-
-    bytes[0] = word & 0xff;
-    bytes[1] = (word >> 8) & 0xff;
-    bytes[2] = (word >> 16) & 0xff;
-    bytes[3] = (word >> 24) & 0xff;
-
-    bin_to_hex(bytes, hex, 4);
-}
-
-
 static void hex_to_word_le(const char *hex, uint32_t *word)
 {
     uint8_t bytes[4];
@@ -521,3 +541,4 @@ static void hex_to_word_le(const char *hex, uint32_t *word)
 
     *word = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
 }
+#endif

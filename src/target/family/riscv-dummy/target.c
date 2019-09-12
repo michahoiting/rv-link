@@ -33,6 +33,17 @@ PT_THREAD(rvl_target_read_registers(rvl_target_reg_t *regs))
 }
 
 
+PT_THREAD(rvl_target_read_register(rvl_target_reg_t *reg, int regnum))
+{
+    PT_BEGIN(&self.pt);
+
+    *reg = regnum;
+    PT_YIELD(&self.pt);
+
+    PT_END(&self.pt);
+}
+
+
 PT_THREAD(rvl_target_read_memory(uint8_t* mem, rvl_target_addr_t addr, size_t len))
 {
     PT_BEGIN(&self.pt);

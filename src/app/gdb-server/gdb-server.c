@@ -28,6 +28,8 @@ typedef struct gdb_server_s
     uint8_t mem_buffer[GDB_SERIAL_RESPONSE_BUFFER_SIZE / 2];
     int i;
     rvl_target_reg_t regs[RVL_TARGET_REG_NUM];
+    rvl_target_reg_t reg_tmp;
+    int reg_tmp_num;
 
     gdb_server_tid_t tid_g;
     gdb_server_tid_t tid_G;
@@ -48,6 +50,7 @@ PT_THREAD(gdb_server_cmd_g(void));
 PT_THREAD(gdb_server_cmd_k(void));
 PT_THREAD(gdb_server_cmd_c(void));
 PT_THREAD(gdb_server_cmd_m(void));
+PT_THREAD(gdb_server_cmd_p(void));
 PT_THREAD(gdb_server_cmd_question_mark(void));
 PT_THREAD(gdb_server_cmd_ctrl_c(void));
 
@@ -118,6 +121,8 @@ PT_THREAD(gdb_server_poll(void))
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_c());
             } else if(c == 'm') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_m());
+            } else if(c == 'p') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_p());
             } else {
                 gdb_server_reply_empty();
             }
@@ -277,6 +282,26 @@ PT_THREAD(gdb_server_cmd_g(void))
     }
 
     gdb_serial_response_done(RVL_TARGET_REG_WIDTH / 8 * 2 * RVL_TARGET_REG_NUM, GDB_SERIAL_SEND_FLAG_ALL);
+
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
+ * ‘p n’
+ * Read the value of register n; n is in hex.
+ */
+PT_THREAD(gdb_server_cmd_p(void))
+{
+    PT_BEGIN(&self.pt_cmd);
+
+    sscanf(&self.cmd[1], "%x", &self.reg_tmp_num);
+
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_read_register(&self.reg_tmp, self.reg_tmp_num));
+
+    word_to_hex_le(self.reg_tmp, &self.res[0]);
+
+    gdb_serial_response_done(RVL_TARGET_REG_WIDTH / 8 * 2, GDB_SERIAL_SEND_FLAG_ALL);
 
     PT_END(&self.pt_cmd);
 }

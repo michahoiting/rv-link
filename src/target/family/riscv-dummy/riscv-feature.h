@@ -3,6 +3,9 @@
 
 #define RVL_TARGET_RISCV_FEATURE_CSR
 #define RVL_TARGET_RISCV_FEATURE_CSR_UMODE
+#define RVL_TARGET_RISCV_FEATURE_CSR_DMODE
+#define RVL_TARGET_RISCV_FEATURE_VIRTUAL
+
 #define RVL_TARGET_RISCV_FEATURE_CSR_CUSTOM \
         "<reg name=\"pushmcause\" bitsize=\"32\" regnum=\"2030\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
         "<reg name=\"pushmepc\" bitsize=\"32\" regnum=\"2031\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \

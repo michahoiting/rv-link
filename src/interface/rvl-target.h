@@ -49,5 +49,7 @@ PT_THREAD(rvl_target_write_registers(const rvl_target_reg_t *regs));
 PT_THREAD(rvl_target_read_memory(uint8_t* mem, rvl_target_addr_t addr, size_t len));
 PT_THREAD(rvl_target_write_memory(const uint8_t* mem, rvl_target_addr_t addr, size_t len));
 
+const char *rvl_target_get_target_xml(void);
+size_t rvl_target_get_target_xml_len(void);
 
 #endif // __INTERFACE_GDB_CMD_H__

@@ -41,6 +41,7 @@ static gdb_server_t gdb_server_i;
 
 
 PT_THREAD(gdb_server_cmd_q(void));
+void gdb_server_cmd_qxfer_features_read_target_xml(void);
 PT_THREAD(gdb_server_cmd_Q(void));
 PT_THREAD(gdb_server_cmd_H(void));
 PT_THREAD(gdb_server_cmd_g(void));
@@ -129,7 +130,7 @@ PT_THREAD(gdb_server_poll(void))
 }
 
 
-const char qSupported_res[] = "PacketSize=400;QStartNoAckMode+";
+const char qSupported_res[] = "PacketSize=405;QStartNoAckMode+;qXfer:features:read+";
 
 
 /*
@@ -144,11 +145,45 @@ PT_THREAD(gdb_server_cmd_q(void))
         gdb_server_connected();
         strncpy(self.res, qSupported_res, GDB_SERIAL_RESPONSE_BUFFER_SIZE);
         gdb_serial_response_done(strlen(qSupported_res), GDB_SERIAL_SEND_FLAG_ALL);
+    } else if(strncmp(self.cmd, "qXfer:features:read:target.xml:", 31) == 0){
+        gdb_server_cmd_qxfer_features_read_target_xml();
     } else {
         gdb_server_reply_empty();
     }
 
     PT_END(&self.pt_cmd);
+}
+
+
+/*
+ * qXfer:features:read:target.xml
+ */
+void gdb_server_cmd_qxfer_features_read_target_xml(void)
+{
+    size_t target_xml_len;
+    const char *target_xml_str;
+    unsigned int read_addr;
+    unsigned int read_len;
+
+
+    sscanf(&self.cmd[31], "%x,%x", &read_addr, &read_len);
+
+    if(read_len > GDB_SERIAL_RESPONSE_BUFFER_SIZE) {
+        read_len = GDB_SERIAL_RESPONSE_BUFFER_SIZE;
+    }
+
+    target_xml_len = rvl_target_get_target_xml_len();
+
+    if(read_len >= target_xml_len - read_addr) {
+        read_len = target_xml_len - read_addr;
+        self.res[0] = 'l';
+    } else {
+        self.res[0] = 'm';
+    }
+
+    target_xml_str = rvl_target_get_target_xml();
+    strncpy(&self.res[1], &target_xml_str[read_addr], read_len);
+    gdb_serial_response_done(read_len + 1, GDB_SERIAL_SEND_FLAG_ALL);
 }
 
 

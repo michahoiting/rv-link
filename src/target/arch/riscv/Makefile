@@ -1,4 +1,5 @@
 C_SOURCES +=  \
+target/arch/riscv/target-xml.c \
 target/arch/riscv/dtm.c \
 target/arch/riscv/dmi.c \
 target/arch/riscv/dm.c

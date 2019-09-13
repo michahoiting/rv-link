@@ -47,7 +47,7 @@ TARGET_DEF = $(shell echo $(TARGET_DEF_) | tr a-z A-Z)
 ###############################################################################
 #
 ifeq ($(APP),)
-	APP = riscv-prober
+	APP = gdb-server
 endif
 
 include app/$(APP)/Makefile
@@ -59,7 +59,12 @@ APP_DEF = $(shell echo $(APP_DEF_) | tr a-z A-Z)
 #
 BUILD_DIR = ../build
 OUTPUT_DIR = ../output
-EXE = $(LINK)+$(APP)+$(TARGET)
+
+ifeq ($(APP),gdb-server)
+	EXE = $(LINK)+$(TARGET)
+else
+	EXE = $(LINK)+$(TARGET)+$(APP)
+endif
 
 
 C_SOURCES +=  \

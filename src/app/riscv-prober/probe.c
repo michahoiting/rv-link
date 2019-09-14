@@ -25,6 +25,9 @@ typedef struct task_probe_s
     char serial_buffer[1024];
     bool serial_buffer_probe_own;
     size_t serial_data_len;
+    int tapnum;
+    int tap;
+    uint8_t irs[8];
 }task_probe_t;
 
 static task_probe_t task_probe_i;
@@ -53,17 +56,86 @@ void task_probe_init(void)
 
     self.serial_buffer_probe_own = true;
     self.probe_start = false;
+    self.tapnum = 0;
+    self.tap = 0;
 }
 
 
 PT_THREAD(task_probe_poll(void))
 {
+    uint32_t ir_in = 0xffffffff;
+    uint32_t ir_out;
+    static int ir_pre, dr_pre, ir_post, dr_post;
+    static int i;
+
     PT_BEGIN(&self.pt);
 
     PT_WAIT_UNTIL(&self.pt, self.probe_start);
 
     rvl_led_link_run(1);
     rvl_dmi_init();
+
+    if(self.tap == 0) {
+        self.tapnum = 0;
+        print("\r\n\r\nfinding TAPs..................................................\r\n");
+
+        rvl_tap_shift_ir(&ir_out, &ir_in, 32);
+        for(i = 0; i < 31; i++) {
+            switch(ir_out & 0x3) {
+            case 0x0:
+            case 0x2:
+                self.irs[self.tapnum - 1]++;
+                break;
+            case 0x1:
+                self.tapnum++;
+                self.irs[self.tapnum - 1] = 1;
+                break;
+            case 0x3:
+                break;
+            }
+            ir_out >>= 1;
+        }
+
+        if(self.tapnum == 0) {
+            print("ERROR: can not found any TAP!\r\n");
+            exit();
+        } else {
+            print("found %d TAP(s)\r\n", self.tapnum);
+            for(i = 0; i < self.tapnum; i++) {
+                print("  TAP%d ir len: %d\r\n", i, self.irs[i]);
+            }
+        }
+    }
+
+    if(self.tap < self.tapnum) {
+        ir_pre = 0;
+        dr_pre = 0;
+        ir_post = 0;
+        dr_post = 0;
+
+        for(i = 0; i < self.tap; i++) {
+            ir_pre += self.irs[i];
+            dr_pre++;
+        }
+
+        for(i = self.tap + 1; i < self.tapnum; i++) {
+            ir_post += self.irs[i];
+            dr_post++;
+        }
+
+        print("\r\n\r\nTAP%d config ==================================================\r\n", self.tap);
+        print("  ir pre: %d, ir_post: %d\r\n  dr_pre: %d, dr_post: %d\r\n",
+                ir_pre, ir_post, dr_pre, dr_post);
+        rvl_tap_config(ir_pre, ir_post, dr_pre, dr_post);
+
+        self.tap++;
+        if(self.tap == self.tapnum) {
+            self.tap = 0;
+        }
+    }
+
+//    rvl_tap_config(0, 5, 0, 1);
+
 
     /*
      * idcode *****************************************************************

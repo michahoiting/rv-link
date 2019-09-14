@@ -3,6 +3,10 @@
 #include "rvl-assert.h"
 
 static rvl_tap_state_t rvl_tap_current_state;
+static uint8_t rvl_tap_ir_pre;
+static uint8_t rvl_tap_ir_post;
+static uint8_t rvl_tap_dr_pre;
+static uint8_t rvl_tap_dr_post;
 
 void rvl_tap_init(void)
 {
@@ -12,6 +16,10 @@ void rvl_tap_init(void)
   rvl_jtag_tck_put(0);
 
   rvl_tap_current_state = RVL_TAP_STATE_TEST_LOGIC_RESET;
+  rvl_tap_ir_pre = 0;
+  rvl_tap_ir_post = 0;
+  rvl_tap_dr_pre = 0;
+  rvl_tap_dr_post = 0;
 }
 
 
@@ -129,7 +137,7 @@ rvl_tap_state_t rvl_tap_trace_state(int tms)
   return rvl_tap_current_state;
 }
 
-void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len)
+void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len, uint8_t pre, uint8_t post)
 {
   // Start state: Select-DR-Scan/Select-IR-Scan
   // End state: Run-Test/Idle
@@ -147,9 +155,13 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len)
   rvl_tap_tick(0, 1); // Capture-DR/IR
   rvl_tap_tick(0, 1); // Shift-DR/IR
 
+  for(i = 0; i < pre; i++) {
+      rvl_tap_tick(0, 1);
+  }
+
   for(i = 0; i < len; i++) {
     tdi = (new[i / 32] >> (i % 32)) & 1;
-    if(i == len - 1) {
+    if(i == len - 1 && post == 0) {
       tdo = rvl_tap_tick(1, tdi); // Exit1-DR/IR
     } else {
       tdo = rvl_tap_tick(0, tdi);
@@ -159,6 +171,14 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len)
     } else {
         old[i / 32] &= ~(1 << (i % 32));
     }
+  }
+
+  for(i = 0; i < post; i++) {
+      if(i == post - 1) {
+          rvl_tap_tick(1, 1); // Exit1-DR/IR
+      } else {
+          rvl_tap_tick(0, 1);
+      }
   }
 
   rvl_tap_tick(1, 1); // Update-DR/IR
@@ -177,7 +197,7 @@ void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len)
 
   rvl_tap_tick(1, 1); // Select-DR-Scan
 
-  rvl_tap_shift(old_dr, new_dr, dr_len);
+  rvl_tap_shift(old_dr, new_dr, dr_len, rvl_tap_dr_pre, rvl_tap_dr_post);
 }
 
 void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
@@ -190,7 +210,7 @@ void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
   rvl_tap_tick(1, 1); // Select-DR-Scan
   rvl_tap_tick(1, 1); // Select-IR-Scan
 
-  rvl_tap_shift(old_ir, new_ir, ir_len);
+  rvl_tap_shift(old_ir, new_ir, ir_len, rvl_tap_ir_pre, rvl_tap_ir_post);
 }
 
 void rvl_tap_go_idle(void)
@@ -215,4 +235,13 @@ void rvl_tap_run(uint32_t ticks)
     }
 
     rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+}
+
+
+void rvl_tap_config(uint8_t ir_pre, uint8_t ir_post, uint8_t dr_pre, uint8_t dr_post)
+{
+    rvl_tap_ir_pre = ir_pre;
+    rvl_tap_ir_post = ir_post;
+    rvl_tap_dr_pre = dr_pre;
+    rvl_tap_dr_post = dr_post;
 }

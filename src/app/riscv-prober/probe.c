@@ -36,6 +36,7 @@ static task_probe_t task_probe_i;
 #define self task_probe_i
 
 
+#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
 static const char * cmd_err_msg[] = {
         "0 (none)",
         "1 (busy)",
@@ -46,6 +47,7 @@ static const char * cmd_err_msg[] = {
         "6 (fixme)",
         "7 (other)"
 };
+#endif
 
 
 #define print(x...) \

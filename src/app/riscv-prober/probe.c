@@ -8,6 +8,7 @@
 #include "dtm.h"
 #include "dmi.h"
 #include "dm.h"
+#include "opcodes.h"
 #include "rvl-assert.h"
 
 
@@ -34,6 +35,18 @@ static task_probe_t task_probe_i;
 #define self task_probe_i
 
 
+static const char * cmd_err_msg[] = {
+        "0 (none)",
+        "1 (busy)",
+        "2 (not supported)",
+        "3 (exception)",
+        "4 (halt/resume)",
+        "5 (bus)",
+        "6 (fixme)",
+        "7 (other)"
+};
+
+
 #define print(x...) \
     do { \
         PT_WAIT_UNTIL(&self.pt, self.serial_buffer_probe_own); \
@@ -49,6 +62,7 @@ static task_probe_t task_probe_i;
             self.probe_start = false; \
             PT_EXIT(&self.pt); \
         }while(0)
+
 
 void task_probe_init(void)
 {
@@ -75,6 +89,9 @@ PT_THREAD(task_probe_poll(void))
     rvl_led_link_run(1);
     rvl_dmi_init();
 
+    /*
+     * find all TAPs
+     */
     if(self.tap == 0) {
         self.tapnum = 0;
         print("\r\n\r\nfinding TAPs..................................................\r\n");
@@ -134,9 +151,6 @@ PT_THREAD(task_probe_poll(void))
         }
     }
 
-//    rvl_tap_config(0, 5, 0, 1);
-
-
     /*
      * idcode *****************************************************************
      */
@@ -189,6 +203,33 @@ PT_THREAD(task_probe_poll(void))
     print("dmstatus.impebreak: %d\r\n", (int)self.dm.dmstatus.impebreak);
 
     /*
+     * dmcontrol ***************************************************************
+     */
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_CONTROL, (rvl_dmi_reg_t*)(&self.dm.dmcontrol.reg), &self.dmi_result));
+    print("\r\ndmcontrol: 0x%08x\r\n", (int)self.dm.dmcontrol.reg);
+    print("dmcontrol.dmactive: %d\r\n", (int)self.dm.dmcontrol.dmactive);
+
+    if(!self.dm.dmcontrol.dmactive) {
+        self.dm.dmcontrol.reg = 0;
+        self.dm.dmcontrol.dmactive = 1;
+        print("active dm...\r\n");
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
+
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_CONTROL, (rvl_dmi_reg_t*)(&self.dm.dmcontrol.reg), &self.dmi_result));
+        print("dmcontrol: 0x%08x\r\n", (int)self.dm.dmcontrol.reg);
+        print("dmcontrol.dmactive: %d\r\n", (int)self.dm.dmcontrol.dmactive);
+    }
+
+    print("halt hart...\r\n");
+    self.dm.dmcontrol.haltreq = 1;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus.reg), &self.dmi_result));
+    print("dmstatus: 0x%08x\r\n", (int)self.dm.dmstatus.reg);
+    print("dmstatus.anyhalted: %d\r\n", (int)self.dm.dmstatus.anyhalted);
+    print("dmstatus.allhalted: %d\r\n", (int)self.dm.dmstatus.allhalted);
+
+    /*
      * hartinfo ***************************************************************
      */
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_HART_INFO, (rvl_dmi_reg_t*)(&self.dm.hartinfo.reg), &self.dmi_result));
@@ -220,7 +261,159 @@ PT_THREAD(task_probe_poll(void))
         print("sbcs.sbasize : %d bits\r\n", (int)self.dm.sbcs.sbasize);
         print("sbcs.sbversion : %d\r\n", (int)self.dm.sbcs.sbversion);
 
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_read_vector(0, (rvl_dmi_reg_t*)(&self.dm), sizeof(self.dm) / sizeof(rvl_dmi_reg_t), &self.dmi_result));
+    /*
+     * read GPR
+     */
+    print("\r\nread x1\r\n");
+    if(self.dm.abstractcs.cmderr) {
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+    }
+
+    self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+    self.dm.command_access_register.aarsize = 2;
+    self.dm.command_access_register.aarpostincrement = 0;
+    self.dm.command_access_register.postexec = 0;
+    self.dm.command_access_register.write = 0;
+    self.dm.command_access_register.transfer = 1;
+    self.dm.command_access_register.regno = 0x1001; // X1
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_register.reg), &self.dmi_result));
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    if(self.dm.abstractcs.cmderr) {
+        print("abstractcs.cmderr: %s\r\n", cmd_err_msg[self.dm.abstractcs.cmderr]);
+        self.dm.abstractcs.reg = 0;
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+    } else {
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+        print("x1: 0x%08x\r\n", (int)self.dm.data[0]);
+    }
+
+    /*
+     * read CSR
+     */
+    print("\r\nread misa\r\n");
+    self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+    self.dm.command_access_register.aarsize = 2;
+    self.dm.command_access_register.aarpostincrement = 0;
+    self.dm.command_access_register.postexec = 0;
+    self.dm.command_access_register.write = 0;
+    self.dm.command_access_register.transfer = 1;
+    self.dm.command_access_register.regno = CSR_MISA;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_register.reg), &self.dmi_result));
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    if(self.dm.abstractcs.cmderr) {
+        print("abstractcs.cmderr: %s\r\n", cmd_err_msg[self.dm.abstractcs.cmderr]);
+        self.dm.abstractcs.reg = 0;
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+    } else {
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+        print("misa: 0x%08x\r\n", (int)self.dm.data[0]);
+    }
+
+    print("\r\nread dpc\r\n");
+    self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+    self.dm.command_access_register.aarsize = 2;
+    self.dm.command_access_register.aarpostincrement = 0;
+    self.dm.command_access_register.postexec = 0;
+    self.dm.command_access_register.write = 0;
+    self.dm.command_access_register.transfer = 1;
+    self.dm.command_access_register.regno = CSR_DPC;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_register.reg), &self.dmi_result));
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    if(self.dm.abstractcs.cmderr) {
+        print("abstractcs.cmderr: %s\r\n", cmd_err_msg[self.dm.abstractcs.cmderr]);
+        self.dm.abstractcs.reg = 0;
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+    } else {
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+        print("dpc: 0x%08x\r\n", (int)self.dm.data[0]);
+    }
+
+    /*
+     * Quick Access
+     */
+    print("\r\nresume hart...\r\n");
+    self.dm.dmcontrol.haltreq = 0;
+    self.dm.dmcontrol.resumereq = 1;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus.reg), &self.dmi_result));
+    print("dmstatus: 0x%08x\r\n", (int)self.dm.dmstatus.reg);
+    print("dmstatus.anyhalted: %d\r\n", (int)self.dm.dmstatus.anyhalted);
+    print("dmstatus.allhalted: %d\r\n", (int)self.dm.dmstatus.allhalted);
+
+    self.dm.progbuf[0] = csrr(S0, CSR_DPC);
+    self.dm.progbuf[1] = sw(S0, ZERO, 192);
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_PROG_BUF0, (rvl_dmi_reg_t)(self.dm.progbuf[0]), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_PROG_BUF1, (rvl_dmi_reg_t)(self.dm.progbuf[1]), &self.dmi_result));
+
+    print("\r\nquick access\r\n");
+    for(i = 0; i < 6; i++) {
+        self.dm.command_quick_access.cmdtype = RISCV_DM_ABSTRACT_CMD_QUICK_ACCESS;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_quick_access.reg), &self.dmi_result));
+
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+        if(self.dm.abstractcs.cmderr) {
+            print("abstractcs.cmderr: %s\r\n", cmd_err_msg[self.dm.abstractcs.cmderr]);
+            self.dm.abstractcs.reg = 0;
+            self.dm.abstractcs.cmderr = 0x7;
+            PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+            break;
+        } else {
+            PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+            print("quick access %d dpc: 0x%08x\r\n", i, (int)self.dm.data[0]);
+        }
+    }
+
+    /*
+     * Access Memory
+     */
+    print("\r\naccess memory\r\n");
+    print("halt hart...\r\n");
+    self.dm.dmcontrol.haltreq = 1;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus.reg), &self.dmi_result));
+    print("dmstatus: 0x%08x\r\n", (int)self.dm.dmstatus.reg);
+    print("dmstatus.anyhalted: %d\r\n", (int)self.dm.dmstatus.anyhalted);
+    print("dmstatus.allhalted: %d\r\n", (int)self.dm.dmstatus.allhalted);
+
+    self.dm.data[1] = 0x08000000;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_DATA1, (rvl_dmi_reg_t)(self.dm.data[1]), &self.dmi_result));
+
+    self.dm.command_access_memory.reg = 0;
+    self.dm.command_access_memory.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_MEM;
+    self.dm.command_access_memory.aamsize = 2;
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_quick_access.reg), &self.dmi_result));
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    if(self.dm.abstractcs.cmderr) {
+        print("abstractcs.cmderr: %s\r\n", cmd_err_msg[self.dm.abstractcs.cmderr]);
+        self.dm.abstractcs.reg = 0;
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+    } else {
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+        print("access memory 0x%08x: 0x%08x\r\n", (int)self.dm.data[1], (int)self.dm.data[0]);
+    }
+
+    print("\r\nresume hart...\r\n");
+    self.dm.dmcontrol.haltreq = 0;
+    self.dm.dmcontrol.resumereq = 1;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus.reg), &self.dmi_result));
+    print("dmstatus: 0x%08x\r\n", (int)self.dm.dmstatus.reg);
+    print("dmstatus.anyhalted: %d\r\n", (int)self.dm.dmstatus.anyhalted);
+    print("dmstatus.allhalted: %d\r\n", (int)self.dm.dmstatus.allhalted);
+
 #elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_INFO, (rvl_dmi_reg_t*)(&self.dm.dminfo.reg), &self.dmi_result));
         print("\r\ndminfo: 0x%08x\r\n", (int)self.dm.dminfo.reg);

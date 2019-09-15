@@ -4,6 +4,7 @@
 #include "pt.h"
 #include "interface/usb-serial.h"
 #include "interface/led.h"
+#include "interface/rvl-button.h"
 #include "rvl-tap.h"
 #include "dtm.h"
 #include "dmi.h"
@@ -64,6 +65,23 @@ static const char * cmd_err_msg[] = {
         }while(0)
 
 
+static int button_is_pushed(void)
+{
+    static int prev = 0;
+    int retval;
+
+    int pushed = rvl_button_pushed();
+    if(prev == 0 && pushed == 1) {
+        retval = 1;
+    } else {
+        retval = 0;
+    }
+    prev = pushed;
+
+    return retval;
+}
+
+
 void task_probe_init(void)
 {
     PT_INIT(&self.pt);
@@ -72,6 +90,8 @@ void task_probe_init(void)
     self.probe_start = false;
     self.tapnum = 0;
     self.tap = 0;
+
+    rvl_button_init();
 }
 
 
@@ -84,7 +104,7 @@ PT_THREAD(task_probe_poll(void))
 
     PT_BEGIN(&self.pt);
 
-    PT_WAIT_UNTIL(&self.pt, self.probe_start);
+    PT_WAIT_UNTIL(&self.pt, self.probe_start || button_is_pushed());
 
     rvl_led_link_run(1);
     rvl_dmi_init();

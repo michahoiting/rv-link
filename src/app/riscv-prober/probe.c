@@ -30,6 +30,7 @@ typedef struct task_probe_s
     int tapnum;
     int tap;
     uint8_t irs[8];
+    uint32_t tselect_max;
 }task_probe_t;
 
 static task_probe_t task_probe_i;
@@ -426,6 +427,74 @@ PT_THREAD(task_probe_poll(void))
         print("access memory 0x%08x: 0x%08x\r\n", (int)self.dm.data[1], (int)self.dm.data[0]);
     }
 
+    /*
+     * probe triggers
+     */
+    print("\r\nprobe triggers\r\n");
+    self.tselect_max = 0;
+
+    self.dm.data[0] = 0xffffffff;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_DATA0, (rvl_dmi_reg_t)(self.dm.data[0]), &self.dmi_result));
+
+    self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+    self.dm.command_access_register.aarsize = 2;
+    self.dm.command_access_register.aarpostincrement = 0;
+    self.dm.command_access_register.postexec = 0;
+    self.dm.command_access_register.write = 1;
+    self.dm.command_access_register.transfer = 1;
+    self.dm.command_access_register.regno = CSR_TSELECT;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_register.reg), &self.dmi_result));
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    if(self.dm.abstractcs.cmderr) {
+        print("abstractcs.cmderr: %s\r\n", cmd_err_msg[self.dm.abstractcs.cmderr]);
+        self.dm.abstractcs.reg = 0;
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+    } else {
+        self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+        self.dm.command_access_register.aarsize = 2;
+        self.dm.command_access_register.aarpostincrement = 0;
+        self.dm.command_access_register.postexec = 0;
+        self.dm.command_access_register.write = 0;
+        self.dm.command_access_register.transfer = 1;
+        self.dm.command_access_register.regno = CSR_TSELECT;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_register.reg), &self.dmi_result));
+
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+        self.tselect_max = self.dm.data[0];
+        print("tselect_max: %d\r\n", (int)self.tselect_max);
+    }
+
+    for(i = 0; i <= self.tselect_max; i++) {
+        self.dm.data[0] = i;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_DATA0, (rvl_dmi_reg_t)(self.dm.data[0]), &self.dmi_result));
+
+        self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+        self.dm.command_access_register.aarsize = 2;
+        self.dm.command_access_register.aarpostincrement = 0;
+        self.dm.command_access_register.postexec = 0;
+        self.dm.command_access_register.write = 1;
+        self.dm.command_access_register.transfer = 1;
+        self.dm.command_access_register.regno = CSR_TSELECT;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_register.reg), &self.dmi_result));
+
+        self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+        self.dm.command_access_register.aarsize = 2;
+        self.dm.command_access_register.aarpostincrement = 0;
+        self.dm.command_access_register.postexec = 0;
+        self.dm.command_access_register.write = 0;
+        self.dm.command_access_register.transfer = 1;
+        self.dm.command_access_register.regno = 0x7a4; // tinfo
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_register.reg), &self.dmi_result));
+
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+        print("tselect: %d, tinfo: 0x%08x\r\n", i, (int)self.dm.data[0]);
+    }
+
+    /*
+     * last, resume hart!
+     */
     print("\r\nresume hart...\r\n");
     self.dm.dmcontrol.haltreq = 0;
     self.dm.dmcontrol.resumereq = 1;

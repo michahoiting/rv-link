@@ -73,6 +73,11 @@
 #define RISCV_DM_HAL_SUM0       0x40 // Halt Summary 0 (haltsum0)
 
 
+// Abstract Command (command)
+#define RISCV_DM_ABSTRACT_CMD_ACCESS_REG        0
+#define RISCV_DM_ABSTRACT_CMD_QUICK_ACCESS      1
+#define RISCV_DM_ABSTRACT_CMD_ACCESS_MEM        2
+
 typedef union riscv_dmcontrol_u
 {
     rvl_dmi_reg_t reg;

@@ -1,6 +1,6 @@
 #include "pt.h"
-#include "interface/usb-serial.h"
-#include "interface/led.h"
+#include "led.h"
+#include "usb-serial.h"
 
 void task_usb_init(void);
 PT_THREAD(task_usb_poll(void));

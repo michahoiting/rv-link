@@ -1,5 +1,5 @@
 #include "gd32vf103.h"
-#include "interface/rvl-button.h"
+#include "rvl-button.h"
 
 #define BUTTON_PORT    GPIOA
 #define BUTTON_PIN     GPIO_PIN_0

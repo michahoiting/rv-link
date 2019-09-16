@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "interface/usb-serial.h"
-#include "interface/led.h"
+#include "led.h"
+#include "usb-serial.h"
 #include "pt.h"
 
 

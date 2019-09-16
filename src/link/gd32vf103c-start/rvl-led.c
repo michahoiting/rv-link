@@ -1,6 +1,6 @@
 #include "gd32vf103.h"
 #include "riscv_encoding.h"
-#include "interface/led.h"
+#include "led.h"
 
 #define LED_GDB_CONNECT_PORT    GPIOA
 #define LED_GDB_CONNECT_PIN     GPIO_PIN_1

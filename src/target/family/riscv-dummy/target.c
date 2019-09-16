@@ -1,4 +1,4 @@
-#include "interface/rvl-target.h"
+#include "rvl-target.h"
 
 typedef struct gdb_cmd_riscv_dummy_s
 {

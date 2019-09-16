@@ -73,6 +73,7 @@ pt/timer.c
 
 C_INCLUDES +=  \
 -Icommon \
+-Iinclude \
 -Ipt \
 -I.
 

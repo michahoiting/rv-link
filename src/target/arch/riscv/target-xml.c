@@ -1,7 +1,7 @@
 
 #include <stddef.h>
 
-#include "interface/rvl-target.h"
+#include "rvl-target.h"
 #include "riscv-feature.h"
 
 

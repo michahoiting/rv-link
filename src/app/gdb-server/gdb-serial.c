@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "interface/usb-serial.h"
+#include "usb-serial.h"
 #include "gdb-serial.h"
 
 typedef struct gdb_serial_command_s

@@ -1,5 +1,5 @@
-#include "interface/usb-serial.h"
-#include "interface/led.h"
+#include "led.h"
+#include "usb-serial.h"
 #include "gdb-serial.h"
 #include "gdb-server.h"
 

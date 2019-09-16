@@ -1,4 +1,4 @@
-#include "interface/rvl-target.h"
+#include "rvl-target.h"
 
 static const char memory_map_str[] =
         "<memory-map>"

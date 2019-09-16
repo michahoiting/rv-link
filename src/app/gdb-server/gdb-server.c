@@ -3,10 +3,10 @@
 #include <stdio.h>
 
 #include "riscv_encoding.h"
-#include "interface/led.h"
+#include "led.h"
 #include "gdb-server.h"
 
-#include "interface/rvl-target.h"
+#include "rvl-target.h"
 #include "gdb-serial.h"
 
 typedef int16_t gdb_server_tid_t;

@@ -5,7 +5,7 @@
 #include "drv_usb_hw.h"
 #include "cdc_acm_core.h"
 #include "pt.h"
-#include "usb-serial.h"
+#include "rvl-usb-serial.h"
 
 extern uint8_t packet_sent, packet_receive;
 extern uint32_t receive_length;

@@ -2,9 +2,9 @@
 #include <string.h>
 
 #include "pt.h"
-#include "led.h"
+#include "rvl-led.h"
 #include "rvl-button.h"
-#include "usb-serial.h"
+#include "rvl-usb-serial.h"
 #include "rvl-tap.h"
 #include "dtm.h"
 #include "dmi.h"

@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "riscv_encoding.h"
-#include "led.h"
+#include "rvl-led.h"
 #include "gdb-server.h"
 
 #include "rvl-target.h"

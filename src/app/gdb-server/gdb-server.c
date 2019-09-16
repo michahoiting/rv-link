@@ -44,6 +44,7 @@ static gdb_server_t gdb_server_i;
 
 PT_THREAD(gdb_server_cmd_q(void));
 void gdb_server_cmd_qxfer_features_read_target_xml(void);
+void gdb_server_cmd_qxfer_memory_map_read(void);
 PT_THREAD(gdb_server_cmd_Q(void));
 PT_THREAD(gdb_server_cmd_H(void));
 PT_THREAD(gdb_server_cmd_g(void));
@@ -140,7 +141,12 @@ PT_THREAD(gdb_server_poll(void))
 }
 
 
-const char qSupported_res[] = "PacketSize=405;QStartNoAckMode+;qXfer:features:read+";
+const char qSupported_res[] =
+        "PacketSize=405"
+        ";QStartNoAckMode+"
+        ";qXfer:features:read+"
+        ";qXfer:memory-map:read+"
+        ;
 
 
 /*
@@ -157,7 +163,9 @@ PT_THREAD(gdb_server_cmd_q(void))
         gdb_serial_response_done(strlen(qSupported_res), GDB_SERIAL_SEND_FLAG_ALL);
     } else if(strncmp(self.cmd, "qXfer:features:read:target.xml:", 31) == 0){
         gdb_server_cmd_qxfer_features_read_target_xml();
-    } else {
+    } else if(strncmp(self.cmd, "qXfer:memory-map:read::", 23) == 0){
+        gdb_server_cmd_qxfer_memory_map_read();
+    }else {
         gdb_server_reply_empty();
     }
 
@@ -174,7 +182,6 @@ void gdb_server_cmd_qxfer_features_read_target_xml(void)
     const char *target_xml_str;
     unsigned int read_addr;
     unsigned int read_len;
-
 
     sscanf(&self.cmd[31], "%x,%x", &read_addr, &read_len);
 
@@ -193,6 +200,37 @@ void gdb_server_cmd_qxfer_features_read_target_xml(void)
 
     target_xml_str = rvl_target_get_target_xml();
     strncpy(&self.res[1], &target_xml_str[read_addr], read_len);
+    gdb_serial_response_done(read_len + 1, GDB_SERIAL_SEND_FLAG_ALL);
+}
+
+
+/*
+ * qXfer:memory-map:read::
+ */
+void gdb_server_cmd_qxfer_memory_map_read(void)
+{
+    size_t memory_map_len;
+    const char *memory_map_str;
+    unsigned int read_addr;
+    unsigned int read_len;
+
+    sscanf(&self.cmd[23], "%x,%x", &read_addr, &read_len);
+
+    if(read_len > GDB_SERIAL_RESPONSE_BUFFER_SIZE) {
+        read_len = GDB_SERIAL_RESPONSE_BUFFER_SIZE;
+    }
+
+    memory_map_len = rvl_target_get_memory_map_len();
+
+    if(read_len >= memory_map_len - read_addr) {
+        read_len = memory_map_len - read_addr;
+        self.res[0] = 'l';
+    } else {
+        self.res[0] = 'm';
+    }
+
+    memory_map_str = rvl_target_get_memory_map();
+    strncpy(&self.res[1], &memory_map_str[read_addr], read_len);
     gdb_serial_response_done(read_len + 1, GDB_SERIAL_SEND_FLAG_ALL);
 }
 

@@ -1,10 +1,12 @@
 OUTPUT_DIR = output
 
-all: \
-$(OUTPUT_DIR)/gd32vf103c-start+gd32vf103+test-usb-serial.elf \
-$(OUTPUT_DIR)/gd32vf103c-start+riscv-dummy+gdb-server.elf \
-$(OUTPUT_DIR)/gd32vf103c-start+riscv-debug-spec-v0p13+riscv-prober.elf \
-$(OUTPUT_DIR)/gd32vf103c-start+riscv-debug-spec-v0p11+riscv-prober.elf
+elf = $(OUTPUT_DIR)/gd32vf103c-start+gd32vf103+gdb-server.elf
+#elf += $(OUTPUT_DIR)/gd32vf103c-start+riscv-dummy+gdb-server.elf
+elf += $(OUTPUT_DIR)/gd32vf103c-start+riscv-debug-spec-v0p13+riscv-prober.elf
+#elf += $(OUTPUT_DIR)/gd32vf103c-start+riscv-debug-spec-v0p11+riscv-prober.elf
+elf += $(OUTPUT_DIR)/gd32vf103c-start+gd32vf103+test-usb-serial.elf
+
+all: $(elf)
 
 get_link = $(shell echo $@ | awk -F'.' '{print $$1}' | awk -F'/' '{print $$2}' | awk -F'+' '{print $$1}')
 get_target = $(shell echo $@ | awk -F'.' '{print $$1}' | awk -F'/' '{print $$2}' | awk -F'+' '{print $$2}')

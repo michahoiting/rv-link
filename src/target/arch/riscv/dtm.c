@@ -15,6 +15,13 @@ static rvl_dtm_t rvl_dtm_i;
 #define self rvl_dtm_i
 
 
+#ifdef RVL_DTM_YIELD_EN
+#define RVL_DTM_YIELD()     PT_YIELD(&self.pt)
+#else
+#define RVL_DTM_YIELD()
+#endif
+
+
 void rvl_dtm_init(void)
 {
     PT_INIT(&self.pt);
@@ -39,12 +46,12 @@ PT_THREAD(rvl_dtm_idcode(rvl_dtm_idcode_t* idcode))
         self.in[0] = RISCV_DTM_JTAG_REG_IDCODE;
         self.last_jtag_reg = RISCV_DTM_JTAG_REG_IDCODE;
         rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
+        RVL_DTM_YIELD();
     }
 
     self.in[0] = 0;
     rvl_tap_shift_dr(self.out, self.in, 32);
-    PT_YIELD(&self.pt);
+    RVL_DTM_YIELD();
 
     idcode->word = self.out[0];
 
@@ -60,16 +67,16 @@ PT_THREAD(rvl_dtm_dtmcs_dmireset(void))
         self.in[0] = RISCV_DTM_JTAG_REG_DTMCS;
         self.last_jtag_reg = RISCV_DTM_JTAG_REG_DTMCS;
         rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
+        RVL_DTM_YIELD();
     }
 
     self.in[0] = RISCV_DTMCS_DMI_RESET;
     rvl_tap_shift_dr(self.out, self.in, 32);
-    PT_YIELD(&self.pt);
+    RVL_DTM_YIELD();
 
     if(self.idle) {
         rvl_tap_run(self.idle);
-        PT_YIELD(&self.pt);
+        RVL_DTM_YIELD();
     }
 
     PT_END(&self.pt);
@@ -81,7 +88,7 @@ PT_THREAD(rvl_dtm_run(uint32_t ticks))
     PT_BEGIN(&self.pt);
 
     rvl_tap_run(ticks);
-    PT_YIELD(&self.pt);
+    RVL_DTM_YIELD();
 
     PT_END(&self.pt);
 }
@@ -95,12 +102,12 @@ PT_THREAD(rvl_dtm_dtmcs(rvl_dtm_dtmcs_t* dtmcs))
         self.in[0] = RISCV_DTM_JTAG_REG_DTMCS;
         self.last_jtag_reg = RISCV_DTM_JTAG_REG_DTMCS;
         rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
+        RVL_DTM_YIELD();
     }
 
     self.in[0] = 0;
     rvl_tap_shift_dr(self.out, self.in, 32);
-    PT_YIELD(&self.pt);
+    RVL_DTM_YIELD();
 
     dtmcs->word = self.out[0];
 
@@ -131,16 +138,16 @@ PT_THREAD(rvl_dtm_dtmcs_dmihardreset(void))
         self.in[0] = RISCV_DTM_JTAG_REG_DTMCS;
         self.last_jtag_reg = RISCV_DTM_JTAG_REG_DTMCS;
         rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
+        RVL_DTM_YIELD();
     }
 
     self.in[0] = RISCV_DTMCS_DMI_HARD_RESET;
     rvl_tap_shift_dr(self.out, self.in, 32);
-    PT_YIELD(&self.pt);
+    RVL_DTM_YIELD();
 
     if(self.idle) {
         rvl_tap_run(self.idle);
-        PT_YIELD(&self.pt);
+        RVL_DTM_YIELD();
     }
 
     PT_END(&self.pt);
@@ -161,7 +168,7 @@ PT_THREAD(rvl_dtm_dmi(uint32_t addr, rvl_dmi_reg_t* data, uint32_t* op))
         self.in[0] = RISCV_DTM_JTAG_REG_DMI;
         self.last_jtag_reg = RISCV_DTM_JTAG_REG_DMI;
         rvl_tap_shift_ir(self.out, self.in, 5);
-        PT_YIELD(&self.pt);
+        RVL_DTM_YIELD();
     }
 
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
@@ -175,11 +182,11 @@ PT_THREAD(rvl_dtm_dmi(uint32_t addr, rvl_dmi_reg_t* data, uint32_t* op))
 #else
 #error
 #endif
-    PT_YIELD(&self.pt);
+    RVL_DTM_YIELD();
 
     if(self.idle) {
         rvl_tap_run(self.idle);
-        PT_YIELD(&self.pt);
+        RVL_DTM_YIELD();
     }
 
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13

@@ -79,11 +79,19 @@ PT_THREAD(rvl_target_read_register(rvl_target_reg_t *reg, int regno))
 {
     PT_BEGIN(&self.pt);
 
-    if(regno == 4161) { // priv
+    if(regno <= 31) { // GPRs
+        PT_WAIT_THREAD(&self.pt, riscv_read_register(reg, regno + 0x1000));
+    } else if(regno == 32) { // PC
+        PT_WAIT_THREAD(&self.pt, riscv_read_register(reg, CSR_DPC));
+    } else if(regno <= 64) { // FPRs
+        PT_WAIT_THREAD(&self.pt, riscv_read_register(reg, regno + 0x1000 - 1));
+    } else if(regno <= (0x1000 + 64)) { // CSRs
+        PT_WAIT_THREAD(&self.pt, riscv_read_register(reg, regno - 65));
+    } else if(regno == 4146) {  // priv
         PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr, CSR_DCSR));
         *reg = self.dcsr & 0x3;
     } else {
-        PT_WAIT_THREAD(&self.pt, riscv_read_register(reg, regno));
+        *reg = 0xffffffff;
     }
 
     PT_END(&self.pt);

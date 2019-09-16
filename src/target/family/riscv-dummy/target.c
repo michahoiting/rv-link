@@ -17,8 +17,13 @@ void rvl_target_init(void)
     PT_INIT(&self.pt);
 }
 
+void rvl_target_fini(void)
+{
 
-PT_THREAD(rvl_target_read_registers(rvl_target_reg_t *regs))
+}
+
+
+PT_THREAD(rvl_target_read_core_registers(rvl_target_reg_t *regs))
 {
     PT_BEGIN(&self.pt);
 
@@ -26,7 +31,7 @@ PT_THREAD(rvl_target_read_registers(rvl_target_reg_t *regs))
         regs[self.i] = self.i;
         PT_YIELD(&self.pt);
     }
-    regs[self.i] = (uint32_t)&rvl_target_read_registers;
+    regs[self.i] = (uint32_t)&rvl_target_read_core_registers;
     PT_YIELD(&self.pt);
 
     PT_END(&self.pt);
@@ -56,6 +61,38 @@ PT_THREAD(rvl_target_read_memory(uint8_t* mem, rvl_target_addr_t addr, size_t le
         self.addr++;
         PT_YIELD(&self.pt);
     }
+
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_halt(void))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_halt_check(int* halted))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_resume(void))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_step(void))
+{
+    PT_BEGIN(&self.pt);
 
     PT_END(&self.pt);
 }

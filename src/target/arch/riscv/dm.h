@@ -423,4 +423,7 @@ typedef struct riscv_dm_s
 #endif
 
 
+void rvl_dm_init(void);
+void rvl_dm_fini(void);
+
 #endif /* __RISCV_DM_H__ */

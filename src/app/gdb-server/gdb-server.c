@@ -15,6 +15,7 @@ typedef struct gdb_server_s
 {
     struct pt pt_server;
     struct pt pt_cmd;
+    struct pt pt_cmd_sub;
     const char *cmd;
     size_t cmd_len;
     char *res;
@@ -23,6 +24,7 @@ typedef struct gdb_server_s
     bool gdb_connected;
     uint32_t target_pc;
     uint32_t continue_start;
+    int halted;
     rvl_target_addr_t mem_addr;
     size_t mem_len;
     uint8_t mem_buffer[GDB_SERIAL_RESPONSE_BUFFER_SIZE / 2];
@@ -56,10 +58,8 @@ PT_THREAD(gdb_server_cmd_p(void));
 PT_THREAD(gdb_server_cmd_question_mark(void));
 PT_THREAD(gdb_server_cmd_ctrl_c(void));
 
-PT_THREAD(gdb_server_check_target(void));
-
-static void gdb_server_connected(void);
-static void gdb_server_disconnected(void);
+PT_THREAD(gdb_server_connected(void));
+PT_THREAD(gdb_server_disconnected(void));
 
 static void gdb_server_reply_ok(void);
 static void gdb_server_reply_empty(void);
@@ -76,6 +76,7 @@ void gdb_server_init(void)
 {
     PT_INIT(&self.pt_server);
     PT_INIT(&self.pt_cmd);
+    PT_INIT(&self.pt_cmd_sub);
 
     self.target_running = false;
     self.gdb_connected = false;
@@ -89,6 +90,8 @@ PT_THREAD(gdb_server_poll(void))
     PT_BEGIN(&self.pt_server);
 
     while (1) {
+        PT_YIELD(&self.pt_server);
+
         if(self.gdb_connected && self.target_running) {
             self.cmd = gdb_serial_command_buffer();
             if(self.cmd != NULL) {
@@ -99,8 +102,12 @@ PT_THREAD(gdb_server_poll(void))
                 gdb_serial_command_done();
             }
 
-            PT_WAIT_THREAD(&self.pt_server, gdb_server_check_target());
-            PT_YIELD(&self.pt_server);
+            PT_WAIT_THREAD(&self.pt_server, rvl_target_halt_check(&self.halted));
+            if(self.halted) {
+                self.target_running = false;
+                strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+                gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+            }
         } else {
             PT_WAIT_UNTIL(&self.pt_server, (self.cmd = gdb_serial_command_buffer()) != NULL);
             self.cmd_len = gdb_serial_command_length();
@@ -158,9 +165,9 @@ PT_THREAD(gdb_server_cmd_q(void))
     PT_BEGIN(&self.pt_cmd);
 
     if(strncmp(self.cmd, "qSupported:", 11) == 0){
-        gdb_server_connected();
         strncpy(self.res, qSupported_res, GDB_SERIAL_RESPONSE_BUFFER_SIZE);
         gdb_serial_response_done(strlen(qSupported_res), GDB_SERIAL_SEND_FLAG_ALL);
+        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_connected());
     } else if(strncmp(self.cmd, "qXfer:features:read:target.xml:", 31) == 0){
         gdb_server_cmd_qxfer_features_read_target_xml();
     } else if(strncmp(self.cmd, "qXfer:memory-map:read::", 23) == 0){
@@ -318,7 +325,7 @@ PT_THREAD(gdb_server_cmd_g(void))
 
     PT_BEGIN(&self.pt_cmd);
 
-    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_read_registers(&self.regs[0]));
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_read_core_registers(&self.regs[0]));
 
     for(i = 0; i < RVL_TARGET_REG_NUM; i++) {
         word_to_hex_le(self.regs[i], &self.res[i * (RVL_TARGET_REG_WIDTH / 8 * 2)]);
@@ -391,7 +398,8 @@ PT_THREAD(gdb_server_cmd_k(void))
     PT_BEGIN(&self.pt_cmd);
 
     gdb_server_reply_ok();
-    gdb_server_disconnected();
+
+    PT_WAIT_THREAD(&self.pt_cmd, gdb_server_disconnected());
 
     PT_END(&self.pt_cmd);
 }
@@ -406,7 +414,7 @@ PT_THREAD(gdb_server_cmd_c(void))
 {
     PT_BEGIN(&self.pt_cmd);
 
-    self.continue_start = read_csr(mcycle);
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_resume());
     self.target_running = true;
 
     PT_END(&self.pt_cmd);
@@ -421,8 +429,8 @@ PT_THREAD(gdb_server_cmd_s(void))
 {
     PT_BEGIN(&self.pt_cmd);
 
-    strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
-    gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_step());
+    self.target_running = true;
 
     PT_END(&self.pt_cmd);
 }
@@ -435,31 +443,7 @@ PT_THREAD(gdb_server_cmd_ctrl_c(void))
 {
     PT_BEGIN(&self.pt_cmd);
 
-    // TODO halt target
-    self.target_running = false;
-    self.target_pc = (uint32_t)(&gdb_server_cmd_ctrl_c);
-
-    PT_END(&self.pt_cmd);
-}
-
-
-PT_THREAD(gdb_server_check_target(void))
-{
-    uint32_t end;
-
-    PT_BEGIN(&self.pt_cmd);
-
-    // TODO check target halt status
-    end = read_csr(mcycle);
-    if(end - self.continue_start > 96000000U * 30) {
-        self.target_running = false;
-        self.target_pc = (uint32_t)(&gdb_server_check_target);
-    }
-
-    if(!self.target_running) {
-        strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
-        gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
-    }
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_halt());
 
     PT_END(&self.pt_cmd);
 }
@@ -478,27 +462,34 @@ static void gdb_server_reply_empty(void)
 }
 
 
-static void gdb_server_connected(void)
+PT_THREAD(gdb_server_connected(void))
 {
+    PT_BEGIN(&self.pt_cmd_sub);
+
     gdb_serial_no_ack_mode(false);
     rvl_led_gdb_connect(1);
-
-
-    // TODO init jtag, halt target
-    self.target_pc = (uint32_t)(&gdb_server_connected);
     self.target_running = false;
     self.gdb_connected = true;
+
+    rvl_target_init();
+    PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_halt());
+
+    PT_END(&self.pt_cmd_sub);
 }
 
 
-static void gdb_server_disconnected(void)
+PT_THREAD(gdb_server_disconnected(void))
 {
-    rvl_led_gdb_connect(0);
+    PT_BEGIN(&self.pt_cmd_sub);
 
-    // TODO resume target, fini jtag
+    PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_resume());
+    rvl_target_fini();
 
     self.target_running = true;
     self.gdb_connected = false;
+    rvl_led_gdb_connect(0);
+
+    PT_END(&self.pt_cmd_sub);
 }
 
 

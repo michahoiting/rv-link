@@ -39,20 +39,29 @@ typedef uint64_t rvl_target_addr_t;
 #endif
 
 
+#define RVL_TARGET_RESET_FLAG_HALT      1
+
+
 void rvl_target_init(void);
+void rvl_target_fini(void);
 
 PT_THREAD(rvl_target_reset(uint32_t flags));
-PT_THREAD(rvl_target_halt(uint32_t* sig));
+PT_THREAD(rvl_target_halt(void));
+PT_THREAD(rvl_target_halt_check(int* halted));
 PT_THREAD(rvl_target_resume(void));
 PT_THREAD(rvl_target_step(void));
 
-PT_THREAD(rvl_target_read_registers(rvl_target_reg_t *regs));
-PT_THREAD(rvl_target_read_register(rvl_target_reg_t *reg, int regnum));
-PT_THREAD(rvl_target_write_registers(const rvl_target_reg_t *regs));
-PT_THREAD(rvl_target_write_register(rvl_target_reg_t reg, int regnum));
+PT_THREAD(rvl_target_read_core_registers(rvl_target_reg_t *regs));
+PT_THREAD(rvl_target_write_core_registers(const rvl_target_reg_t *regs));
+
+PT_THREAD(rvl_target_read_register(rvl_target_reg_t *reg, int regno));
+PT_THREAD(rvl_target_write_register(rvl_target_reg_t reg, int regno));
 
 PT_THREAD(rvl_target_read_memory(uint8_t* mem, rvl_target_addr_t addr, size_t len));
 PT_THREAD(rvl_target_write_memory(const uint8_t* mem, rvl_target_addr_t addr, size_t len));
+
+PT_THREAD(rvl_target_set_breakpoint(rvl_target_addr_t addr, int type));
+PT_THREAD(rvl_target_clr_breakpoint(rvl_target_addr_t addr));
 
 const char *rvl_target_get_target_xml(void);
 size_t rvl_target_get_target_xml_len(void);

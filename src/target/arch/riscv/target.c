@@ -11,6 +11,8 @@ typedef struct riscv_target_s
     uint32_t dmi_result;
     uint32_t i;
     rvl_target_reg_t dcsr;
+    rvl_dtm_idcode_t idcode;
+    rvl_dtm_dtmcs_t dtmcs;
 }riscv_target_t;
 
 static riscv_target_t riscv_target_i;
@@ -30,6 +32,9 @@ void rvl_target_init(void)
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
 
     rvl_dmi_init();
+
+    while(rvl_dtm_idcode(&self.idcode) < PT_EXITED) {}
+    while(rvl_dtm_dtmcs(&self.dtmcs) < PT_EXITED) {}
 
     self.dm.dmcontrol.reg = 0;
     self.dm.dmcontrol.dmactive = 1;

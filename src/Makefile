@@ -116,17 +116,18 @@ $(OUTPUT_DIR)/rv-link.elf \
 $(OUTPUT_DIR)/$(EXE).size
 
 # list of objects
-OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
-vpath %.c $(sort $(dir $(C_SOURCES)))
+OBJECTS = $(addprefix $(BUILD_DIR)/,$(C_SOURCES:.c=.o))
+
 # list of ASM program objects
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.S=.o)))
-vpath %.S $(sort $(dir $(ASM_SOURCES)))
+OBJECTS += $(addprefix $(BUILD_DIR)/,$(ASM_SOURCES:.S=.o))
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
+	$(Q)mkdir -p $(dir $@)
 	$(TRACE_CC)
-	$(Q)$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	$(Q)$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(<:.c=.lst) $< -o $@
 
 $(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR)
+	$(Q)mkdir -p $(dir $@)
 	$(TRACE_AS)
 	$(Q)$(AS) -c $(ASFLAGS) $< -o $@
 

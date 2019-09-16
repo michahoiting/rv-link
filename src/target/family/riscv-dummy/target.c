@@ -96,3 +96,21 @@ PT_THREAD(rvl_target_step(void))
 
     PT_END(&self.pt);
 }
+
+
+PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_target_addr_t addr, int kind, int* err))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_target_addr_t addr, int kind, int* err))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_END(&self.pt);
+}
+
+

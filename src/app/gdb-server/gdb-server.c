@@ -38,6 +38,11 @@ typedef struct gdb_server_s
     gdb_server_tid_t tid_m;
     gdb_server_tid_t tid_M;
     gdb_server_tid_t tid_c;
+
+    rvl_target_breakpoint_type_t breakpoint_type;
+    rvl_target_addr_t breakpoint_addr;
+    int breakpoint_kind;
+    int breakpoint_err;
 }gdb_server_t;
 
 static gdb_server_t gdb_server_i;
@@ -55,6 +60,8 @@ PT_THREAD(gdb_server_cmd_c(void));
 PT_THREAD(gdb_server_cmd_s(void));
 PT_THREAD(gdb_server_cmd_m(void));
 PT_THREAD(gdb_server_cmd_p(void));
+PT_THREAD(gdb_server_cmd_z(void));
+PT_THREAD(gdb_server_cmd_Z(void));
 PT_THREAD(gdb_server_cmd_question_mark(void));
 PT_THREAD(gdb_server_cmd_ctrl_c(void));
 
@@ -63,6 +70,7 @@ PT_THREAD(gdb_server_disconnected(void));
 
 static void gdb_server_reply_ok(void);
 static void gdb_server_reply_empty(void);
+static void gdb_server_reply_err(int err);
 
 static void bin_to_hex(const uint8_t *bin, char *hex, size_t nbyte);
 static void word_to_hex_le(uint32_t word, char *hex);
@@ -136,6 +144,10 @@ PT_THREAD(gdb_server_poll(void))
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_p());
             } else if(c == 's') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_s());
+            }  else if(c == 'z') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_z());
+            }  else if(c == 'Z') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_Z());
             } else {
                 gdb_server_reply_empty();
             }
@@ -437,6 +449,62 @@ PT_THREAD(gdb_server_cmd_s(void))
 
 
 /*
+ * ‘z type,addr,kind’
+ * Insert (‘Z’) or remove (‘z’) a type breakpoint or watchpoint starting at address
+ * address of kind kind.
+ */
+PT_THREAD(gdb_server_cmd_z(void))
+{
+    int type, addr, kind;
+
+    PT_BEGIN(&self.pt_cmd);
+
+    sscanf(self.cmd, "z%x,%x,%x", &type, &addr, &kind);
+    self.breakpoint_type = type;
+    self.breakpoint_addr = addr;
+    self.breakpoint_kind = kind;
+
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_remove_breakpoint(
+            self.breakpoint_type, self.breakpoint_addr, self.breakpoint_kind, &self.breakpoint_err));
+    if(self.breakpoint_err == 0) {
+        gdb_server_reply_ok();
+    } else {
+        gdb_server_reply_err(self.breakpoint_err);
+    }
+
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
+ * ‘Z type,addr,kind’
+ * Insert (‘Z’) or remove (‘z’) a type breakpoint or watchpoint starting at address
+ * address of kind kind.
+ */
+PT_THREAD(gdb_server_cmd_Z(void))
+{
+    int type, addr, kind;
+
+    PT_BEGIN(&self.pt_cmd);
+
+    sscanf(self.cmd, "Z%x,%x,%x", &type, &addr, &kind);
+    self.breakpoint_type = type;
+    self.breakpoint_addr = addr;
+    self.breakpoint_kind = kind;
+
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_insert_breakpoint(
+            self.breakpoint_type, self.breakpoint_addr, self.breakpoint_kind, &self.breakpoint_err));
+    if(self.breakpoint_err == 0) {
+        gdb_server_reply_ok();
+    } else {
+        gdb_server_reply_err(self.breakpoint_err);
+    }
+
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
  * Ctrl+C
  */
 PT_THREAD(gdb_server_cmd_ctrl_c(void))
@@ -459,6 +527,13 @@ static void gdb_server_reply_ok(void)
 static void gdb_server_reply_empty(void)
 {
     gdb_serial_response_done(0, GDB_SERIAL_SEND_FLAG_ALL);
+}
+
+
+static void gdb_server_reply_err(int err)
+{
+    snprintf(self.res, GDB_SERIAL_RESPONSE_BUFFER_SIZE, "E%02x", err);
+    gdb_serial_response_done(strlen(self.res), GDB_SERIAL_SEND_FLAG_ALL);
 }
 
 

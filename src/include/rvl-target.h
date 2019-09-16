@@ -41,6 +41,15 @@ typedef uint64_t rvl_target_addr_t;
 
 #define RVL_TARGET_RESET_FLAG_HALT      1
 
+typedef enum
+{
+    software_breakpoint = 0,
+    hardware_breakpoint = 1,
+    write_watchpoint = 2,
+    read_watchpoint = 3,
+    access_watchpoint = 4,
+}rvl_target_breakpoint_type_t;
+
 
 void rvl_target_init(void);
 void rvl_target_fini(void);
@@ -60,8 +69,8 @@ PT_THREAD(rvl_target_write_register(rvl_target_reg_t reg, int regno));
 PT_THREAD(rvl_target_read_memory(uint8_t* mem, rvl_target_addr_t addr, size_t len));
 PT_THREAD(rvl_target_write_memory(const uint8_t* mem, rvl_target_addr_t addr, size_t len));
 
-PT_THREAD(rvl_target_set_breakpoint(rvl_target_addr_t addr, int type));
-PT_THREAD(rvl_target_clr_breakpoint(rvl_target_addr_t addr));
+PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_target_addr_t addr, int kind, int* err));
+PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_target_addr_t addr, int kind, int* err));
 
 const char *rvl_target_get_target_xml(void);
 size_t rvl_target_get_target_xml_len(void);

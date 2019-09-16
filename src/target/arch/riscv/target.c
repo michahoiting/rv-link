@@ -174,6 +174,22 @@ PT_THREAD(rvl_target_step(void))
 }
 
 
+PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_target_addr_t addr, int kind, int* err))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_target_addr_t addr, int kind, int* err))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_END(&self.pt);
+}
+
+
 static PT_THREAD(riscv_read_register(rvl_target_reg_t* reg, uint32_t regno))
 {
     PT_BEGIN(&self.pt_sub);

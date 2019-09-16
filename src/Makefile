@@ -117,9 +117,11 @@ $(OUTPUT_DIR)/$(EXE).size
 
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(C_SOURCES:.c=.o))
+DEPS = $(addprefix $(BUILD_DIR)/,$(C_SOURCES:.c=.d))
 
 # list of ASM program objects
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(ASM_SOURCES:.S=.o))
+DEPS += $(addprefix $(BUILD_DIR)/,$(ASM_SOURCES:.S=.d))
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(Q)mkdir -p $(dir $@)
@@ -170,4 +172,4 @@ clean:
 #######################################
 # dependencies
 #######################################
--include  $(wildcard $(BUILD_DIR)/*.d)
+-include $(DEPS)

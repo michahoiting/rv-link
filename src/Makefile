@@ -68,11 +68,9 @@ endif
 
 
 C_SOURCES +=  \
-common/rvl-tap.c \
 pt/timer.c
 
 C_INCLUDES +=  \
--Icommon \
 -Iinclude \
 -Ipt \
 -I.

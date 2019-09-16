@@ -2,11 +2,39 @@
 #include "rvl-tap.h"
 #include "rvl-assert.h"
 
-static rvl_tap_state_t rvl_tap_current_state;
+#ifdef RVL_TAP_CONFIG_DYN
+
 static uint8_t rvl_tap_ir_pre;
 static uint8_t rvl_tap_ir_post;
 static uint8_t rvl_tap_dr_pre;
 static uint8_t rvl_tap_dr_post;
+
+#define RVL_TAP_IR_PRE          rvl_tap_ir_pre
+#define RVL_TAP_IR_POST         rvl_tap_ir_post
+#define RVL_TAP_DR_PRE          rvl_tap_ir_pre
+#define RVL_TAP_DR_POST         rvl_tap_ir_post
+
+#else // RVL_TAP_CONFIG_DYN
+
+#ifndef RVL_TAP_IR_PRE
+#define RVL_TAP_IR_PRE          0
+#endif
+
+#ifndef RVL_TAP_IR_POST
+#define RVL_TAP_IR_POST         0
+#endif
+
+#ifndef RVL_TAP_DR_PRE
+#define RVL_TAP_DR_PRE          0
+#endif
+
+#ifndef RVL_TAP_DR_POST
+#define RVL_TAP_DR_POST         0
+#endif
+
+#endif // RVL_TAP_CONFIG_DYN
+
+static rvl_tap_state_t rvl_tap_current_state;
 
 void rvl_tap_init(void)
 {
@@ -16,10 +44,12 @@ void rvl_tap_init(void)
   rvl_jtag_tck_put(0);
 
   rvl_tap_current_state = RVL_TAP_STATE_TEST_LOGIC_RESET;
+#ifdef RVL_TAP_CONFIG_DYN
   rvl_tap_ir_pre = 0;
   rvl_tap_ir_post = 0;
   rvl_tap_dr_pre = 0;
   rvl_tap_dr_post = 0;
+#endif // RVL_TAP_CONFIG_DYN
 }
 
 
@@ -197,7 +227,7 @@ void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len)
 
   rvl_tap_tick(1, 1); // Select-DR-Scan
 
-  rvl_tap_shift(old_dr, new_dr, dr_len, rvl_tap_dr_pre, rvl_tap_dr_post);
+  rvl_tap_shift(old_dr, new_dr, dr_len, RVL_TAP_DR_PRE, RVL_TAP_DR_POST);
 }
 
 void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
@@ -210,7 +240,7 @@ void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
   rvl_tap_tick(1, 1); // Select-DR-Scan
   rvl_tap_tick(1, 1); // Select-IR-Scan
 
-  rvl_tap_shift(old_ir, new_ir, ir_len, rvl_tap_ir_pre, rvl_tap_ir_post);
+  rvl_tap_shift(old_ir, new_ir, ir_len, RVL_TAP_IR_PRE, RVL_TAP_IR_POST);
 }
 
 void rvl_tap_go_idle(void)
@@ -238,6 +268,7 @@ void rvl_tap_run(uint32_t ticks)
 }
 
 
+#ifdef RVL_TAP_CONFIG_DYN
 void rvl_tap_config(uint8_t ir_pre, uint8_t ir_post, uint8_t dr_pre, uint8_t dr_post)
 {
     rvl_tap_ir_pre = ir_pre;
@@ -245,3 +276,4 @@ void rvl_tap_config(uint8_t ir_pre, uint8_t ir_post, uint8_t dr_pre, uint8_t dr_
     rvl_tap_dr_pre = dr_pre;
     rvl_tap_dr_post = dr_post;
 }
+#endif // RVL_TAP_CONFIG_DYN

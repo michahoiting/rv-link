@@ -3,6 +3,43 @@
 #include "encoding.h"
 #include "rvl-target.h"
 
+#ifndef RVL_TARGET_RISCV_BREAKPOINT_NUM
+#define RVL_TARGET_RISCV_BREAKPOINT_NUM     4
+#endif
+
+
+typedef union riscv_csr_mcontrol_u
+{
+    rvl_target_reg_t reg;
+    struct {
+        unsigned int load: 1;
+        unsigned int store: 1;
+        unsigned int execute: 1;
+        unsigned int u: 1;
+        unsigned int s: 1;
+        unsigned int reserved5: 1;
+        unsigned int m: 1;
+        unsigned int match: 4;
+        unsigned int chain: 1;
+        unsigned int action: 4;
+        unsigned int sizelo: 2;
+        unsigned int timing: 1;
+        unsigned int select: 1;
+        unsigned int hit: 1;
+        unsigned int maskmax: 6;
+        unsigned int dmode: 1;
+        unsigned int type: 4;
+    };
+}riscv_csr_mcontrol_t;
+
+
+typedef struct riscv_breakpoint_s
+{
+    rvl_target_breakpoint_type_t type;
+    rvl_target_addr_t addr;
+    int kind;
+}riscv_breakpoint_t;
+
 typedef struct riscv_target_s
 {
     struct pt pt;
@@ -13,6 +50,9 @@ typedef struct riscv_target_s
     rvl_target_reg_t dcsr;
     rvl_dtm_idcode_t idcode;
     rvl_dtm_dtmcs_t dtmcs;
+    rvl_target_reg_t tselect;
+    riscv_csr_mcontrol_t mcontrol;
+    riscv_breakpoint_t breakpoints[RVL_TARGET_RISCV_BREAKPOINT_NUM];
 }riscv_target_t;
 
 static riscv_target_t riscv_target_i;
@@ -28,6 +68,10 @@ void rvl_target_init(void)
 {
     PT_INIT(&self.pt);
     PT_INIT(&self.pt_sub);
+
+    for(self.i = 0; self.i < RVL_TARGET_RISCV_BREAKPOINT_NUM; self.i++) {
+        self.breakpoints[self.i].type = unused_breakpoint;
+    }
 
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
 
@@ -178,6 +222,63 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
 {
     PT_BEGIN(&self.pt);
 
+    for(self.i = 0; self.i < RVL_TARGET_RISCV_BREAKPOINT_NUM; self.i++) {
+        if(self.breakpoints[self.i].type == unused_breakpoint) {
+            self.breakpoints[self.i].type = type;
+            self.breakpoints[self.i].addr = addr;
+            self.breakpoints[self.i].kind = kind;
+            self.tselect = self.i;
+
+            self.mcontrol.reg = 0;
+            self.mcontrol.type = 2;
+            self.mcontrol.dmode = 1;
+
+            switch(type) {
+            case hardware_breakpoint:
+                self.mcontrol.execute = 1;
+                break;
+            case write_watchpoint:
+                self.mcontrol.store = 1;
+                break;
+            case read_watchpoint:
+                self.mcontrol.load = 1;
+                break;
+            case access_watchpoint:
+                self.mcontrol.store = 1;
+                self.mcontrol.load = 1;
+                break;
+            default:
+                break; // FIXME
+            }
+            self.mcontrol.m = 1;
+            self.mcontrol.action = 1;
+            switch(kind) {
+            case 1:
+                self.mcontrol.sizelo = 1;
+                break;
+            case 2:
+                self.mcontrol.sizelo = 2;
+                break;
+            case 4:
+                self.mcontrol.sizelo = 3;
+                break;
+            default:
+                break; // FIXME
+            }
+
+            break;
+        }
+    }
+
+    if(self.i == RVL_TARGET_RISCV_BREAKPOINT_NUM) {
+        *err = 0x0e;
+        PT_EXIT(&self.pt);
+    }
+
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.mcontrol.reg, CSR_TDATA1));
+
+    *err = 0;
     PT_END(&self.pt);
 }
 
@@ -186,6 +287,27 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
 {
     PT_BEGIN(&self.pt);
 
+    for(self.i = 0; self.i < RVL_TARGET_RISCV_BREAKPOINT_NUM; self.i++) {
+        if(self.breakpoints[self.i].type == type
+                && self.breakpoints[self.i].addr == addr
+                && self.breakpoints[self.i].kind == kind) {
+            self.tselect = self.i;
+            break;
+        }
+    }
+
+    if(self.i == RVL_TARGET_RISCV_BREAKPOINT_NUM) {
+        *err = 0x0e;
+        PT_EXIT(&self.pt);
+    }
+
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(0, CSR_TDATA1));
+
+    self.breakpoints[self.i].type = unused_breakpoint;
+    self.breakpoints[self.i].addr = 0;
+    self.breakpoints[self.i].kind = 0;
+    *err = 0;
     PT_END(&self.pt);
 }
 

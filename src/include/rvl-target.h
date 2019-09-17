@@ -48,6 +48,7 @@ typedef enum
     write_watchpoint = 2,
     read_watchpoint = 3,
     access_watchpoint = 4,
+    unused_breakpoint = 5,
 }rvl_target_breakpoint_type_t;
 
 

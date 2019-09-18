@@ -277,6 +277,7 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
 
     PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
     PT_WAIT_THREAD(&self.pt, riscv_write_register(self.mcontrol.reg, CSR_TDATA1));
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.breakpoints[self.tselect].addr, CSR_TDATA2));
 
     *err = 0;
     PT_END(&self.pt);

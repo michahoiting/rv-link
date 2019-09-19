@@ -177,6 +177,7 @@ PT_THREAD(gdb_server_cmd_q(void))
     PT_BEGIN(&self.pt_cmd);
 
     if(strncmp(self.cmd, "qSupported:", 11) == 0){
+        gdb_serial_no_ack_mode(false);
         strncpy(self.res, qSupported_res, GDB_SERIAL_RESPONSE_BUFFER_SIZE);
         gdb_serial_response_done(strlen(qSupported_res), GDB_SERIAL_SEND_FLAG_ALL);
         PT_WAIT_THREAD(&self.pt_cmd, gdb_server_connected());
@@ -541,7 +542,6 @@ PT_THREAD(gdb_server_connected(void))
 {
     PT_BEGIN(&self.pt_cmd_sub);
 
-    gdb_serial_no_ack_mode(false);
     rvl_led_gdb_connect(1);
     self.target_running = false;
     self.gdb_connected = true;

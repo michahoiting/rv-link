@@ -52,6 +52,7 @@ static gdb_server_t gdb_server_i;
 PT_THREAD(gdb_server_cmd_q(void));
 void gdb_server_cmd_qxfer_features_read_target_xml(void);
 void gdb_server_cmd_qxfer_memory_map_read(void);
+PT_THREAD(gdb_server_cmd_qRcmd(void));
 PT_THREAD(gdb_server_cmd_Q(void));
 PT_THREAD(gdb_server_cmd_H(void));
 PT_THREAD(gdb_server_cmd_g(void));
@@ -74,8 +75,8 @@ static void gdb_server_reply_err(int err);
 
 static void bin_to_hex(const uint8_t *bin, char *hex, size_t nbyte);
 static void word_to_hex_le(uint32_t word, char *hex);
-#if 0
 static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte);
+#if 0
 static void hex_to_word_le(const char *hex, uint32_t *word);
 #endif
 
@@ -190,7 +191,9 @@ PT_THREAD(gdb_server_cmd_q(void))
         gdb_server_cmd_qxfer_features_read_target_xml();
     } else if(strncmp(self.cmd, "qXfer:memory-map:read::", 23) == 0){
         gdb_server_cmd_qxfer_memory_map_read();
-    }else {
+    } else if(strncmp(self.cmd, "qRcmd,", 6) == 0){
+        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_cmd_qRcmd());
+    } else {
         gdb_server_reply_empty();
     }
 
@@ -257,6 +260,47 @@ void gdb_server_cmd_qxfer_memory_map_read(void)
     memory_map_str = rvl_target_get_memory_map();
     strncpy(&self.res[1], &memory_map_str[read_addr], read_len);
     gdb_serial_response_done(read_len + 1, GDB_SERIAL_SEND_FLAG_ALL);
+}
+
+
+/*
+ * ‘qRcmd,command’
+ * command (hex encoded) is passed to the local interpreter for execution.
+ */
+PT_THREAD(gdb_server_cmd_qRcmd(void))
+{
+    const char unspported_monitor_command[] = "unsupported monitor command.";
+
+    PT_BEGIN(&self.pt_cmd_sub);
+
+    self.mem_len = (self.cmd_len - 6) / 2;
+    hex_to_bin(&self.cmd[6], self.mem_buffer, self.mem_len);
+    self.mem_buffer[self.mem_len] = 0;
+
+    if(strncmp((char*)self.mem_buffer, "reset", 5) == 0){
+        if(strncmp((char*)&self.mem_buffer[5], " halt", 5) == 0) {
+            // monitor reset halt
+            PT_WAIT_THREAD(&self.pt_cmd, rvl_target_resume());
+            PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_reset(RVL_TARGET_RESET_FLAG_HALT));
+        } else {
+            // monitor reset
+            // monitor reset run
+            PT_WAIT_THREAD(&self.pt_cmd, rvl_target_resume());
+            PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_reset(0));
+            PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_halt()); //  qRcmd 执行后，应该还是 halt 状态才对，只有 s、c 才进入运行状态？
+        }
+        gdb_server_reply_ok();
+    } else if(strncmp((char*)self.mem_buffer, "halt", 4) == 0) {
+        // monitor halt
+//        PT_WAIT_THREAD(&self.pt_cmd, rvl_target_resume());
+//        PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_halt());
+        gdb_server_reply_ok();
+    } else {
+        bin_to_hex((uint8_t*)unspported_monitor_command, self.res, sizeof(unspported_monitor_command) - 1);
+        gdb_serial_response_done((sizeof(unspported_monitor_command) - 1) * 2, GDB_SERIAL_SEND_FLAG_ALL);
+    }
+
+    PT_END(&self.pt_cmd_sub);
 }
 
 
@@ -615,7 +659,7 @@ static void word_to_hex_le(uint32_t word, char *hex)
     bin_to_hex(bytes, hex, 4);
 }
 
-#if 0
+
 static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte)
 {
     size_t i;
@@ -641,7 +685,7 @@ static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte)
     }
 }
 
-
+#if 0
 static void hex_to_word_le(const char *hex, uint32_t *word)
 {
     uint8_t bytes[4];

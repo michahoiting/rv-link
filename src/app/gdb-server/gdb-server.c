@@ -106,15 +106,20 @@ PT_THREAD(gdb_server_poll(void))
                 self.cmd_len = gdb_serial_command_length();
                 if(*self.cmd == '\x03' && self.cmd_len == 1) {
                     PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_ctrl_c());
+                    self.target_running = false;
+                    strncpy(self.res, "T02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+                    gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
                 }
                 gdb_serial_command_done();
             }
 
-            PT_WAIT_THREAD(&self.pt_server, rvl_target_halt_check(&self.halted));
-            if(self.halted) {
-                self.target_running = false;
-                strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
-                gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+            if(self.target_running) {
+                PT_WAIT_THREAD(&self.pt_server, rvl_target_halt_check(&self.halted));
+                if(self.halted) {
+                    self.target_running = false;
+                    strncpy(self.res, "T05", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+                    gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+                }
             }
         } else {
             PT_WAIT_UNTIL(&self.pt_server, (self.cmd = gdb_serial_command_buffer()) != NULL);

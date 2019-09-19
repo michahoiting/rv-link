@@ -52,6 +52,7 @@ typedef struct riscv_target_s
     rvl_dtm_dtmcs_t dtmcs;
     rvl_target_reg_t tselect;
     riscv_csr_mcontrol_t mcontrol;
+    riscv_csr_mcontrol_t mcontrol_rb;
     riscv_breakpoint_t breakpoints[RVL_TARGET_RISCV_BREAKPOINT_NUM];
 }riscv_target_t;
 
@@ -229,9 +230,13 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
             self.breakpoints[self.i].kind = kind;
             self.tselect = self.i;
 
-            self.mcontrol.reg = 0;
-            self.mcontrol.type = 2;
+            PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
+            PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.mcontrol.reg, CSR_TDATA1));
+
             self.mcontrol.dmode = 1;
+            self.mcontrol.action = 1;
+            self.mcontrol.m = 1;
+            self.mcontrol.u = 1;
 
             switch(type) {
             case hardware_breakpoint:
@@ -250,22 +255,24 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
             default:
                 break; // FIXME
             }
-            self.mcontrol.m = 1;
-            self.mcontrol.action = 1;
-            switch(kind) {
-            case 1:
-                self.mcontrol.sizelo = 1;
-                break;
-            case 2:
-                self.mcontrol.sizelo = 2;
-                break;
-            case 4:
-                self.mcontrol.sizelo = 3;
-                break;
-            default:
-                break; // FIXME
-            }
 
+//            switch(kind) {
+//            case 1:
+//                self.mcontrol.sizelo = 1;
+//                break;
+//            case 2:
+//                self.mcontrol.sizelo = 2;
+//                break;
+//            case 4:
+//                self.mcontrol.sizelo = 3;
+//                break;
+//            default:
+//                break; // FIXME
+//            }
+
+            PT_WAIT_THREAD(&self.pt, riscv_write_register(self.mcontrol.reg, CSR_TDATA1));
+            PT_WAIT_THREAD(&self.pt, riscv_write_register(self.breakpoints[self.tselect].addr, CSR_TDATA2));
+            PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.mcontrol_rb.reg, CSR_TDATA1));
             break;
         }
     }
@@ -274,10 +281,6 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
         *err = 0x0e;
         PT_EXIT(&self.pt);
     }
-
-    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
-    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.mcontrol.reg, CSR_TDATA1));
-    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.breakpoints[self.tselect].addr, CSR_TDATA2));
 
     *err = 0;
     PT_END(&self.pt);

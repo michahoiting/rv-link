@@ -39,8 +39,6 @@ typedef uint64_t rvl_target_addr_t;
 #endif
 
 
-#define RVL_TARGET_RESET_FLAG_HALT      1
-
 typedef enum
 {
     software_breakpoint = 0,
@@ -55,7 +53,7 @@ typedef enum
 void rvl_target_init(void);
 void rvl_target_fini(void);
 
-PT_THREAD(rvl_target_reset(uint32_t flags));
+PT_THREAD(rvl_target_reset(void));
 PT_THREAD(rvl_target_halt(void));
 PT_THREAD(rvl_target_halt_check(int* halted));
 PT_THREAD(rvl_target_resume(void));

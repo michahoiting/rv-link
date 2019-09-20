@@ -269,7 +269,7 @@ void gdb_server_cmd_qxfer_memory_map_read(void)
  */
 PT_THREAD(gdb_server_cmd_qRcmd(void))
 {
-    const char unspported_monitor_command[] = "unsupported monitor command.";
+    const char unspported_monitor_command[] = "unsupported monitor command.\n";
 
     PT_BEGIN(&self.pt_cmd_sub);
 
@@ -277,23 +277,10 @@ PT_THREAD(gdb_server_cmd_qRcmd(void))
     hex_to_bin(&self.cmd[6], self.mem_buffer, self.mem_len);
     self.mem_buffer[self.mem_len] = 0;
 
-    if(strncmp((char*)self.mem_buffer, "reset", 5) == 0){
-        if(strncmp((char*)&self.mem_buffer[5], " halt", 5) == 0) {
-            // monitor reset halt
-            PT_WAIT_THREAD(&self.pt_cmd, rvl_target_resume());
-            PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_reset(RVL_TARGET_RESET_FLAG_HALT));
-        } else {
-            // monitor reset
-            // monitor reset run
-            PT_WAIT_THREAD(&self.pt_cmd, rvl_target_resume());
-            PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_reset(0));
-            PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_halt()); //  qRcmd 执行后，应该还是 halt 状态才对，只有 s、c 才进入运行状态？
-        }
+    if(strncmp((char*)self.mem_buffer, "reset", 5) == 0) {
+        PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_reset());
         gdb_server_reply_ok();
     } else if(strncmp((char*)self.mem_buffer, "halt", 4) == 0) {
-        // monitor halt
-//        PT_WAIT_THREAD(&self.pt_cmd, rvl_target_resume());
-//        PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_halt());
         gdb_server_reply_ok();
     } else {
         bin_to_hex((uint8_t*)unspported_monitor_command, self.res, sizeof(unspported_monitor_command) - 1);

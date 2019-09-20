@@ -2,6 +2,7 @@
 #include "dmi.h"
 #include "encoding.h"
 #include "rvl-target.h"
+#include "rvl-jtag.h"
 
 #ifndef RVL_TARGET_RISCV_BREAKPOINT_NUM
 #define RVL_TARGET_RISCV_BREAKPOINT_NUM     4
@@ -155,28 +156,42 @@ PT_THREAD(rvl_target_read_memory(uint8_t* mem, rvl_target_addr_t addr, size_t le
 }
 
 
-PT_THREAD(rvl_target_reset(uint32_t flags))
+PT_THREAD(rvl_target_reset(void))
 {
     PT_BEGIN(&self.pt);
 
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_CONTROL, (rvl_dmi_reg_t*)(&self.dm.dmcontrol.reg), &self.dmi_result));
-
+    self.dm.dmcontrol.reg = 0;
+    self.dm.dmcontrol.dmactive = 1;
+    self.dm.dmcontrol.haltreq = 1;
+    self.dm.dmcontrol.setresethaltreq = 1;
     self.dm.dmcontrol.ndmreset = 1;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
-    if(flags & RVL_TARGET_RESET_FLAG_HALT) {
-        self.dm.dmcontrol.haltreq = 1;
-    }
+    rvl_jtag_srst_put(0);
+    rvl_jtag_delay(100 * 1000); // 100 ms TODO
+    rvl_jtag_srst_put(1);
+
+    self.dm.dmcontrol.reg = 0;
+    self.dm.dmcontrol.dmactive = 1;
+    self.dm.dmcontrol.haltreq = 1;
+    self.dm.dmcontrol.setresethaltreq = 1;
     self.dm.dmcontrol.ndmreset = 0;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
-    for(self.i = 0; self.i < 6; self.i++) {
+    for(self.i = 0; self.i < 100; self.i++) {
         PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus.reg), &self.dmi_result));
-        if(self.dm.dmstatus.allhavereset) {
+        if(self.dm.dmstatus.allhalted) {
             break;
         }
     }
-    self.dm.dmcontrol.ackhavereset = 1;
+
+    self.dm.dmcontrol.reg = 0;
+    self.dm.dmcontrol.dmactive = 1;
+    self.dm.dmcontrol.haltreq = 1;
+    self.dm.dmcontrol.clrresethaltreq = 1;
+    if(self.dm.dmstatus.allhavereset) {
+        self.dm.dmcontrol.ackhavereset = 1;
+    }
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
     PT_END(&self.pt);

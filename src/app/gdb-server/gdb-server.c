@@ -27,7 +27,8 @@ typedef struct gdb_server_s
     int halted;
     rvl_target_addr_t mem_addr;
     size_t mem_len;
-    uint8_t mem_buffer[GDB_SERIAL_RESPONSE_BUFFER_SIZE / 2];
+    uint8_t mem_buffer[GDB_SERIAL_RESPONSE_BUFFER_SIZE];
+    int flash_err;
     int i;
     rvl_target_reg_t regs[RVL_TARGET_REG_NUM];
     rvl_target_reg_t reg_tmp;
@@ -63,6 +64,10 @@ PT_THREAD(gdb_server_cmd_m(void));
 PT_THREAD(gdb_server_cmd_p(void));
 PT_THREAD(gdb_server_cmd_z(void));
 PT_THREAD(gdb_server_cmd_Z(void));
+PT_THREAD(gdb_server_cmd_v(void));
+PT_THREAD(gdb_server_cmd_vFlashErase(void));
+PT_THREAD(gdb_server_cmd_vFlashWrite(void));
+PT_THREAD(gdb_server_cmd_vFlashDone(void));
 PT_THREAD(gdb_server_cmd_question_mark(void));
 PT_THREAD(gdb_server_cmd_ctrl_c(void));
 
@@ -79,6 +84,7 @@ static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte);
 #if 0
 static void hex_to_word_le(const char *hex, uint32_t *word);
 #endif
+static size_t bin_decode(const uint8_t* xbin, uint8_t* bin, size_t xbin_len);
 
 
 void gdb_server_init(void)
@@ -150,10 +156,12 @@ PT_THREAD(gdb_server_poll(void))
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_p());
             } else if(c == 's') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_s());
-            }  else if(c == 'z') {
+            } else if(c == 'z') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_z());
-            }  else if(c == 'Z') {
+            } else if(c == 'Z') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_Z());
+            } else if(c == 'v') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_v());
             } else {
                 gdb_server_reply_empty();
             }
@@ -554,6 +562,101 @@ PT_THREAD(gdb_server_cmd_ctrl_c(void))
 }
 
 
+/*
+ * ‘v’
+ * Packets starting with ‘v’ are identified by a multi-letter name.
+ */
+PT_THREAD(gdb_server_cmd_v(void))
+{
+    PT_BEGIN(&self.pt_cmd);
+
+    if(strncmp(self.cmd, "vFlashErase:", 12) == 0) {
+        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_cmd_vFlashErase());
+    } else if(strncmp(self.cmd, "vFlashWrite:", 12) == 0) {
+        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_cmd_vFlashWrite());
+    } else if(strncmp(self.cmd, "vFlashDone", 10) == 0) {
+        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_cmd_vFlashDone());
+    } else {
+        gdb_server_reply_empty();
+    }
+
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
+ * ‘vFlashErase:addr,length’
+ * Direct the stub to erase length bytes of flash starting at addr.
+ */
+PT_THREAD(gdb_server_cmd_vFlashErase(void))
+{
+    int addr, length;
+
+    PT_BEGIN(&self.pt_cmd_sub);
+
+    sscanf(&self.cmd[12], "%x,%x", &addr, &length);
+    self.mem_addr = addr;
+    self.mem_len = length;
+
+    PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_flash_erase(self.mem_addr, self.mem_len, &self.flash_err));
+    if(self.flash_err == 0) {
+        gdb_server_reply_ok();
+    } else {
+        gdb_server_reply_err(self.flash_err);
+    }
+
+    PT_END(&self.pt_cmd_sub);
+}
+
+
+/*
+ * ‘vFlashWrite:addr:XX...’
+ * Direct the stub to write data to flash address addr.
+ * The data is passed in binary form using the same encoding as for the ‘X’ packet.
+ */
+PT_THREAD(gdb_server_cmd_vFlashWrite(void))
+{
+    int addr;
+    const char *p;
+    size_t length;
+
+    PT_BEGIN(&self.pt_cmd_sub);
+
+    sscanf(&self.cmd[12], "%x", &addr);
+    self.mem_addr = addr;
+
+    p = strchr(&self.cmd[12], ':');
+    p++;
+
+    length = self.cmd_len - ((size_t)p - (size_t)self.cmd);
+    self.mem_len = bin_decode((uint8_t*)p, self.mem_buffer, length);
+
+    PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_flash_write(self.mem_addr, self.mem_len, self.mem_buffer, &self.flash_err));
+    if(self.flash_err == 0) {
+        gdb_server_reply_ok();
+    } else {
+        gdb_server_reply_err(self.flash_err);
+    }
+
+    PT_END(&self.pt_cmd_sub);
+}
+
+
+/*
+ * ‘vFlashDone’
+ * Indicate to the stub that flash programming operation is finished.
+ */
+PT_THREAD(gdb_server_cmd_vFlashDone(void))
+{
+    PT_BEGIN(&self.pt_cmd_sub);
+
+    PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_flash_done());
+    gdb_server_reply_ok();
+
+    PT_END(&self.pt_cmd_sub);
+}
+
+
 static void gdb_server_reply_ok(void)
 {
     strncpy(self.res, "OK", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
@@ -682,3 +785,26 @@ static void hex_to_word_le(const char *hex, uint32_t *word)
     *word = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
 }
 #endif
+
+static size_t bin_decode(const uint8_t* xbin, uint8_t* bin, size_t xbin_len)
+{
+    size_t bin_len = 0;
+    size_t i;
+    int escape_found = 0;
+
+    for(i = 0; i < xbin_len; i++){
+        if(xbin[i] == 0x7d) {
+            escape_found = 1;
+        } else {
+            if(escape_found) {
+                bin[bin_len] = xbin[i] ^ 0x20;
+                escape_found = 0;
+            } else {
+                bin[bin_len] = xbin[i];
+            }
+            bin_len++;
+        }
+    }
+
+    return bin_len;
+}

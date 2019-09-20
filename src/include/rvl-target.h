@@ -77,4 +77,8 @@ size_t rvl_target_get_target_xml_len(void);
 const char *rvl_target_get_memory_map(void);
 size_t rvl_target_get_memory_map_len(void);
 
+PT_THREAD(rvl_target_flash_erase(rvl_target_addr_t addr, size_t len, int* err));
+PT_THREAD(rvl_target_flash_write(rvl_target_addr_t addr, size_t len, uint8_t* buffer, int* err));
+PT_THREAD(rvl_target_flash_done(void));
+
 #endif // __INTERFACE_GDB_CMD_H__

@@ -1,7 +1,6 @@
 OUTPUT_DIR = output
 
 elf = $(OUTPUT_DIR)/gd32vf103c-start+gd32vf103+gdb-server.elf
-elf += $(OUTPUT_DIR)/gd32vf103c-start+riscv-dummy+gdb-server.elf
 elf += $(OUTPUT_DIR)/gd32vf103c-start+riscv-debug-spec-v0p13+riscv-prober.elf
 #elf += $(OUTPUT_DIR)/gd32vf103c-start+riscv-debug-spec-v0p11+riscv-prober.elf
 elf += $(OUTPUT_DIR)/gd32vf103c-start+gd32vf103+test-usb-serial.elf

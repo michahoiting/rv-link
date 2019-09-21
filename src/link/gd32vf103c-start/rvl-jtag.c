@@ -69,7 +69,7 @@ void rvl_jtag_delay_half_period()
 {
 	uint32_t start = read_csr(mcycle);
 
-	while(read_csr(mcycle) - start < 100);
+	while(read_csr(mcycle) - start < 20);
 }
 
 int rvl_jtag_tdo_get()

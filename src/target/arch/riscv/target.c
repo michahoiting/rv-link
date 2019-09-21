@@ -71,7 +71,7 @@ static PT_THREAD(riscv_write_mem_halfword(uint16_t mem, rvl_target_addr_t addr))
 static PT_THREAD(riscv_write_mem_word(uint32_t mem, rvl_target_addr_t addr));
 
 
-void rvl_target_init(void)
+void riscv_target_init(void)
 {
     PT_INIT(&self.pt);
     PT_INIT(&self.pt_sub);
@@ -97,7 +97,7 @@ void rvl_target_init(void)
 }
 
 
-void rvl_target_fini(void)
+void riscv_target_fini(void)
 {
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
 

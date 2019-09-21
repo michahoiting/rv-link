@@ -47,6 +47,24 @@ static gd32vf103_target_t gd32vf103_target_i;
 #define self gd32vf103_target_i
 
 
+void riscv_target_init(void);
+void riscv_target_fini(void);
+
+
+void rvl_target_init(void)
+{
+    riscv_target_init();
+
+    PT_INIT(&self.pt);
+}
+
+
+void rvl_target_fini(void)
+{
+    riscv_target_fini();
+}
+
+
 PT_THREAD(rvl_target_flash_erase(rvl_target_addr_t addr, size_t len, int* err))
 {
     PT_BEGIN(&self.pt);

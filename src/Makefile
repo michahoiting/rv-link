@@ -68,6 +68,7 @@ endif
 
 
 C_SOURCES +=  \
+link/rvl-link-stub.c \
 pt/timer.c
 
 C_INCLUDES +=  \

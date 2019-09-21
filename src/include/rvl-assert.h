@@ -3,9 +3,11 @@
 
 #ifdef RVL_ASSERT_EN
 
+#include "rvl-led.h"
+
 #define rvl_assert(cond) \
   do { \
-    if(!(cond)) {for(;;) {} } \
+    if(!(cond)) { rvl_led_assert(1); for(;;) {} } \
   } while (0)
 
 #else

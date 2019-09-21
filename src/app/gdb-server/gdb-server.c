@@ -62,6 +62,7 @@ PT_THREAD(gdb_server_cmd_k(void));
 PT_THREAD(gdb_server_cmd_c(void));
 PT_THREAD(gdb_server_cmd_s(void));
 PT_THREAD(gdb_server_cmd_m(void));
+PT_THREAD(gdb_server_cmd_M(void));
 PT_THREAD(gdb_server_cmd_p(void));
 PT_THREAD(gdb_server_cmd_P(void));
 PT_THREAD(gdb_server_cmd_z(void));
@@ -155,6 +156,8 @@ PT_THREAD(gdb_server_poll(void))
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_c());
             } else if(c == 'm') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_m());
+            } else if(c == 'M') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_M());
             } else if(c == 'p') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_p());
             } else if(c == 'P') {
@@ -492,6 +495,33 @@ PT_THREAD(gdb_server_cmd_m(void))
 
     bin_to_hex(self.mem_buffer, self.res, self.mem_len);
     gdb_serial_response_done(self.mem_len * 2, GDB_SERIAL_SEND_FLAG_ALL);
+
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
+ * ‘M addr,length:XX...’
+ * Write length addressable memory units starting at address addr.
+ */
+PT_THREAD(gdb_server_cmd_M(void))
+{
+    const char *p;
+
+    PT_BEGIN(&self.pt_cmd);
+
+    sscanf(&self.cmd[1], "%x,%x", (unsigned int*)(&self.mem_addr), (unsigned int*)(&self.mem_len));
+    p = strchr(&self.cmd[1], ':');
+    p++;
+
+    if(self.mem_len > sizeof(self.mem_buffer)) {
+        self.mem_len = sizeof(self.mem_buffer);
+    }
+
+    hex_to_bin(p, self.mem_buffer, self.mem_len);
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_write_memory(self.mem_buffer, self.mem_addr, self.mem_len));
+
+    gdb_server_reply_ok();
 
     PT_END(&self.pt_cmd);
 }

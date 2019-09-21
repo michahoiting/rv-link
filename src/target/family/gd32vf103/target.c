@@ -40,7 +40,6 @@ typedef struct gd32vf103_target_s
     rvl_target_addr_t start;
     rvl_target_addr_t end;
     int i;
-    int ii;
 }gd32vf103_target_t;
 
 static gd32vf103_target_t gd32vf103_target_i;
@@ -124,22 +123,20 @@ PT_THREAD(rvl_target_flash_write(rvl_target_addr_t addr, size_t len, uint8_t* bu
     for(self.i = 0; self.i < len; self.i += 4) {
         self.reg_value = *((uint32_t*)&buffer[self.i]);
         PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, self.start, 4));
-        self.start += 4;
 
-        for(self.ii = 0; self.ii < 1000; self.ii++) {
+        if((self.start & 0xff) == 0) {
             PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, FMC_STAT, 4));
-            if((self.reg_value & FMC_STAT_BUSY) == 0) {
-                break;
+            if(self.reg_value & FMC_STAT_BUSY) {
+                *err = 2;
+                PT_EXIT(&self.pt);
+            }
+            if(self.reg_value & FMC_STAT_PGERR) {
+                *err = 3;
+                PT_EXIT(&self.pt);
             }
         }
-        if(self.reg_value & FMC_STAT_BUSY) {
-            *err = 2;
-            PT_EXIT(&self.pt);
-        }
-        if(self.reg_value & FMC_STAT_PGERR) {
-            *err = 3;
-            PT_EXIT(&self.pt);
-        }
+
+        self.start += 4;
     }
 
     *err = 0;

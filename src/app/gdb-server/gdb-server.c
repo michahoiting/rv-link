@@ -74,6 +74,7 @@ PT_THREAD(gdb_server_cmd_ctrl_c(void));
 PT_THREAD(gdb_server_connected(void));
 PT_THREAD(gdb_server_disconnected(void));
 
+static void gdb_server_target_run(bool run);
 static void gdb_server_reply_ok(void);
 static void gdb_server_reply_empty(void);
 static void gdb_server_reply_err(int err);
@@ -93,7 +94,7 @@ void gdb_server_init(void)
     PT_INIT(&self.pt_cmd);
     PT_INIT(&self.pt_cmd_sub);
 
-    self.target_running = false;
+    gdb_server_target_run(false);
     self.gdb_connected = false;
 }
 
@@ -113,7 +114,7 @@ PT_THREAD(gdb_server_poll(void))
                 self.cmd_len = gdb_serial_command_length();
                 if(*self.cmd == '\x03' && self.cmd_len == 1) {
                     PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_ctrl_c());
-                    self.target_running = false;
+                    gdb_server_target_run(false);
                     strncpy(self.res, "T02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
                     gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
                 }
@@ -123,7 +124,7 @@ PT_THREAD(gdb_server_poll(void))
             if(self.target_running) {
                 PT_WAIT_THREAD(&self.pt_server, rvl_target_halt_check(&self.halted));
                 if(self.halted) {
-                    self.target_running = false;
+                    gdb_server_target_run(false);
                     strncpy(self.res, "T05", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
                     gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
                 }
@@ -472,7 +473,7 @@ PT_THREAD(gdb_server_cmd_c(void))
     PT_BEGIN(&self.pt_cmd);
 
     PT_WAIT_THREAD(&self.pt_cmd, rvl_target_resume());
-    self.target_running = true;
+    gdb_server_target_run(true);
 
     PT_END(&self.pt_cmd);
 }
@@ -487,7 +488,7 @@ PT_THREAD(gdb_server_cmd_s(void))
     PT_BEGIN(&self.pt_cmd);
 
     PT_WAIT_THREAD(&self.pt_cmd, rvl_target_step());
-    self.target_running = true;
+    gdb_server_target_run(true);
 
     PT_END(&self.pt_cmd);
 }
@@ -682,7 +683,7 @@ PT_THREAD(gdb_server_connected(void))
     PT_BEGIN(&self.pt_cmd_sub);
 
     rvl_led_gdb_connect(1);
-    self.target_running = false;
+    gdb_server_target_run(false);
     self.gdb_connected = true;
 
     rvl_target_init();
@@ -699,11 +700,18 @@ PT_THREAD(gdb_server_disconnected(void))
     PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_resume());
     rvl_target_fini();
 
-    self.target_running = true;
+    gdb_server_target_run(true);
     self.gdb_connected = false;
     rvl_led_gdb_connect(0);
 
     PT_END(&self.pt_cmd_sub);
+}
+
+
+static void gdb_server_target_run(bool run)
+{
+    self.target_running = run;
+    rvl_led_target_run(run);
 }
 
 

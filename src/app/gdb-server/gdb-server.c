@@ -57,11 +57,13 @@ PT_THREAD(gdb_server_cmd_qRcmd(void));
 PT_THREAD(gdb_server_cmd_Q(void));
 PT_THREAD(gdb_server_cmd_H(void));
 PT_THREAD(gdb_server_cmd_g(void));
+PT_THREAD(gdb_server_cmd_G(void));
 PT_THREAD(gdb_server_cmd_k(void));
 PT_THREAD(gdb_server_cmd_c(void));
 PT_THREAD(gdb_server_cmd_s(void));
 PT_THREAD(gdb_server_cmd_m(void));
 PT_THREAD(gdb_server_cmd_p(void));
+PT_THREAD(gdb_server_cmd_P(void));
 PT_THREAD(gdb_server_cmd_z(void));
 PT_THREAD(gdb_server_cmd_Z(void));
 PT_THREAD(gdb_server_cmd_v(void));
@@ -82,9 +84,7 @@ static void gdb_server_reply_err(int err);
 static void bin_to_hex(const uint8_t *bin, char *hex, size_t nbyte);
 static void word_to_hex_le(uint32_t word, char *hex);
 static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte);
-#if 0
 static void hex_to_word_le(const char *hex, uint32_t *word);
-#endif
 static size_t bin_decode(const uint8_t* xbin, uint8_t* bin, size_t xbin_len);
 
 
@@ -147,6 +147,8 @@ PT_THREAD(gdb_server_poll(void))
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_question_mark());
             } else if(c == 'g') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_g());
+            } else if(c == 'G') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_G());
             } else if(c == 'k') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_k());
             } else if(c == 'c') {
@@ -155,6 +157,8 @@ PT_THREAD(gdb_server_poll(void))
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_m());
             } else if(c == 'p') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_p());
+            } else if(c == 'P') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_P());
             } else if(c == 's') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_s());
             } else if(c == 'z') {
@@ -396,6 +400,28 @@ PT_THREAD(gdb_server_cmd_g(void))
 
 
 /*
+ * ‘G XX...’
+ * Write general registers.
+ */
+PT_THREAD(gdb_server_cmd_G(void))
+{
+    int i;
+
+    PT_BEGIN(&self.pt_cmd);
+
+    for(i = 0; i < RVL_TARGET_REG_NUM; i++) {
+        hex_to_word_le(&self.cmd[i * (RVL_TARGET_REG_WIDTH / 8 * 2) + 1], &self.regs[i]);
+    }
+
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_write_core_registers(&self.regs[0]));
+
+    gdb_server_reply_ok();
+
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
  * ‘p n’
  * Read the value of register n; n is in hex.
  */
@@ -410,6 +436,30 @@ PT_THREAD(gdb_server_cmd_p(void))
     word_to_hex_le(self.reg_tmp, &self.res[0]);
 
     gdb_serial_response_done(RVL_TARGET_REG_WIDTH / 8 * 2, GDB_SERIAL_SEND_FLAG_ALL);
+
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
+ * ‘P n...=r...’
+ * Write register n... with value r... The register number n is in hexadecimal,
+ * and r... contains two hex digits for each byte in the register (target byte order).
+ */
+PT_THREAD(gdb_server_cmd_P(void))
+{
+    const char *p;
+
+    PT_BEGIN(&self.pt_cmd);
+
+    sscanf(&self.cmd[1], "%x", &self.reg_tmp_num);
+    p = strchr(&self.cmd[1], '=');
+    p++;
+
+    hex_to_word_le(p, &self.reg_tmp);
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_write_register(self.reg_tmp, self.reg_tmp_num));
+
+    gdb_server_reply_ok();
 
     PT_END(&self.pt_cmd);
 }
@@ -783,7 +833,7 @@ static void hex_to_bin(const char *hex, uint8_t *bin, size_t nbyte)
     }
 }
 
-#if 0
+
 static void hex_to_word_le(const char *hex, uint32_t *word)
 {
     uint8_t bytes[4];
@@ -792,7 +842,7 @@ static void hex_to_word_le(const char *hex, uint32_t *word)
 
     *word = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
 }
-#endif
+
 
 static size_t bin_decode(const uint8_t* xbin, uint8_t* bin, size_t xbin_len)
 {

@@ -126,6 +126,19 @@ PT_THREAD(rvl_target_read_core_registers(rvl_target_reg_t *regs))
 }
 
 
+PT_THREAD(rvl_target_write_core_registers(const rvl_target_reg_t *regs))
+{
+    PT_BEGIN(&self.pt);
+
+    for(self.i = 1; self.i < 32; self.i++) {
+        PT_WAIT_THREAD(&self.pt, riscv_write_register(regs[self.i], self.i + 0x1000));
+    }
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(regs[32], CSR_DPC));
+
+    PT_END(&self.pt);
+}
+
+
 PT_THREAD(rvl_target_read_register(rvl_target_reg_t *reg, int regno))
 {
     PT_BEGIN(&self.pt);
@@ -143,6 +156,26 @@ PT_THREAD(rvl_target_read_register(rvl_target_reg_t *reg, int regno))
         *reg = self.dcsr & 0x3;
     } else {
         *reg = 0xffffffff;
+    }
+
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_write_register(rvl_target_reg_t reg, int regno))
+{
+    PT_BEGIN(&self.pt);
+
+    if(regno <= 31) { // GPRs
+        PT_WAIT_THREAD(&self.pt, riscv_write_register(reg, regno + 0x1000));
+    } else if(regno == 32) { // PC
+        PT_WAIT_THREAD(&self.pt, riscv_write_register(reg, CSR_DPC));
+    } else if(regno <= 64) { // FPRs
+        PT_WAIT_THREAD(&self.pt, riscv_write_register(reg, regno + 0x1000 - 1));
+    } else if(regno <= (0x1000 + 64)) { // CSRs
+        PT_WAIT_THREAD(&self.pt, riscv_write_register(reg, regno - 65));
+    } else {
+
     }
 
     PT_END(&self.pt);

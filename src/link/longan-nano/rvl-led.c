@@ -85,7 +85,7 @@ void rvl_led_gdb_connect(int connect)
 
 void rvl_led_link_run(int on)
 {
-    if (on) {
+    if (!on) {
         gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
     } else {
         gpio_bit_reset(LED_GREEN_PORT, LED_GREEN_PIN);

@@ -1,5 +1,6 @@
 #include "rvl-button.h"
 #include "rvl-led.h"
+#include "pt.h"
 
 
 void rvl_button_init(void) __attribute__((weak));
@@ -20,6 +21,13 @@ void rvl_led_init(void) __attribute__((weak));
 void rvl_led_init(void)
 {
 
+}
+
+
+PT_THREAD(rvl_led_poll(void)) __attribute__((weak));
+PT_THREAD(rvl_led_poll(void))
+{
+    return PT_ENDED;
 }
 
 

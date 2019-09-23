@@ -13,6 +13,7 @@ int main(void)
 
 
     for(;;) {
+        rvl_led_poll();
         usb_serial_recv_poll();
         usb_serial_send_poll();
         gdb_server_poll();

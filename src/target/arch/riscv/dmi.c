@@ -16,14 +16,6 @@ static rvl_dmi_t rvl_dmi_i;
 #define self rvl_dmi_i
 
 
-#define RISCV_DMI_OP_NOP        0
-#define RISCV_DMI_OP_READ       1
-#define RISCV_DMI_OP_WRITE      2
-
-#define RISCV_DMI_RESULT_DONE   0
-#define RISCV_DMI_RESULT_FAIL   2
-#define RISCV_DMI_RESULT_BUSY   3
-
 #ifndef RVL_RISCV_DMI_RETRIES
 #define RVL_RISCV_DMI_RETRIES   6
 #endif

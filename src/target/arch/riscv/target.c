@@ -80,35 +80,76 @@ void riscv_target_init(void)
         self.breakpoints[self.i].type = unused_breakpoint;
     }
 
+    rvl_dmi_init();
+}
+
+
+PT_THREAD(riscv_target_init_post(rvl_target_error_t *err))
+{
+    PT_BEGIN(&self.pt);
+
 #if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
 
-    rvl_dmi_init();
+    PT_WAIT_THREAD(&self.pt, rvl_dtm_idcode(&self.idcode));
+    if(self.idcode.word == 0x00000000 || self.idcode.word == 0xffffffff) {
+        *err = rvl_target_error_line;
+        PT_EXIT(&self.pt);
+    }
 
-    while(rvl_dtm_idcode(&self.idcode) < PT_EXITED) {}
-    while(rvl_dtm_dtmcs(&self.dtmcs) < PT_EXITED) {}
+    PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs(&self.dtmcs));
+    if(self.dtmcs.version != 1) {
+        *err = rvl_target_error_compat;
+        PT_EXIT(&self.pt);
+    }
 
     self.dm.dmcontrol.reg = 0;
     self.dm.dmcontrol.dmactive = 1;
-    while(rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result) < PT_EXITED) {}
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
+    if(self.dmi_result != RISCV_DMI_RESULT_DONE) {
+        *err = rvl_target_error_debug_module;
+        PT_EXIT(&self.pt);
+    }
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_CONTROL, (rvl_dmi_reg_t*)(&self.dm.dmcontrol.reg), &self.dmi_result));
+    if(self.dmi_result != RISCV_DMI_RESULT_DONE) {
+        *err = rvl_target_error_debug_module;
+        PT_EXIT(&self.pt);
+    }
+
+    if(self.dm.dmcontrol.reg != 1) {
+        *err = rvl_target_error_debug_module;
+        PT_EXIT(&self.pt);
+    }
 
 #else
 #error
 #endif
+
+    *err = rvl_target_error_none;
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(riscv_target_fini_pre(void))
+{
+    PT_BEGIN(&self.pt);
+
+#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+
+    self.dm.dmcontrol.reg = 0;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
+
+#else
+#error
+#endif
+
+    PT_END(&self.pt);
 }
 
 
 void riscv_target_fini(void)
 {
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
-
-    self.dm.dmcontrol.reg = 0;
-    while(rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result) < PT_EXITED) {}
-
     rvl_dmi_fini();
-
-#else
-#error
-#endif
 }
 
 

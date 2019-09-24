@@ -50,7 +50,19 @@ typedef enum
 }rvl_target_breakpoint_type_t;
 
 
+typedef enum
+{
+    rvl_target_error_none = 0,
+    rvl_target_error_line = 1, // 连接线的问题，JTAG 线没有接好，没有供电，逻辑电平不匹配等
+    rvl_target_error_compat = 2, // 兼容性问题，
+    rvl_target_error_debug_module = 3, // Debug Module 的问题
+    rvl_target_error_other = 255,
+}rvl_target_error_t;
+
+
 void rvl_target_init(void);
+PT_THREAD(rvl_target_init_post(rvl_target_error_t *err));
+PT_THREAD(rvl_target_fini_pre(void));
 void rvl_target_fini(void);
 
 PT_THREAD(rvl_target_reset(void));

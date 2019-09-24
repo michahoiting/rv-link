@@ -11,6 +11,15 @@
 #include "dtm.h"
 
 
+#define RISCV_DMI_OP_NOP        0
+#define RISCV_DMI_OP_READ       1
+#define RISCV_DMI_OP_WRITE      2
+
+#define RISCV_DMI_RESULT_DONE   0
+#define RISCV_DMI_RESULT_FAIL   2
+#define RISCV_DMI_RESULT_BUSY   3
+
+
 void rvl_dmi_init(void);
 void rvl_dmi_fini(void);
 PT_THREAD(rvl_dmi_nop(void));

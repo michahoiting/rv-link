@@ -19,12 +19,10 @@ typedef struct gdb_server_s
     const char *cmd;
     size_t cmd_len;
     char *res;
-    size_t res_len;
     bool target_running;
     bool gdb_connected;
-    uint32_t target_pc;
-    uint32_t continue_start;
     int halted;
+    rvl_target_error_t target_error;
     rvl_target_addr_t mem_addr;
     size_t mem_len;
     uint8_t mem_buffer[GDB_SERIAL_RESPONSE_BUFFER_SIZE];
@@ -135,7 +133,6 @@ PT_THREAD(gdb_server_poll(void))
             self.cmd_len = gdb_serial_command_length();
 
             PT_WAIT_UNTIL(&self.pt_server, (self.res = gdb_serial_response_buffer()) != NULL);
-            self.res_len = 0;
 
             c = *self.cmd;
             if(c == 'q') {
@@ -371,10 +368,14 @@ PT_THREAD(gdb_server_cmd_question_mark(void))
 {
     PT_BEGIN(&self.pt_cmd);
 
-    self.target_pc = (uint32_t)(&gdb_server_cmd_question_mark);
-
-    strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
-    gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+    if(self.target_error == rvl_target_error_line){
+        // ‘?’ 命令不能返回 ‘O XX...’
+        strncpy(self.res, "X06", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+        gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+    } else {
+        strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+        gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+    }
 
     PT_END(&self.pt_cmd);
 }
@@ -767,7 +768,10 @@ PT_THREAD(gdb_server_connected(void))
     self.gdb_connected = true;
 
     rvl_target_init();
-    PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_halt());
+    PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_init_post(&self.target_error));
+    if(self.target_error == rvl_target_error_none) {
+        PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_halt());
+    }
 
     PT_END(&self.pt_cmd_sub);
 }
@@ -777,7 +781,10 @@ PT_THREAD(gdb_server_disconnected(void))
 {
     PT_BEGIN(&self.pt_cmd_sub);
 
-    PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_resume());
+    if(self.target_error == rvl_target_error_none) {
+        PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_resume());
+        PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_fini_pre());
+    }
     rvl_target_fini();
 
     gdb_server_target_run(true);

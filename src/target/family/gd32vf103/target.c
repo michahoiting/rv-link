@@ -47,6 +47,8 @@ static gd32vf103_target_t gd32vf103_target_i;
 
 
 void riscv_target_init(void);
+PT_THREAD(riscv_target_init_post(rvl_target_error_t *err));
+PT_THREAD(riscv_target_fini_pre(void));
 void riscv_target_fini(void);
 
 
@@ -55,6 +57,26 @@ void rvl_target_init(void)
     riscv_target_init();
 
     PT_INIT(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_init_post(rvl_target_error_t *err))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_WAIT_THREAD(&self.pt, riscv_target_init_post(err));
+
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_fini_pre(void))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_WAIT_THREAD(&self.pt, riscv_target_fini_pre());
+
+    PT_END(&self.pt);
 }
 
 

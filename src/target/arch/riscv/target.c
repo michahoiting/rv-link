@@ -153,6 +153,12 @@ void riscv_target_fini(void)
 }
 
 
+uint32_t riscv_target_get_idcode(void)
+{
+    return self.idcode.word;
+}
+
+
 PT_THREAD(rvl_target_read_core_registers(rvl_target_reg_t *regs))
 {
     PT_BEGIN(&self.pt);

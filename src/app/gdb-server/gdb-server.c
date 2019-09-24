@@ -18,6 +18,7 @@ typedef struct gdb_server_s
     struct pt pt_server;
     struct pt pt_cmd;
     struct pt pt_cmd_sub;
+    struct pt pt_sub_routine;
     const char *cmd;
     size_t cmd_len;
     char *res;
@@ -71,6 +72,7 @@ PT_THREAD(gdb_server_cmd_v(void));
 PT_THREAD(gdb_server_cmd_vFlashErase(void));
 PT_THREAD(gdb_server_cmd_vFlashWrite(void));
 PT_THREAD(gdb_server_cmd_vFlashDone(void));
+PT_THREAD(gdb_server_cmd_vMustReplyEmpty(void));
 PT_THREAD(gdb_server_cmd_question_mark(void));
 PT_THREAD(gdb_server_cmd_ctrl_c(void));
 
@@ -94,6 +96,7 @@ void gdb_server_init(void)
     PT_INIT(&self.pt_server);
     PT_INIT(&self.pt_cmd);
     PT_INIT(&self.pt_cmd_sub);
+    PT_INIT(&self.pt_sub_routine);
 
     gdb_server_target_run(false);
     self.gdb_connected = false;
@@ -404,16 +407,8 @@ PT_THREAD(gdb_server_cmd_question_mark(void))
 {
     PT_BEGIN(&self.pt_cmd);
 
-    if(self.target_error == rvl_target_error_line){
-        // ‘?’ 命令不能返回 ‘O XX...’
-        strncpy(self.res, "X06", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
-        gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
-
-        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_disconnected());
-    } else {
-        strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
-        gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
-    }
+    strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+    gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
 
     PT_END(&self.pt_cmd);
 }
@@ -696,6 +691,8 @@ PT_THREAD(gdb_server_cmd_v(void))
         PT_WAIT_THREAD(&self.pt_cmd, gdb_server_cmd_vFlashWrite());
     } else if(strncmp(self.cmd, "vFlashDone", 10) == 0) {
         PT_WAIT_THREAD(&self.pt_cmd, gdb_server_cmd_vFlashDone());
+    } else if(strncmp(self.cmd, "vMustReplyEmpty", 15) == 0) {
+        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_cmd_vMustReplyEmpty());
     } else {
         gdb_server_reply_empty();
     }
@@ -777,6 +774,34 @@ PT_THREAD(gdb_server_cmd_vFlashDone(void))
 }
 
 
+/*
+ * ‘vMustReplyEmpty’
+ * RV-LINK 利用产生非预期的 vMustReplyEmpty 响应告知错误
+ */
+PT_THREAD(gdb_server_cmd_vMustReplyEmpty(void))
+{
+    size_t len;
+    char c;
+
+    PT_BEGIN(&self.pt_cmd_sub);
+
+    if(self.target_error == rvl_target_error_none) {
+        gdb_server_reply_empty();
+    } else {
+        len = 0;
+        while(rvl_serial_getchar(&c)) {
+            self.res[len] = c;
+            len++;
+        }
+        gdb_serial_response_done(len, GDB_SERIAL_SEND_FLAG_ALL);
+
+        PT_WAIT_THREAD(&self.pt_cmd_sub, gdb_server_disconnected());
+    }
+
+    PT_END(&self.pt_cmd_sub);
+}
+
+
 static void gdb_server_reply_ok(void)
 {
     strncpy(self.res, "OK", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
@@ -801,7 +826,7 @@ PT_THREAD(gdb_server_connected(void))
 {
     char c;
 
-    PT_BEGIN(&self.pt_cmd_sub);
+    PT_BEGIN(&self.pt_sub_routine);
 
     while(rvl_serial_getchar(&c)) {};
 
@@ -809,44 +834,44 @@ PT_THREAD(gdb_server_connected(void))
     gdb_server_target_run(false);
     self.gdb_connected = true;
 
+    rvl_target_init();
+    PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_init_post(&self.target_error));
+    if(self.target_error == rvl_target_error_none) {
+        PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_halt());
+    } else {
+        switch(self.target_error) {
+        case rvl_target_error_line:
+            rvl_serial_puts("\nRV-LINK ERROR: the target is not connected!\n");
+            break;
+        case rvl_target_error_compat:
+            rvl_serial_puts("\nRV-LINK ERROR: the target is not supported, upgrade RV-LINK firmware!\n");
+            break;
+        case rvl_target_error_debug_module:
+            rvl_serial_puts("\nRV-LINK ERROR: something wrong with debug module!\n");
+            break;
+        default:
+            rvl_serial_puts("\nRV-LINK ERROR: unknown error!\n");
+            break;
+        }
+    }
+
     rvl_serial_puts("RV-LINK: ");
     rvl_serial_puts(rvl_link_get_name());
     rvl_serial_puts(", configed for ");
     rvl_serial_puts(rvl_target_get_name());
     rvl_serial_puts(" family.\n");
 
-    rvl_target_init();
-    PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_init_post(&self.target_error));
-    if(self.target_error == rvl_target_error_none) {
-        PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_halt());
-    } else {
-        switch(self.target_error) {
-        case rvl_target_error_line:
-            rvl_serial_puts(":( the target is not connected!");
-            break;
-        case rvl_target_error_compat:
-            rvl_serial_puts(":( the target is not supported, upgrade RV-LINK firmware!");
-            break;
-        case rvl_target_error_debug_module:
-            rvl_serial_puts(":( something wrong with debug module!");
-            break;
-        default:
-            rvl_serial_puts(":( unknown error!");
-            break;
-        }
-    }
-
-    PT_END(&self.pt_cmd_sub);
+    PT_END(&self.pt_sub_routine);
 }
 
 
 PT_THREAD(gdb_server_disconnected(void))
 {
-    PT_BEGIN(&self.pt_cmd_sub);
+    PT_BEGIN(&self.pt_sub_routine);
 
     if(self.target_error == rvl_target_error_none) {
-        PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_resume());
-        PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_fini_pre());
+        PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_resume());
+        PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_fini_pre());
     }
     rvl_target_fini();
 
@@ -854,7 +879,7 @@ PT_THREAD(gdb_server_disconnected(void))
     self.gdb_connected = false;
     rvl_led_gdb_connect(0);
 
-    PT_END(&self.pt_cmd_sub);
+    PT_END(&self.pt_sub_routine);
 }
 
 

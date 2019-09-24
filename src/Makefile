@@ -68,6 +68,7 @@ endif
 
 
 C_SOURCES +=  \
+link/rvl-serial.c \
 link/rvl-link-stub.c \
 pt/timer.c
 

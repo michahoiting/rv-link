@@ -4,6 +4,8 @@
 
 #include "riscv_encoding.h"
 #include "rvl-led.h"
+#include "rvl-serial.h"
+#include "rvl-link.h"
 #include "gdb-server.h"
 
 #include "rvl-target.h"
@@ -101,6 +103,7 @@ void gdb_server_init(void)
 PT_THREAD(gdb_server_poll(void))
 {
     char c;
+    size_t ret, len;
 
     PT_BEGIN(&self.pt_server);
 
@@ -108,6 +111,21 @@ PT_THREAD(gdb_server_poll(void))
         PT_YIELD(&self.pt_server);
 
         if(self.gdb_connected && self.target_running) {
+            ret = rvl_serial_getchar(&c);
+            if(ret > 0) {
+                self.res[0] = 'O';
+                len = 0;
+                do {
+                    bin_to_hex((uint8_t*)&c, &self.res[1 + len * 2], 1);
+                    len++;
+                    ret = rvl_serial_getchar(&c);
+                } while (ret > 0);
+
+                gdb_serial_response_done(len * 2 + 1, GDB_SERIAL_SEND_FLAG_ALL);
+
+                PT_WAIT_UNTIL(&self.pt_server, (self.res = gdb_serial_response_buffer()) != NULL);
+            }
+
             self.cmd = gdb_serial_command_buffer();
             if(self.cmd != NULL) {
                 self.cmd_len = gdb_serial_command_length();
@@ -282,9 +300,27 @@ void gdb_server_cmd_qxfer_memory_map_read(void)
  */
 PT_THREAD(gdb_server_cmd_qRcmd(void))
 {
-    const char unspported_monitor_command[] = "unsupported monitor command.\n";
+    char c;
+    size_t ret, len;
+
+    const char unspported_monitor_command[] = ":( unsupported monitor command!\n";
 
     PT_BEGIN(&self.pt_cmd_sub);
+
+    ret = rvl_serial_getchar(&c);
+    if(ret > 0) {
+        self.res[0] = 'O';
+        len = 0;
+        do {
+            bin_to_hex((uint8_t*)&c, &self.res[1 + len * 2], 1);
+            len++;
+            ret = rvl_serial_getchar(&c);
+        } while (ret > 0);
+
+        gdb_serial_response_done(len * 2 + 1, GDB_SERIAL_SEND_FLAG_ALL);
+
+        PT_WAIT_UNTIL(&self.pt_cmd_sub, (self.res = gdb_serial_response_buffer()) != NULL);
+    }
 
     self.mem_len = (self.cmd_len - 6) / 2;
     hex_to_bin(&self.cmd[6], self.mem_buffer, self.mem_len);
@@ -763,16 +799,41 @@ static void gdb_server_reply_err(int err)
 
 PT_THREAD(gdb_server_connected(void))
 {
+    char c;
+
     PT_BEGIN(&self.pt_cmd_sub);
+
+    while(rvl_serial_getchar(&c)) {};
 
     rvl_led_gdb_connect(1);
     gdb_server_target_run(false);
     self.gdb_connected = true;
 
+    rvl_serial_puts("RV-LINK: ");
+    rvl_serial_puts(rvl_link_get_name());
+    rvl_serial_puts(", configed for ");
+    rvl_serial_puts(rvl_target_get_name());
+    rvl_serial_puts(" family.\n");
+
     rvl_target_init();
     PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_init_post(&self.target_error));
     if(self.target_error == rvl_target_error_none) {
         PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_halt());
+    } else {
+        switch(self.target_error) {
+        case rvl_target_error_line:
+            rvl_serial_puts(":( the target is not connected!");
+            break;
+        case rvl_target_error_compat:
+            rvl_serial_puts(":( the target is not supported, upgrade RV-LINK firmware!");
+            break;
+        case rvl_target_error_debug_module:
+            rvl_serial_puts(":( something wrong with debug module!");
+            break;
+        default:
+            rvl_serial_puts(":( unknown error!");
+            break;
+        }
     }
 
     PT_END(&self.pt_cmd_sub);

@@ -176,3 +176,9 @@ PT_THREAD(rvl_target_flash_done(void))
 
     PT_END(&self.pt);
 }
+
+
+const char *rvl_target_get_name(void)
+{
+    return "GD32VF103";
+}

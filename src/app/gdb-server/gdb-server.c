@@ -372,6 +372,8 @@ PT_THREAD(gdb_server_cmd_question_mark(void))
         // ‘?’ 命令不能返回 ‘O XX...’
         strncpy(self.res, "X06", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
         gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+
+        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_disconnected());
     } else {
         strncpy(self.res, "S02", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
         gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);

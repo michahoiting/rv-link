@@ -720,6 +720,7 @@ PT_THREAD(gdb_server_cmd_vFlashErase(void))
         gdb_server_reply_ok();
     } else {
         gdb_server_reply_err(self.flash_err);
+        PT_WAIT_THREAD(&self.pt_cmd_sub, gdb_server_disconnected());
     }
 
     PT_END(&self.pt_cmd_sub);
@@ -753,6 +754,7 @@ PT_THREAD(gdb_server_cmd_vFlashWrite(void))
         gdb_server_reply_ok();
     } else {
         gdb_server_reply_err(self.flash_err);
+        PT_WAIT_THREAD(&self.pt_cmd_sub, gdb_server_disconnected());
     }
 
     PT_END(&self.pt_cmd_sub);

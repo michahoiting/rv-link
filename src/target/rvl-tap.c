@@ -2,6 +2,18 @@
 #include "rvl-tap.h"
 #include "rvl-assert.h"
 
+
+//#define RVL_TAP_ASSERT_EN
+//#define RVL_TAP_STATE_TRACE_EN
+
+
+#ifdef RVL_TAP_ASSERT_EN
+#define rvl_tap_assert(x...)    rvl_assert(x)
+#else
+#define rvl_tap_assert(x...)
+#endif
+
+
 #ifdef RVL_TAP_CONFIG_DYN
 
 static uint8_t rvl_tap_ir_pre;
@@ -34,7 +46,36 @@ static uint8_t rvl_tap_dr_post;
 
 #endif // RVL_TAP_CONFIG_DYN
 
+
+#ifdef RVL_TAP_STATE_TRACE_EN
+
+typedef enum rvl_tap_state_e
+{
+  RVL_TAP_STATE_TEST_LOGIC_RESET = 0,
+  RVL_TAP_STATE_RUN_TEST_IDLE,
+  RVL_TAP_STATE_SELECT_DR_SCAN,
+  RVL_TAP_STATE_SELECT_IR_SCAN,
+
+  RVL_TAP_STATE_CAPTURE_DR,
+  RVL_TAP_STATE_SHIFT_DR,
+  RVL_TAP_STATE_EXIT1_DR,
+  RVL_TAP_STATE_PAUSE_DR,
+  RVL_TAP_STATE_EXIT2_DR,
+  RVL_TAP_STATE_UPDATE_DR,
+
+  RVL_TAP_STATE_CAPTURE_IR,
+  RVL_TAP_STATE_SHIFT_IR,
+  RVL_TAP_STATE_EXIT1_IR,
+  RVL_TAP_STATE_PAUSE_IR,
+  RVL_TAP_STATE_EXIT2_IR,
+  RVL_TAP_STATE_UPDATE_IR,
+}rvl_tap_state_t;
+
 static rvl_tap_state_t rvl_tap_current_state;
+
+static rvl_tap_state_t rvl_tap_trace_state(int tms);
+
+#endif // RVL_TAP_STATE_TRACE_EN
 
 void rvl_tap_init(void)
 {
@@ -43,7 +84,10 @@ void rvl_tap_init(void)
   rvl_jtag_tdi_put(1);
   rvl_jtag_tck_put(0);
 
+#ifdef RVL_TAP_STATE_TRACE_EN
   rvl_tap_current_state = RVL_TAP_STATE_TEST_LOGIC_RESET;
+#endif // RVL_TAP_STATE_TRACE_EN
+
 #ifdef RVL_TAP_CONFIG_DYN
   rvl_tap_ir_pre = 0;
   rvl_tap_ir_post = 0;
@@ -76,13 +120,16 @@ int rvl_tap_tick(int tms, int tdi)
   rvl_jtag_delay_half_period();
   rvl_jtag_tck_put(0);
 
+#ifdef RVL_TAP_STATE_TRACE_EN
   rvl_tap_trace_state(tms);
+#endif // RVL_TAP_STATE_TRACE_EN
 
   return tdo;
 }
 
 
-rvl_tap_state_t rvl_tap_trace_state(int tms)
+#ifdef RVL_TAP_STATE_TRACE_EN
+static rvl_tap_state_t rvl_tap_trace_state(int tms)
 {
   switch(rvl_tap_current_state) {
   case RVL_TAP_STATE_TEST_LOGIC_RESET:
@@ -166,6 +213,8 @@ rvl_tap_state_t rvl_tap_trace_state(int tms)
 
   return rvl_tap_current_state;
 }
+#endif // RVL_TAP_STATE_TRACE_EN
+
 
 void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len, uint8_t pre, uint8_t post)
 {
@@ -176,11 +225,14 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len, uint8_t pre, uint8_
   int tdi;
   size_t i;
 
-  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_SELECT_DR_SCAN
+#ifdef RVL_TAP_STATE_TRACE_EN
+  rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_SELECT_DR_SCAN
       || rvl_tap_current_state == RVL_TAP_STATE_SELECT_IR_SCAN);
-  rvl_assert(old);
-  rvl_assert(new);
-  rvl_assert(len > 0);
+#endif // RVL_TAP_STATE_TRACE_EN
+
+  rvl_tap_assert(old);
+  rvl_tap_assert(new);
+  rvl_tap_assert(len > 0);
 
   rvl_tap_tick(0, 1); // Capture-DR/IR
   rvl_tap_tick(0, 1); // Shift-DR/IR
@@ -214,7 +266,9 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len, uint8_t pre, uint8_
   rvl_tap_tick(1, 1); // Update-DR/IR
   rvl_tap_tick(0, 1); // Run-Test/Idle
 
-  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#ifdef RVL_TAP_STATE_TRACE_EN
+  rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#endif // RVL_TAP_STATE_TRACE_EN
 }
 
 
@@ -223,7 +277,9 @@ void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len)
   // Start state: Run-Test/Idle
   // End state: Run-Test/Idle
 
-  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#ifdef RVL_TAP_STATE_TRACE_EN
+  rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#endif // RVL_TAP_STATE_TRACE_EN
 
   rvl_tap_tick(1, 1); // Select-DR-Scan
 
@@ -235,7 +291,9 @@ void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
   // Start state: Run-Test/Idle
   // End state: Run-Test/Idle
 
-  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#ifdef RVL_TAP_STATE_TRACE_EN
+  rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#endif // RVL_TAP_STATE_TRACE_EN
 
   rvl_tap_tick(1, 1); // Select-DR-Scan
   rvl_tap_tick(1, 1); // Select-IR-Scan
@@ -251,20 +309,26 @@ void rvl_tap_go_idle(void)
   }
   rvl_tap_tick(0, 1);
 
-  rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#ifdef RVL_TAP_STATE_TRACE_EN
+  rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#endif // RVL_TAP_STATE_TRACE_EN
 }
 
 void rvl_tap_run(uint32_t ticks)
 {
     uint32_t i;
 
-    rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#ifdef RVL_TAP_STATE_TRACE_EN
+    rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#endif // RVL_TAP_STATE_TRACE_EN
 
     for(i = 0; i < ticks; i++) {
         rvl_tap_tick(0, 1);
     }
 
-    rvl_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#ifdef RVL_TAP_STATE_TRACE_EN
+    rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
+#endif // RVL_TAP_STATE_TRACE_EN
 }
 
 

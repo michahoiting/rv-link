@@ -5,6 +5,7 @@
 
 #include "riscv_encoding.h"
 #include "gd32vf103_gpio.h"
+#include "rvl-link-config.h"
 
 
 #ifdef RVL_LINK_LONGAN_NANO_JTAG_PIN_ALT

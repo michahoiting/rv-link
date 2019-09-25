@@ -1,3 +1,6 @@
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "gd32vf103.h"
 #include "riscv_encoding.h"
 #include "rvl-led.h"

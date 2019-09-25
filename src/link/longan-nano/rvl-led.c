@@ -98,12 +98,6 @@ void rvl_led_link_run(int on)
 
 void rvl_led_target_run(int on)
 {
-    if (!on) {
-        gpio_bit_set(LED_BLUE_PORT, LED_BLUE_PIN);
-    } else {
-        gpio_bit_reset(LED_BLUE_PORT, LED_BLUE_PIN);
-    }
-
     self.target_run = (bool)on;
 }
 

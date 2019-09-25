@@ -54,7 +54,7 @@ static inline void rvl_jtag_tck_put(int tck)
 
 
 #ifndef RVL_JTAG_TCK_FREQ_KHZ
-#define RVL_JTAG_TCK_FREQ_KHZ       500
+#define RVL_JTAG_TCK_FREQ_KHZ       1000
 #endif
 
 #if RVL_JTAG_TCK_FREQ_KHZ >= 1000

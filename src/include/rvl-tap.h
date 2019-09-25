@@ -10,7 +10,6 @@
 
 void rvl_tap_init(void);
 void rvl_tap_fini(void);
-int rvl_tap_tick(int tms, int tdi);
 void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len, uint8_t pre, uint8_t post);
 void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len);
 void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len);

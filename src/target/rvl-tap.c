@@ -1,4 +1,7 @@
+#pragma GCC optimize ("O2")
+
 #include "rvl-jtag.h"
+#include "rvl-jtag-inline.h"
 #include "rvl-tap.h"
 #include "rvl-assert.h"
 
@@ -103,7 +106,7 @@ void rvl_tap_fini(void)
 }
 
 
-int rvl_tap_tick(int tms, int tdi)
+static inline int rvl_tap_tick(int tms, int tdi)
 {
   int tdo;
 
@@ -114,11 +117,17 @@ int rvl_tap_tick(int tms, int tdi)
 
   rvl_jtag_tms_put(tms);
   rvl_jtag_tdi_put(tdi);
-  rvl_jtag_delay_half_period();
+  asm volatile("": : :"memory");
+  rvl_jtag_tck_low_delay();
+  asm volatile("": : :"memory");
   rvl_jtag_tck_put(1);
+  asm volatile("": : :"memory");
   tdo = rvl_jtag_tdo_get();
-  rvl_jtag_delay_half_period();
+  asm volatile("": : :"memory");
+  rvl_jtag_tck_high_delay();
+  asm volatile("": : :"memory");
   rvl_jtag_tck_put(0);
+  asm volatile("": : :"memory");
 
 #ifdef RVL_TAP_STATE_TRACE_EN
   rvl_tap_trace_state(tms);

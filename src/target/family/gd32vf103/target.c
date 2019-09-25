@@ -1,4 +1,5 @@
 #include "rvl-target.h"
+#include "timer.h"
 
 #define FMC_BASE            0x40022000
 #define FMC_WS              (FMC_BASE + 0x00)
@@ -36,6 +37,7 @@
 typedef struct gd32vf103_target_s
 {
     struct pt pt;
+    struct timer timer;
     uint32_t reg_value;
     rvl_target_addr_t start;
     rvl_target_addr_t end;
@@ -120,12 +122,17 @@ PT_THREAD(rvl_target_flash_erase(rvl_target_addr_t addr, size_t len, int* err))
         self.reg_value |= FMC_CTL_START;
         PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, FMC_CTL, 4));
 
-        for(self.i = 0; self.i < 1000; self.i++) {
+        // GD32VF103 Page erase time:
+        // 数据手册给出的数据是：300 ms
+        // 实际情况是：300 ms 内确实擦除成功了，会读取状态寄存器进行判断，多给一些时间也无妨
+        timer_set(&self.timer, 600 * 1000);
+        do {
             PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, FMC_STAT, 4));
-            if((self.reg_value & FMC_STAT_BUSY) == 0) {
+            if(timer_expired(&self.timer)) {
                 break;
             }
-        }
+        } while (self.reg_value & FMC_STAT_BUSY);
+
         if(self.reg_value & FMC_STAT_BUSY) {
             *err = 2;
             PT_EXIT(&self.pt);
@@ -151,8 +158,15 @@ PT_THREAD(rvl_target_flash_write(rvl_target_addr_t addr, size_t len, uint8_t* bu
 
     self.start = addr;
     for(self.i = 0; self.i < len; self.i += 4) {
+        // GD32VF103 Word programming time:
+        // 数据手册给出的数据是：86 us
+        // 实际测量的结果是：500 us，多加 100 us 作为裕量
+        timer_set(&self.timer, 600);
+
         self.reg_value = *((uint32_t*)&buffer[self.i]);
         PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, self.start, 4));
+
+        PT_WAIT_UNTIL(&self.pt, timer_expired(&self.timer));
 
         if((self.start & 0xff) == 0) {
             PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, FMC_STAT, 4));

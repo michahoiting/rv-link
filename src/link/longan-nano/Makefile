@@ -22,6 +22,7 @@ link/gd32vf103c-start/gd32vf103_it.c \
 link/gd32vf103c-start/cdc_acm_core.c \
 link/gd32vf103c-start/usb-serial.c \
 link/gd32vf103c-start/pt-clock.c \
+link/longan-nano/handlers.c \
 link/longan-nano/rvl-link.c \
 link/longan-nano/rvl-led.c \
 link/longan-nano/rvl-jtag.c

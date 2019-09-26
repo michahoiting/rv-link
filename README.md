@@ -15,9 +15,9 @@ RV-LINK 可以调试的 RISC-V MCU：
 
 ## RV-LINK 的使用
 
-- [将 Longan Nano 开发板变成 RISC-V 仿真器](/zoomdy/RV-LINK/wikis/将%20Longan%20Nano%20开发板变成%20RISC-V%20仿真器)
-- [将 GD32VF103C-START 开发板变成 RISCV-V 仿真器](/zoomdy/RV-LINK/wikis/将%20GD32VF103C-START%20开发板变成%20RISCV-V%20仿真器)
-- [GDB 使用 RV-LINK 仿真器调试 RISC-V 程序](/zoomdy/RV-LINK/wikis/GDB%20使用%20RV-LINK%20仿真器调试%20RISC-V%20程序)
+- [将 Longan Nano 开发板变成 RISC-V 仿真器](https://gitee.com/zoomdy/RV-LINK/wikis/将%20Longan%20Nano%20开发板变成%20RISC-V%20仿真器)
+- [将 GD32VF103C-START 开发板变成 RISCV-V 仿真器](https://gitee.com/zoomdy/RV-LINK/wikis/将%20GD32VF103C-START%20开发板变成%20RISCV-V%20仿真器)
+- [GDB 使用 RV-LINK 仿真器调试 RISC-V 程序](https://gitee.com/zoomdy/RV-LINK/wikis/GDB%20使用%20RV-LINK%20仿真器调试%20RISC-V%20程序)
 
 ## RV-LINK 开发过程中的杂碎
 

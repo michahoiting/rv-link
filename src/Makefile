@@ -25,7 +25,7 @@ endif
 ###############################################################################
 #
 ifeq ($(LINK),)
-	LINK = gd32vf103c-start
+	LINK = longan-nano
 endif
 
 include link/$(LINK)/Makefile

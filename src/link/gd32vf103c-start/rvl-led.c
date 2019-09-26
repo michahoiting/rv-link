@@ -4,7 +4,7 @@
 #include "gd32vf103.h"
 #include "riscv_encoding.h"
 #include "rvl-led.h"
-#include "pt.h"
+#include "pt/pt.h"
 
 
 typedef struct rvl_led_s

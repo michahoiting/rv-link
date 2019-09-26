@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "pt.h"
+#include "pt/pt.h"
 
 void rvl_serial_init(void);
 size_t rvl_serial_putchar(char c);

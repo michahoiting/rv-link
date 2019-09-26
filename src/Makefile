@@ -74,7 +74,6 @@ pt/timer.c
 
 C_INCLUDES +=  \
 -Iinclude \
--Ipt \
 -I.
 
 C_DEFS += \

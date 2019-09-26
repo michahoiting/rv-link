@@ -1,7 +1,7 @@
 #include <stdint.h>
 
 #include "rvl-led.h"
-#include "timer.h"
+#include "pt/timer.h"
 
 
 uintptr_t handle_trap(uintptr_t mcause, uintptr_t sp)

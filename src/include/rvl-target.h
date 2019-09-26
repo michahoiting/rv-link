@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "pt.h"
+#include "pt/pt.h"
 #include "rvl-target-def.h"
 
 #ifndef RVL_TARGET_REG_WIDTH

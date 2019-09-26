@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include "riscv-debug-spec.h"
-#include "pt.h"
+#include "pt/pt.h"
 #include "dtm.h"
 
 

@@ -1,7 +1,7 @@
 #ifndef __INTERFACE_LED_H__
 #define __INTERFACE_LED_H__
 
-#include "pt.h"
+#include "pt/pt.h"
 
 void rvl_led_init(void);
 PT_THREAD(rvl_led_poll(void));

@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "pt.h"
+#include "pt/pt.h"
 
 /*
  * 以下三个函数由 app 的 main 函数调用，由 link 的 USB Serial 组件实现。

@@ -159,7 +159,7 @@ PT_THREAD(driver_thread(struct pt *pt))
 #ifndef PT_SEM_H_
 #define PT_SEM_H_
 
-#include "pt.h"
+#include "pt/pt.h"
 
 struct pt_sem {
   unsigned int head, tail;

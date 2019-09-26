@@ -48,7 +48,7 @@
 #ifndef PT_H_
 #define PT_H_
 
-#include "lc.h"
+#include "pt/lc.h"
 
 struct pt {
   lc_t lc;

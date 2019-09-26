@@ -4,7 +4,7 @@
 
 #include "rvl-led.h"
 #include "rvl-usb-serial.h"
-#include "pt.h"
+#include "pt/pt.h"
 
 
 typedef struct task_usb_s

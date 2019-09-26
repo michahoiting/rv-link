@@ -1,6 +1,6 @@
 #include "rvl-button.h"
 #include "rvl-led.h"
-#include "pt.h"
+#include "pt/pt.h"
 
 
 __attribute__((weak)) void rvl_button_init(void)

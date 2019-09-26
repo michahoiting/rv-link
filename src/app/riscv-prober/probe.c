@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "pt.h"
+#include "pt/pt.h"
 #include "rvl-led.h"
 #include "rvl-button.h"
 #include "rvl-usb-serial.h"

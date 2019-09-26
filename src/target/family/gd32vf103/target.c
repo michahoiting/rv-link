@@ -1,5 +1,5 @@
 #include "rvl-target.h"
-#include "timer.h"
+#include "pt/timer.h"
 
 #define FMC_BASE            0x40022000
 #define FMC_WS              (FMC_BASE + 0x00)

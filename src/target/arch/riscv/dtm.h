@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include "riscv-debug-spec.h"
-#include "pt.h"
+#include "pt/pt.h"
 
 
 #define RISCV_DTM_JTAG_REG_IDCODE           0x01

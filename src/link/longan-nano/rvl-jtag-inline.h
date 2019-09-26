@@ -10,20 +10,25 @@
 
 #ifdef RVL_LINK_LONGAN_NANO_JTAG_PIN_ALT
 
+// PB13, SCK
 #define TCK_PORT    GPIOB
-#define TCK_PIN     GPIO_PIN_9
+#define TCK_PIN     GPIO_PIN_13
 
+// PB12, CS
 #define TMS_PORT    GPIOB
-#define TMS_PIN     GPIO_PIN_8
+#define TMS_PIN     GPIO_PIN_12
 
+// PB15, MOSI
 #define TDI_PORT    GPIOB
-#define TDI_PIN     GPIO_PIN_7
+#define TDI_PIN     GPIO_PIN_15
 
+// PB14, MISO
 #define TDO_PORT    GPIOB
-#define TDO_PIN     GPIO_PIN_6
+#define TDO_PIN     GPIO_PIN_14
 
-#define SRST_PORT   GPIOB
-#define SRST_PIN    GPIO_PIN_5
+// PA8
+#define SRST_PORT   GPIOA
+#define SRST_PIN    GPIO_PIN_8
 
 #else
 

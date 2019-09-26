@@ -1,37 +1,25 @@
 # RV-LINK
 
-#### 介绍
-用RISC-V开发板实现的RISC-V仿真器。点击[这里](https://blog.csdn.net/zoomdy/article/category/9258422)查阅更多关于RV-LINK的内容。
+用 RISC-V 开发板实现的 RISC-V 仿真器。
 
-#### 软件架构
-软件架构说明
+RV-LINK 的目标是做 RISC-V 仿真器，但是 RV-LINK 项目并不包含硬件，RV-LINK 为现有的 RISC-V 开发板编写固件，烧录了 RV-LINK 固件的开发板可以做为仿真器使用。
 
+与其它仿真器不同的是：RV-LINK 通过 USB 串口直接与 GDB 交互，不需要 OpenOCD 之类的中介。
 
-#### 安装教程
+可以作为仿真器的开发板有：
+- Longan Nano，淘宝有售
+- GD32VF103C-START，淘宝有售
 
-1. xxxx
-2. xxxx
-3. xxxx
+RV-LINK 可以调试的 RISC-V MCU：
+- GD32VF103 系列
 
-#### 使用说明
+## RV-LINK 的使用
 
-1. xxxx
-2. xxxx
-3. xxxx
+- [将 Longan Nano 开发板变成 RISC-V 仿真器](将%20Longan%20Nano%20开发板变成%20RISC-V%20仿真器)
+- [将 GD32VF103C-START 开发板变成 RISCV-V 仿真器](将%20GD32VF103C-START%20开发板变成%20RISCV-V%20仿真器)
+- [GDB 使用 RV-LINK 仿真器调试 RISC-V 程序](GDB%20使用%20RV-LINK%20仿真器调试%20RISC-V%20程序)
 
-#### 参与贡献
+## RV-LINK 开发过程中的杂碎
 
-1. Fork 本仓库
-2. 新建 Feat_xxx 分支
-3. 提交代码
-4. 新建 Pull Request
+- 开发 RV-LINK 中碰到的问题，记录在[这里](https://blog.csdn.net/zoomdy/article/category/9258422)
 
-
-#### 码云特技
-
-1. 使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2. 码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3. 你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4. [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5. 码云官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6. 码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)

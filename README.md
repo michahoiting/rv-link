@@ -19,6 +19,7 @@ RV-LINK 可以调试的 RISC-V MCU：
 - [将 GD32VF103C-START 开发板变成 RISCV-V 仿真器](https://gitee.com/zoomdy/RV-LINK/wikis/将%20GD32VF103C-START%20开发板变成%20RISCV-V%20仿真器)
 - [GDB 使用 RV-LINK 仿真器调试 RISC-V 程序](https://gitee.com/zoomdy/RV-LINK/wikis/GDB%20使用%20RV-LINK%20仿真器调试%20RISC-V%20程序)
 - [Eclipse 使用 RV-LINK 调试 RISC-V 程序](https://gitee.com/zoomdy/RV-LINK/wikis/Eclipse%20使用%20RV-LINK%20调试%20RISC-V%20程序?sort_id=1648270)
+- [NucleiStudio 使用 RV-LINK 调试 RISC-V 程序](https://gitee.com/zoomdy/RV-LINK/wikis/NucleiStudio%20使用%20RV-LINK%20调试%20RISC-V%20程序)
 
 ## RV-LINK 开发过程中的杂碎
 

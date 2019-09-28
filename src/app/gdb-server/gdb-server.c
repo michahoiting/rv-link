@@ -857,7 +857,7 @@ PT_THREAD(gdb_server_connected(void))
         }
     }
 
-    rvl_serial_puts("RV-LINK: ");
+    rvl_serial_puts("RV-LINK v0.1: ");
     rvl_serial_puts(rvl_link_get_name());
     rvl_serial_puts(", configed for ");
     rvl_serial_puts(rvl_target_get_name());

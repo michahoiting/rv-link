@@ -53,6 +53,7 @@ static const char target_xml_str[] =
         "<reg name=\"mie\" bitsize=\"32\" regnum=\"837\" save-restore=\"no\" type=\"int\" group=\"csr\"/>"
         "<reg name=\"mtvec\" bitsize=\"32\" regnum=\"838\" save-restore=\"no\" type=\"int\" group=\"csr\"/>"
         "<reg name=\"mcounteren\" bitsize=\"32\" regnum=\"839\" save-restore=\"no\" type=\"int\" group=\"csr\"/>"
+        "<reg name=\"mcountinhibit\" bitsize=\"32\" regnum=\"865\" save-restore=\"no\" type=\"int\" group=\"csr\"/>"
 
 #ifdef RVL_TARGET_RISCV_FEATURE_CSR_HPM
         "<reg name=\"mhpmevent3\" bitsize=\"32\" regnum=\"868\" save-restore=\"no\" type=\"int\" group=\"csr\"/>"

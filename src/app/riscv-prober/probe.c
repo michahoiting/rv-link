@@ -272,6 +272,18 @@ PT_THREAD(task_probe_poll(void))
     print("abstractcs.progbufsize : %d\r\n", (int)self.dm.abstractcs.progbufsize);
 
     /*
+     * abstractauto ***********************************************************
+     */
+    self.dm.abstractauto.reg = 0xffffffff;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_AUTO, (rvl_dmi_reg_t)(self.dm.abstractauto.reg), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_AUTO, (rvl_dmi_reg_t*)(&self.dm.abstractauto.reg), &self.dmi_result));
+    print("\r\nabstractauto: 0x%08x\r\n", (int)self.dm.abstractauto.reg);
+    print("abstractauto.autoexecdata : 0x%03x\r\n", (int)self.dm.abstractauto.autoexecdata);
+    print("abstractauto.autoexecprogbuf : 0x%04x\r\n", (int)self.dm.abstractauto.autoexecprogbuf);
+    self.dm.abstractauto.reg = 0;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_AUTO, (rvl_dmi_reg_t)(self.dm.abstractauto.reg), &self.dmi_result));
+
+    /*
      * sbcs *******************************************************************
      */
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_SB_CS, (rvl_dmi_reg_t*)(&self.dm.sbcs.reg), &self.dmi_result));

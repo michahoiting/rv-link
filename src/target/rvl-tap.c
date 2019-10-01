@@ -26,8 +26,8 @@ static uint8_t rvl_tap_dr_post;
 
 #define RVL_TAP_IR_PRE          rvl_tap_ir_pre
 #define RVL_TAP_IR_POST         rvl_tap_ir_post
-#define RVL_TAP_DR_PRE          rvl_tap_ir_pre
-#define RVL_TAP_DR_POST         rvl_tap_ir_post
+#define RVL_TAP_DR_PRE          rvl_tap_dr_pre
+#define RVL_TAP_DR_POST         rvl_tap_dr_post
 
 #else // RVL_TAP_CONFIG_DYN
 

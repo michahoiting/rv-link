@@ -20,8 +20,14 @@ RV-LINK 可以调试的 RISC-V MCU：
 - [GDB 使用 RV-LINK 仿真器调试 RISC-V 程序](https://gitee.com/zoomdy/RV-LINK/wikis/GDB%20使用%20RV-LINK%20仿真器调试%20RISC-V%20程序)
 - [Eclipse 使用 RV-LINK 调试 RISC-V 程序](https://gitee.com/zoomdy/RV-LINK/wikis/Eclipse%20使用%20RV-LINK%20调试%20RISC-V%20程序?sort_id=1648270)
 - [NucleiStudio 使用 RV-LINK 调试 RISC-V 程序](https://gitee.com/zoomdy/RV-LINK/wikis/NucleiStudio%20使用%20RV-LINK%20调试%20RISC-V%20程序)
+- [将 RV-LINK 伪装成 OpenOCD，启用 Peripherals 视图](https://gitee.com/zoomdy/RV-LINK/wikis/将%20RV-LINK%20伪装成%20OpenOCD%EF%BC%8C启用%20Peripherals%20视图)
+
+## RV-LINK 交流 QQ 群
+ - 203398152
 
 ## RV-LINK 开发过程中的杂碎
 
 - 开发 RV-LINK 中碰到的问题，记录在[这里](https://blog.csdn.net/zoomdy/article/category/9258422)
 
+## 类似项目
+- [Black Magic](https://github.com/blacksphere/blackmagic)，用于 ARM Cortex-A/M，同样采取通过 USB 串口提供 GDB Server 的办法。

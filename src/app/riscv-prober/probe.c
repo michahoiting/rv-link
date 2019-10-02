@@ -326,6 +326,47 @@ PT_THREAD(task_probe_poll(void))
     }
 
     /*
+     * check aarpostincrement
+     */
+    print("\r\ncheck aarpostincrement\r\n");
+    if(self.dm.abstractcs.cmderr) {
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+    }
+
+    self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+    self.dm.command_access_register.aarsize = 2;
+    self.dm.command_access_register.aarpostincrement = 1;
+    self.dm.command_access_register.postexec = 0;
+    self.dm.command_access_register.write = 0;
+    self.dm.command_access_register.transfer = 1;
+    self.dm.command_access_register.regno = 0x1001; // X1
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_register.reg), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t*)(&self.dm.command_access_register.reg), &self.dmi_result));
+    print("\r\ncommand_access_register: 0x%08x\r\n", (int)self.dm.command_access_register.reg);
+    print("command_access_register.aarsize : %d\r\n", (int)self.dm.command_access_register.aarsize);
+    print("command_access_register.aarpostincrement : %d\r\n", (int)self.dm.command_access_register.aarpostincrement);
+    print("command_access_register.postexec : %d\r\n", (int)self.dm.command_access_register.postexec);
+    print("command_access_register.write : %d\r\n", (int)self.dm.command_access_register.write);
+    print("command_access_register.transfer : %d\r\n", (int)self.dm.command_access_register.transfer);
+    print("command_access_register.regno : 0x%04x\r\n", (int)self.dm.command_access_register.regno);
+    if(self.dm.command_access_register.aarpostincrement != 1 || self.dm.command_access_register.regno != 0x1002)
+    {
+        print("aarpostincrement is not supported!\r\n");
+    }
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    if(self.dm.abstractcs.cmderr) {
+        print("abstractcs.cmderr: %s\r\n", cmd_err_msg[self.dm.abstractcs.cmderr]);
+        self.dm.abstractcs.reg = 0;
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+    } else {
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+        print("x1: 0x%08x\r\n", (int)self.dm.data[0]);
+    }
+
+    /*
      * read CSR
      */
     print("\r\nread misa\r\n");

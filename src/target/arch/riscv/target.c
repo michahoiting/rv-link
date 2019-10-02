@@ -54,6 +54,8 @@ typedef struct riscv_target_s
     rvl_target_reg_t tselect;
     riscv_csr_mcontrol_t mcontrol;
     riscv_csr_mcontrol_t mcontrol_rb;
+    rvl_dmi_reg_t dmi_data;
+    uint32_t dmi_op;
     riscv_breakpoint_t breakpoints[RVL_TARGET_RISCV_BREAKPOINT_NUM];
 }riscv_target_t;
 
@@ -164,10 +166,67 @@ PT_THREAD(rvl_target_read_core_registers(rvl_target_reg_t *regs))
     PT_BEGIN(&self.pt);
 
     regs[0] = 0x0;
+
+#if 1 // optimize
+    for(self.i = 1; self.i < 32; self.i++) {
+        self.dm.command_access_register.reg = 0;
+        self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+        self.dm.command_access_register.aarsize = 2;
+        self.dm.command_access_register.transfer = 1;
+        self.dm.command_access_register.regno = self.i + 0x1000;
+
+        self.dmi_data = self.dm.command_access_register.reg;
+        self.dmi_op = RISCV_DMI_OP_WRITE;
+        PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_ABSTRACT_CMD, &self.dmi_data, &self.dmi_op));
+        if(self.i > 1) {
+            if(self.dmi_op != RISCV_DMI_RESULT_DONE)
+            {
+                PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmireset());
+                regs[self.i - 1] = 0xffffffff;
+            } else {
+                regs[self.i - 1] = self.dmi_data;
+            }
+        }
+
+        self.dmi_data = 0;
+        self.dmi_op = RISCV_DMI_OP_READ;
+        PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_DATA0, &self.dmi_data, &self.dmi_op));
+    }
+
+    self.dm.command_access_register.reg = 0;
+    self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+    self.dm.command_access_register.aarsize = 2;
+    self.dm.command_access_register.transfer = 1;
+    self.dm.command_access_register.regno = CSR_DPC;
+
+    self.dmi_data = self.dm.command_access_register.reg;
+    self.dmi_op = RISCV_DMI_OP_WRITE;
+    PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_ABSTRACT_CMD, &self.dmi_data, &self.dmi_op));
+    if(self.dmi_op != RISCV_DMI_RESULT_DONE)
+    {
+        PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmireset());
+        regs[31] = 0xffffffff;
+    } else {
+        regs[31] = self.dmi_data;
+    }
+
+    PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    if(self.dm.abstractcs.cmderr) {
+        self.dm.abstractcs.reg = 0;
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+        regs[32] = 0xffffffff;
+    } else {
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+        regs[32] = self.dm.data[0];
+    }
+
+#else
     for(self.i = 1; self.i < 32; self.i++) {
         PT_WAIT_THREAD(&self.pt, riscv_read_register(&regs[self.i], self.i + 0x1000));
     }
     PT_WAIT_THREAD(&self.pt, riscv_read_register(&regs[32], CSR_DPC));
+#endif
 
     PT_END(&self.pt);
 }

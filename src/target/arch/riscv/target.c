@@ -1,3 +1,4 @@
+#include "rvl-target-config.h"
 #include "dm.h"
 #include "dmi.h"
 #include "encoding.h"
@@ -168,6 +169,59 @@ PT_THREAD(rvl_target_read_core_registers(rvl_target_reg_t *regs))
     regs[0] = 0x0;
 
 #if 1 // optimize
+#if defined(RVL_TARGET_CONFIG_HAS_ABS_CMD_AUTO) && defined(RVL_TARGET_CONFIG_HAS_AAR_POST_INC)
+    // Set Abstract Command Autoexec
+    self.dm.abstractauto.reg = 0;
+    self.dm.abstractauto.autoexecdata = 0x01;
+
+    self.dmi_data = self.dm.abstractauto.reg;
+    self.dmi_op = RISCV_DMI_OP_WRITE;
+    PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_ABSTRACT_AUTO, &self.dmi_data, &self.dmi_op));
+
+    self.dm.command_access_register.reg = 0;
+    self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
+    self.dm.command_access_register.aarsize = 2;
+    self.dm.command_access_register.transfer = 1;
+    self.dm.command_access_register.aarpostincrement = 1;
+    self.dm.command_access_register.regno = 0x1001;
+
+    self.dmi_data = self.dm.command_access_register.reg;
+    self.dmi_op = RISCV_DMI_OP_WRITE;
+    PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_ABSTRACT_CMD, &self.dmi_data, &self.dmi_op));
+
+    for(self.i = 1; self.i < 31; self.i++) {
+        self.dmi_data = 0;
+        self.dmi_op = RISCV_DMI_OP_READ;
+        PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_DATA0, &self.dmi_data, &self.dmi_op));
+        if(self.i > 1) {
+            if(self.dmi_op != RISCV_DMI_RESULT_DONE)
+            {
+                PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmireset());
+                regs[self.i - 1] = 0xffffffff;
+            } else {
+                regs[self.i - 1] = self.dmi_data;
+            }
+        }
+    }
+
+    // Clear Abstract Command Autoexec
+    self.dm.abstractauto.reg = 0;
+    self.dmi_data = self.dm.abstractauto.reg;
+    self.dmi_op = RISCV_DMI_OP_WRITE;
+    PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_ABSTRACT_AUTO, &self.dmi_data, &self.dmi_op));
+    if(self.dmi_op != RISCV_DMI_RESULT_DONE)
+    {
+        PT_WAIT_THREAD(&self.pt, rvl_dtm_dtmcs_dmireset());
+        regs[30] = 0xffffffff;
+    } else {
+        regs[30] = self.dmi_data;
+    }
+
+    self.dmi_data = 0;
+    self.dmi_op = RISCV_DMI_OP_READ;
+    PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_DATA0, &self.dmi_data, &self.dmi_op));
+
+#else // RVL_TARGET_CONFIG_HAS_ABS_CMD_AUTO
     for(self.i = 1; self.i < 32; self.i++) {
         self.dm.command_access_register.reg = 0;
         self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
@@ -192,6 +246,7 @@ PT_THREAD(rvl_target_read_core_registers(rvl_target_reg_t *regs))
         self.dmi_op = RISCV_DMI_OP_READ;
         PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_DATA0, &self.dmi_data, &self.dmi_op));
     }
+#endif // RVL_TARGET_CONFIG_HAS_ABS_CMD_AUTO
 
     self.dm.command_access_register.reg = 0;
     self.dm.command_access_register.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_REG;
@@ -221,12 +276,13 @@ PT_THREAD(rvl_target_read_core_registers(rvl_target_reg_t *regs))
         regs[32] = self.dm.data[0];
     }
 
-#else
+
+#else // optimize
     for(self.i = 1; self.i < 32; self.i++) {
         PT_WAIT_THREAD(&self.pt, riscv_read_register(&regs[self.i], self.i + 0x1000));
     }
     PT_WAIT_THREAD(&self.pt, riscv_read_register(&regs[32], CSR_DPC));
-#endif
+#endif // optimize
 
     PT_END(&self.pt);
 }

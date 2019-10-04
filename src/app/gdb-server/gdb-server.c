@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "rvl-target-config.h"
 #include "riscv_encoding.h"
 #include "rvl-led.h"
 #include "rvl-serial.h"
@@ -31,7 +32,7 @@ typedef struct gdb_server_s
     uint8_t mem_buffer[GDB_SERIAL_RESPONSE_BUFFER_SIZE];
     int flash_err;
     int i;
-    rvl_target_reg_t regs[RVL_TARGET_REG_NUM];
+    rvl_target_reg_t regs[RVL_TARGET_CONFIG_REG_NUM];
     rvl_target_reg_t reg_tmp;
     int reg_tmp_num;
 
@@ -426,11 +427,11 @@ PT_THREAD(gdb_server_cmd_g(void))
 
     PT_WAIT_THREAD(&self.pt_cmd, rvl_target_read_core_registers(&self.regs[0]));
 
-    for(i = 0; i < RVL_TARGET_REG_NUM; i++) {
-        word_to_hex_le(self.regs[i], &self.res[i * (RVL_TARGET_REG_WIDTH / 8 * 2)]);
+    for(i = 0; i < RVL_TARGET_CONFIG_REG_NUM; i++) {
+        word_to_hex_le(self.regs[i], &self.res[i * (RVL_TARGET_CONFIG_REG_WIDTH / 8 * 2)]);
     }
 
-    gdb_serial_response_done(RVL_TARGET_REG_WIDTH / 8 * 2 * RVL_TARGET_REG_NUM, GDB_SERIAL_SEND_FLAG_ALL);
+    gdb_serial_response_done(RVL_TARGET_CONFIG_REG_WIDTH / 8 * 2 * RVL_TARGET_CONFIG_REG_NUM, GDB_SERIAL_SEND_FLAG_ALL);
 
     PT_END(&self.pt_cmd);
 }
@@ -446,8 +447,8 @@ PT_THREAD(gdb_server_cmd_G(void))
 
     PT_BEGIN(&self.pt_cmd);
 
-    for(i = 0; i < RVL_TARGET_REG_NUM; i++) {
-        hex_to_word_le(&self.cmd[i * (RVL_TARGET_REG_WIDTH / 8 * 2) + 1], &self.regs[i]);
+    for(i = 0; i < RVL_TARGET_CONFIG_REG_NUM; i++) {
+        hex_to_word_le(&self.cmd[i * (RVL_TARGET_CONFIG_REG_WIDTH / 8 * 2) + 1], &self.regs[i]);
     }
 
     PT_WAIT_THREAD(&self.pt_cmd, rvl_target_write_core_registers(&self.regs[0]));
@@ -472,7 +473,7 @@ PT_THREAD(gdb_server_cmd_p(void))
 
     word_to_hex_le(self.reg_tmp, &self.res[0]);
 
-    gdb_serial_response_done(RVL_TARGET_REG_WIDTH / 8 * 2, GDB_SERIAL_SEND_FLAG_ALL);
+    gdb_serial_response_done(RVL_TARGET_CONFIG_REG_WIDTH / 8 * 2, GDB_SERIAL_SEND_FLAG_ALL);
 
     PT_END(&self.pt_cmd);
 }
@@ -515,7 +516,7 @@ PT_THREAD(gdb_server_cmd_m(void))
 
     p = strchr(&self.cmd[1], ',');
     p++;
-#if RVL_TARGET_ADDR_WIDTH == 32
+#if RVL_TARGET_CONFIG_ADDR_WIDTH == 32
     sscanf(&self.cmd[1], "%x", (unsigned int*)(&self.mem_addr));
 #else
 #error

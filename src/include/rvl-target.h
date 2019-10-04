@@ -7,32 +7,20 @@
 #include <stddef.h>
 
 #include "pt/pt.h"
-#include "rvl-target-def.h"
-
-#ifndef RVL_TARGET_REG_WIDTH
-#define RVL_TARGET_REG_WIDTH        32
-#endif
-
-#ifndef RVL_TARGET_ADDR_WIDTH
-#define RVL_TARGET_ADDR_WIDTH       RVL_TARGET_REG_WIDTH
-#endif
-
-#ifndef RVL_TARGET_REG_NUM
-#define RVL_TARGET_REG_NUM          33
-#endif
+#include "rvl-target-config.h"
 
 
-#if RVL_TARGET_REG_WIDTH == 32
+#if RVL_TARGET_CONFIG_REG_WIDTH == 32
 typedef uint32_t rvl_target_reg_t;
-#elif RVL_TARGET_REG_WIDTH == 64
+#elif RVL_TARGET_CONFIG_REG_WIDTH == 64
 typedef uint64_t rvl_target_ret_t;
 #else
 #error
 #endif
 
-#if RVL_TARGET_ADDR_WIDTH == 32
+#if RVL_TARGET_CONFIG_ADDR_WIDTH == 32
 typedef uint32_t rvl_target_addr_t;
-#elif RVL_TARGET_ADDR_WIDTH == 64
+#elif RVL_TARGET_CONFIG_ADDR_WIDTH == 64
 typedef uint64_t rvl_target_addr_t;
 #else
 #error

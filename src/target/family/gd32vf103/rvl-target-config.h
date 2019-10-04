@@ -1,6 +1,8 @@
 #ifndef __RVL_TARGET_CONFIG_H__
 #define __RVL_TARGET_CONFIG_H__
 
+#include "riscv-rv32.h"
+
 /*
  * 3.12.8 Abstract Command Autoexec (abstractauto, at 0x18)
  * This register is optional. Including it allows more efficient burst accesses.

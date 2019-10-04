@@ -6,51 +6,51 @@
 #include "rvl-assert.h"
 
 
-//#define RVL_TAP_ASSERT_EN
-//#define RVL_TAP_STATE_TRACE_EN
+//#define RVL_TARGET_CONFIG_TAP_ASSERT_EN
+//#define RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
 
-#ifdef RVL_TAP_ASSERT_EN
+#ifdef RVL_TARGET_CONFIG_TAP_ASSERT_EN
 #define rvl_tap_assert(x...)    rvl_assert(x)
 #else
 #define rvl_tap_assert(x...)
 #endif
 
 
-#ifdef RVL_TAP_CONFIG_DYN
+#ifdef RVL_TARGET_CONFIG_TAP_DYN
 
 static uint8_t rvl_tap_ir_pre;
 static uint8_t rvl_tap_ir_post;
 static uint8_t rvl_tap_dr_pre;
 static uint8_t rvl_tap_dr_post;
 
-#define RVL_TAP_IR_PRE          rvl_tap_ir_pre
-#define RVL_TAP_IR_POST         rvl_tap_ir_post
-#define RVL_TAP_DR_PRE          rvl_tap_dr_pre
-#define RVL_TAP_DR_POST         rvl_tap_dr_post
+#define RVL_TARGET_CONFIG_TAP_IR_PRE          rvl_tap_ir_pre
+#define RVL_TARGET_CONFIG_TAP_IR_POST         rvl_tap_ir_post
+#define RVL_TARGET_CONFIG_TAP_DR_PRE          rvl_tap_dr_pre
+#define RVL_TARGET_CONFIG_TAP_DR_POST         rvl_tap_dr_post
 
-#else // RVL_TAP_CONFIG_DYN
+#else // RVL_TARGET_CONFIG_TAP_DYN
 
-#ifndef RVL_TAP_IR_PRE
-#define RVL_TAP_IR_PRE          0
+#ifndef RVL_TARGET_CONFIG_TAP_IR_PRE
+#define RVL_TARGET_CONFIG_TAP_IR_PRE          0
 #endif
 
-#ifndef RVL_TAP_IR_POST
-#define RVL_TAP_IR_POST         0
+#ifndef RVL_TARGET_CONFIG_TAP_IR_POST
+#define RVL_TARGET_CONFIG_TAP_IR_POST         0
 #endif
 
-#ifndef RVL_TAP_DR_PRE
-#define RVL_TAP_DR_PRE          0
+#ifndef RVL_TARGET_CONFIG_TAP_DR_PRE
+#define RVL_TARGET_CONFIG_TAP_DR_PRE          0
 #endif
 
-#ifndef RVL_TAP_DR_POST
-#define RVL_TAP_DR_POST         0
+#ifndef RVL_TARGET_CONFIG_TAP_DR_POST
+#define RVL_TARGET_CONFIG_TAP_DR_POST         0
 #endif
 
-#endif // RVL_TAP_CONFIG_DYN
+#endif // RVL_TARGET_CONFIG_TAP_DYN
 
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
 typedef enum rvl_tap_state_e
 {
@@ -78,7 +78,7 @@ static rvl_tap_state_t rvl_tap_current_state;
 
 static rvl_tap_state_t rvl_tap_trace_state(int tms);
 
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
 void rvl_tap_init(void)
 {
@@ -87,16 +87,16 @@ void rvl_tap_init(void)
   rvl_jtag_tdi_put(1);
   rvl_jtag_tck_put(0);
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
   rvl_tap_current_state = RVL_TAP_STATE_TEST_LOGIC_RESET;
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
-#ifdef RVL_TAP_CONFIG_DYN
+#ifdef RVL_TARGET_CONFIG_TAP_DYN
   rvl_tap_ir_pre = 0;
   rvl_tap_ir_post = 0;
   rvl_tap_dr_pre = 0;
   rvl_tap_dr_post = 0;
-#endif // RVL_TAP_CONFIG_DYN
+#endif // RVL_TARGET_CONFIG_TAP_DYN
 }
 
 
@@ -129,15 +129,15 @@ static inline int rvl_tap_tick(int tms, int tdi)
   rvl_jtag_tck_put(0);
   asm volatile("": : :"memory");
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
   rvl_tap_trace_state(tms);
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
   return tdo;
 }
 
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 static rvl_tap_state_t rvl_tap_trace_state(int tms)
 {
   switch(rvl_tap_current_state) {
@@ -222,7 +222,7 @@ static rvl_tap_state_t rvl_tap_trace_state(int tms)
 
   return rvl_tap_current_state;
 }
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
 
 void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len, uint8_t pre, uint8_t post)
@@ -234,10 +234,10 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len, uint8_t pre, uint8_
   int tdi;
   size_t i;
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
   rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_SELECT_DR_SCAN
       || rvl_tap_current_state == RVL_TAP_STATE_SELECT_IR_SCAN);
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
   rvl_tap_assert(old);
   rvl_tap_assert(new);
@@ -275,9 +275,9 @@ void rvl_tap_shift(uint32_t* old, uint32_t *new, size_t len, uint8_t pre, uint8_
   rvl_tap_tick(1, 1); // Update-DR/IR
   rvl_tap_tick(0, 1); // Run-Test/Idle
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
   rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 }
 
 
@@ -286,13 +286,13 @@ void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len)
   // Start state: Run-Test/Idle
   // End state: Run-Test/Idle
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
   rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
   rvl_tap_tick(1, 1); // Select-DR-Scan
 
-  rvl_tap_shift(old_dr, new_dr, dr_len, RVL_TAP_DR_PRE, RVL_TAP_DR_POST);
+  rvl_tap_shift(old_dr, new_dr, dr_len, RVL_TARGET_CONFIG_TAP_DR_PRE, RVL_TARGET_CONFIG_TAP_DR_POST);
 }
 
 void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
@@ -300,14 +300,14 @@ void rvl_tap_shift_ir(uint32_t* old_ir, uint32_t* new_ir, size_t ir_len)
   // Start state: Run-Test/Idle
   // End state: Run-Test/Idle
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
   rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
   rvl_tap_tick(1, 1); // Select-DR-Scan
   rvl_tap_tick(1, 1); // Select-IR-Scan
 
-  rvl_tap_shift(old_ir, new_ir, ir_len, RVL_TAP_IR_PRE, RVL_TAP_IR_POST);
+  rvl_tap_shift(old_ir, new_ir, ir_len, RVL_TARGET_CONFIG_TAP_IR_PRE, RVL_TARGET_CONFIG_TAP_IR_POST);
 }
 
 void rvl_tap_go_idle(void)
@@ -318,30 +318,30 @@ void rvl_tap_go_idle(void)
   }
   rvl_tap_tick(0, 1);
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
   rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 }
 
 void rvl_tap_run(uint32_t ticks)
 {
     uint32_t i;
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
     rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 
     for(i = 0; i < ticks; i++) {
         rvl_tap_tick(0, 1);
     }
 
-#ifdef RVL_TAP_STATE_TRACE_EN
+#ifdef RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
     rvl_tap_assert(rvl_tap_current_state == RVL_TAP_STATE_RUN_TEST_IDLE);
-#endif // RVL_TAP_STATE_TRACE_EN
+#endif // RVL_TARGET_CONFIG_TAP_STATE_TRACE_EN
 }
 
 
-#ifdef RVL_TAP_CONFIG_DYN
+#ifdef RVL_TARGET_CONFIG_TAP_DYN
 void rvl_tap_config(uint8_t ir_pre, uint8_t ir_post, uint8_t dr_pre, uint8_t dr_post)
 {
     rvl_tap_ir_pre = ir_pre;
@@ -349,4 +349,4 @@ void rvl_tap_config(uint8_t ir_pre, uint8_t ir_post, uint8_t dr_pre, uint8_t dr_
     rvl_tap_dr_pre = dr_pre;
     rvl_tap_dr_post = dr_post;
 }
-#endif // RVL_TAP_CONFIG_DYN
+#endif // RVL_TARGET_CONFIG_TAP_DYN

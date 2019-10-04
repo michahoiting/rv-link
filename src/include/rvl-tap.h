@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "rvl-tap-config.h"
+#include "rvl-target-config.h"
 
 
 void rvl_tap_init(void);
@@ -16,7 +16,7 @@ void rvl_tap_shift_dr(uint32_t* old_dr, uint32_t* new_dr, size_t dr_len);
 void rvl_tap_go_idle(void);
 void rvl_tap_run(uint32_t ticks);
 
-#ifdef RVL_TAP_CONFIG_DYN
+#ifdef RVL_TARGET_CONFIG_TAP_DYN
 void rvl_tap_config(uint8_t ir_pre, uint8_t ir_post, uint8_t dr_pre, uint8_t dr_post);
 #endif // RVL_TAP_CONFIG_DYN
 

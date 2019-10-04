@@ -276,11 +276,9 @@ static const char target_xml_str[] =
         "<reg name=\"mimpid\" bitsize=\"32\" regnum=\"3924\" save-restore=\"no\" type=\"int\" group=\"csr\"/>"
         "<reg name=\"mhartid\" bitsize=\"32\" regnum=\"3925\" save-restore=\"no\" type=\"int\" group=\"csr\"/>"
 
-#if 0 // GDB not support custom CSR yet
 #ifdef RVL_TARGET_CONFIG_RISCV_FEATURE_CSR_CUSTOM
         RVL_TARGET_CONFIG_RISCV_FEATURE_CSR_CUSTOM
 #endif // RVL_TARGET_CONFIG_RISCV_FEATURE_CSR_CUSTOM
-#endif // 0
 
         "</feature>"
 #endif // RVL_TARGET_CONFIG_RISCV_FEATURE_CSR

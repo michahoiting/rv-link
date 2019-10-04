@@ -7,7 +7,7 @@
 
 void rvl_jtag_init(void)
 {
-#ifdef RVL_LINK_LONGAN_NANO_JTAG_PIN_ALT
+#ifdef RVL_LINK_CONFIG_JTAG_PIN_ALT
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);
 #else

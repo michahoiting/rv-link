@@ -8,7 +8,7 @@
 #include "rvl-link-config.h"
 
 
-#ifdef RVL_LINK_LONGAN_NANO_JTAG_PIN_ALT
+#ifdef RVL_LINK_CONFIG_JTAG_PIN_ALT
 
 // PB13, SCK
 #define TCK_PORT    GPIOB

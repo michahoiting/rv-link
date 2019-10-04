@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include "rvl-target-config.h"
 #include "dmi.h"
 #include "dtm.h"
 #include "rvl-assert.h"

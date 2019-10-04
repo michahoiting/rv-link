@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "rvl-target-config.h"
 #include "pt/pt.h"
 #include "rvl-led.h"
 #include "rvl-button.h"
@@ -37,7 +38,7 @@ static task_probe_t task_probe_i;
 #define self task_probe_i
 
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
 static const char * cmd_err_msg[] = {
         "0 (none)",
         "1 (busy)",
@@ -199,25 +200,25 @@ PT_THREAD(task_probe_poll(void))
     } else {
         print("\r\ndtmcs: 0x%08x\r\n", (int)self.dtmcs.word);
         print("dtmcs.version: %d\r\n", (int)self.dtmcs.version);
-        if(self.dtmcs.version != RISCV_DEBUG_VERSION) {
+        if(self.dtmcs.version != RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC) {
             print("ERROR: this prober only support dtmcs.version = %d, but the target's dtmcs.version = %d\r\n",
-                    RISCV_DEBUG_VERSION, (int)self.dtmcs.version);
+                    RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC, (int)self.dtmcs.version);
             exit();
         }
         print("dtmcs.abits: %d\r\n", (int)rvl_dtm_get_dtmcs_abits());
         print("dtmcs.idle: %d\r\n", (int)rvl_dtm_get_dtmcs_idle());
     }
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
     /*
      * dmstatus ***************************************************************
      */
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus.reg), &self.dmi_result));
     print("\r\ndmstatus: 0x%08x\r\n", (int)self.dm.dmstatus.reg);
     print("dmstatus.version: %d\r\n", (int)self.dm.dmstatus.version);
-    if(self.dm.dmstatus.version != RISCV_DEBUG_VERSION + 1) {
+    if(self.dm.dmstatus.version != RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC + 1) {
         print("ERROR: this prober only support dmstatus.version = %d, but the target's dmstatus.version = %d\r\n",
-                RISCV_DEBUG_VERSION + 1, (int)self.dm.dmstatus.version);
+                RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC + 1, (int)self.dm.dmstatus.version);
         exit();
     }
     print("dmstatus.confstrptrvalid: %d\r\n", (int)self.dm.dmstatus.confstrptrvalid);
@@ -558,7 +559,7 @@ PT_THREAD(task_probe_poll(void))
     print("dmstatus.anyhalted: %d\r\n", (int)self.dm.dmstatus.anyhalted);
     print("dmstatus.allhalted: %d\r\n", (int)self.dm.dmstatus.allhalted);
 
-#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+#elif RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P11
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_INFO, (rvl_dmi_reg_t*)(&self.dm.dminfo.reg), &self.dmi_result));
         print("\r\ndminfo: 0x%08x\r\n", (int)self.dm.dminfo.reg);
         print("dminfo.version: %d\r\n", (int)(self.dm.dminfo.loversion_1_0 | (self.dm.dminfo.loversion_3_2 << 2)));

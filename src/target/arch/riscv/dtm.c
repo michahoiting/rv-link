@@ -1,3 +1,4 @@
+#include "rvl-target-config.h"
 #include "dtm.h"
 #include "rvl-tap.h"
 #include "rvl-assert.h"
@@ -111,9 +112,9 @@ PT_THREAD(rvl_dtm_dtmcs(rvl_dtm_dtmcs_t* dtmcs))
 
     dtmcs->word = self.out[0];
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
     self.abits = dtmcs->abits;
-#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+#elif RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P11
     self.abits = dtmcs->loabits | (dtmcs->hiabits << 4);
 #else
 #error
@@ -129,7 +130,7 @@ PT_THREAD(rvl_dtm_dtmcs(rvl_dtm_dtmcs_t* dtmcs))
 }
 
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
 PT_THREAD(rvl_dtm_dtmcs_dmihardreset(void))
 {
     PT_BEGIN(&self.pt);
@@ -171,11 +172,11 @@ PT_THREAD(rvl_dtm_dmi(uint32_t addr, rvl_dmi_reg_t* data, uint32_t* op))
         RVL_DTM_YIELD();
     }
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
     self.in[0] = (*data << 2) | (*op & 0x3);
     self.in[1] = (*data >> 30) | (addr << 2);
     rvl_tap_shift_dr(self.out, self.in, 32 + 2 + self.abits);
-#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+#elif RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P11
     self.in[0] = (*data << 2) | (*op & 0x3);
     self.in[1] = ((*data >> 30) & 0xf) | (addr << 4);
     rvl_tap_shift_dr(self.out, self.in, 34 + 2 + self.abits);
@@ -189,10 +190,10 @@ PT_THREAD(rvl_dtm_dmi(uint32_t addr, rvl_dmi_reg_t* data, uint32_t* op))
         RVL_DTM_YIELD();
     }
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
     *op = self.out[0] & 0x3;
     *data = (self.out[0] >> 2) | (self.out[1] << 30);
-#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+#elif RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P11
     *op = self.out[0] & 0x3;
     *data = (self.out[0] >> 2) | ((self.out[1] & 0xf) << 30);
 #else

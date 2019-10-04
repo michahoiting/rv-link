@@ -91,7 +91,7 @@ PT_THREAD(riscv_target_init_post(rvl_target_error_t *err))
 {
     PT_BEGIN(&self.pt);
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
 
     PT_WAIT_THREAD(&self.pt, rvl_dtm_idcode(&self.idcode));
     if(self.idcode.word == 0x00000000 || self.idcode.word == 0xffffffff) {
@@ -137,7 +137,7 @@ PT_THREAD(riscv_target_fini_pre(void))
 {
     PT_BEGIN(&self.pt);
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
 
     self.dm.dmcontrol.reg = 0;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));

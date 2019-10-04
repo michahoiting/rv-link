@@ -2,6 +2,7 @@
 #define __RVL_TARGET_CONFIG_H__
 
 #include "riscv-rv32.h"
+#include "riscv-debug-spec-v0p13.h"
 
 /*
  * 3.12.8 Abstract Command Autoexec (abstractauto, at 0x18)

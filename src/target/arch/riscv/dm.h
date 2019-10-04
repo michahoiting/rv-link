@@ -8,7 +8,7 @@
 #include "riscv-debug-spec.h"
 #include "dtm.h"
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
 
 
 #define RISCV_DM_DATA0          0x04 // Abstract Data 0 (data0)
@@ -282,7 +282,7 @@ typedef struct riscv_dm_s
     rvl_dmi_reg_t haltsum0;
 }riscv_dm_t;
 
-#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+#elif RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P11
 #define RISCV_DM_CONTROL        0x10 // Control (dmcontrol, at 0x10)
 #define RISCV_DM_INFO           0x11 // Info (dminfo, at 0x11)
 #define RISCV_DM_AUTH_DATA0     0x12 // Authentication Data (authdata0, at 0x12)

@@ -30,7 +30,7 @@ typedef union rvl_dtm_idcode_u {
     };
 }rvl_dtm_idcode_t;
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
 typedef union rvl_dtm_dtmcs_u
 {
     uint32_t word;
@@ -45,7 +45,7 @@ typedef union rvl_dtm_dtmcs_u
         unsigned int reserved18:    14;
     };
 }rvl_dtm_dtmcs_t;
-#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+#elif RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P11
 typedef union rvl_dtm_dtmcs_s
 {
     uint32_t word;
@@ -65,9 +65,9 @@ typedef union rvl_dtm_dtmcs_s
 #endif
 
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
     typedef uint32_t rvl_dmi_reg_t;
-#elif RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P11
+#elif RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P11
     typedef uint64_t rvl_dmi_reg_t;
 #else
 #error
@@ -80,7 +80,7 @@ PT_THREAD(rvl_dtm_idcode(rvl_dtm_idcode_t* idcode));
 PT_THREAD(rvl_dtm_dtmcs(rvl_dtm_dtmcs_t* dtmcs));
 PT_THREAD(rvl_dtm_dtmcs_dmireset(void));
 
-#if RISCV_DEBUG_VERSION == RISCV_DEBUG_VERSION_V0P13
+#if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
 PT_THREAD(rvl_dtm_dtmcs_dmihardreset(void));
 #endif
 

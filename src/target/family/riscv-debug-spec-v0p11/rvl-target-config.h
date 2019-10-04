@@ -2,6 +2,7 @@
 #define __RVL_TARGET_CONFIG_H__
 
 #include "riscv-rv32.h"
+#include "riscv-debug-spec-v0p11.h"
 
 #define RVL_TARGET_CONFIG_TAP_DYN
 

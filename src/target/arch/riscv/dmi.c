@@ -17,8 +17,8 @@ static rvl_dmi_t rvl_dmi_i;
 #define self rvl_dmi_i
 
 
-#ifndef RVL_RISCV_DMI_RETRIES
-#define RVL_RISCV_DMI_RETRIES   6
+#ifndef RVL_TARGET_CONFIG_DMI_RETRIES
+#define RVL_TARGET_CONFIG_DMI_RETRIES   6
 #endif
 
 void rvl_dmi_init(void)
@@ -57,7 +57,7 @@ PT_THREAD(rvl_dmi_read(uint32_t addr, rvl_dmi_reg_t* data, uint32_t *result))
 
     PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(addr, &self.data, &self.op));
 
-    for(self.i = 0; self.i < RVL_RISCV_DMI_RETRIES; self.i++) {
+    for(self.i = 0; self.i < RVL_TARGET_CONFIG_DMI_RETRIES; self.i++) {
         self.data = 0;
         self.op = RISCV_DMI_OP_NOP;
 

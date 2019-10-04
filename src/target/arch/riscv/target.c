@@ -5,8 +5,8 @@
 #include "rvl-target.h"
 #include "rvl-jtag.h"
 
-#ifndef RVL_TARGET_RISCV_BREAKPOINT_NUM
-#define RVL_TARGET_RISCV_BREAKPOINT_NUM     4
+#ifndef RVL_TARGET_CONFIG_BREAKPOINT_NUM
+#define RVL_TARGET_CONFIG_BREAKPOINT_NUM     4
 #endif
 
 
@@ -57,7 +57,7 @@ typedef struct riscv_target_s
     riscv_csr_mcontrol_t mcontrol_rb;
     rvl_dmi_reg_t dmi_data;
     uint32_t dmi_op;
-    riscv_breakpoint_t breakpoints[RVL_TARGET_RISCV_BREAKPOINT_NUM];
+    riscv_breakpoint_t breakpoints[RVL_TARGET_CONFIG_BREAKPOINT_NUM];
 }riscv_target_t;
 
 static riscv_target_t riscv_target_i;
@@ -79,7 +79,7 @@ void riscv_target_init(void)
     PT_INIT(&self.pt);
     PT_INIT(&self.pt_sub);
 
-    for(self.i = 0; self.i < RVL_TARGET_RISCV_BREAKPOINT_NUM; self.i++) {
+    for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
         self.breakpoints[self.i].type = unused_breakpoint;
     }
 
@@ -502,7 +502,7 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
 {
     PT_BEGIN(&self.pt);
 
-    for(self.i = 0; self.i < RVL_TARGET_RISCV_BREAKPOINT_NUM; self.i++) {
+    for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
         if(self.breakpoints[self.i].type == unused_breakpoint) {
             self.breakpoints[self.i].type = type;
             self.breakpoints[self.i].addr = addr;
@@ -556,7 +556,7 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
         }
     }
 
-    if(self.i == RVL_TARGET_RISCV_BREAKPOINT_NUM) {
+    if(self.i == RVL_TARGET_CONFIG_BREAKPOINT_NUM) {
         *err = 0x0e;
         PT_EXIT(&self.pt);
     }
@@ -570,7 +570,7 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
 {
     PT_BEGIN(&self.pt);
 
-    for(self.i = 0; self.i < RVL_TARGET_RISCV_BREAKPOINT_NUM; self.i++) {
+    for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
         if(self.breakpoints[self.i].type == type
                 && self.breakpoints[self.i].addr == addr
                 && self.breakpoints[self.i].kind == kind) {
@@ -579,7 +579,7 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
         }
     }
 
-    if(self.i == RVL_TARGET_RISCV_BREAKPOINT_NUM) {
+    if(self.i == RVL_TARGET_CONFIG_BREAKPOINT_NUM) {
         *err = 0x0e;
         PT_EXIT(&self.pt);
     }

@@ -16,7 +16,7 @@ static rvl_dtm_t rvl_dtm_i;
 #define self rvl_dtm_i
 
 
-#ifdef RVL_DTM_YIELD_EN
+#ifdef RVL_TARGET_CONFIG_DTM_YIELD_EN
 #define RVL_DTM_YIELD()     PT_YIELD(&self.pt)
 #else
 #define RVL_DTM_YIELD()

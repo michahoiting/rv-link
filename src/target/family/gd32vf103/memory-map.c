@@ -1,23 +1,33 @@
 #include "rvl-target.h"
 
-static const char memory_map_str[] =
-        "<memory-map>"
-        "<memory type=\"ram\" start=\"0x00000000\" length=\"0x8000000\"/>"
-        "<memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">"
-        "<property name=\"blocksize\">0x400</property>"
-        "</memory>"
-        "<memory type=\"ram\" start=\"0x08020000\" length=\"0xf7fe0000\"/>"
-        "</memory-map>";
+static const rvl_target_memory_t memory_map_GD32VF103xB[] = {
+        {
+                .type = rvl_target_memory_type_ram,
+                .start = 0x00000000,
+                .length = 0x8000000,
+        },
+        {
+                .type = rvl_target_memory_type_flash,
+                .start = 0x08000000,
+                .length = 0x20000,
+                .blocksize = 0x400,
+        },
+        {
+                .type = rvl_target_memory_type_ram,
+                .start = 0x08020000,
+                .length = 0xf7fe0000,
+        },
+};
 
 
-const char *rvl_target_get_memory_map(void)
+const rvl_target_memory_t *rvl_target_get_memory_map(void)
 {
-    return memory_map_str;
+    return memory_map_GD32VF103xB;
 }
 
 
 size_t rvl_target_get_memory_map_len(void)
 {
-    return sizeof(memory_map_str) - 1;
+    return sizeof(memory_map_GD32VF103xB) / sizeof(memory_map_GD32VF103xB[0]);
 }
 

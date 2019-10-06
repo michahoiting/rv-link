@@ -48,6 +48,19 @@ typedef enum
 }rvl_target_error_t;
 
 
+typedef enum {
+    rvl_target_memory_type_ram = 0,
+    rvl_target_memory_type_flash,
+}rvl_target_memory_type_t;
+
+typedef struct {
+    rvl_target_memory_type_t type;
+    rvl_target_addr_t start;
+    rvl_target_addr_t length;
+    rvl_target_addr_t blocksize;
+} rvl_target_memory_t;
+
+
 void rvl_target_init(void);
 PT_THREAD(rvl_target_init_post(rvl_target_error_t *err));
 PT_THREAD(rvl_target_fini_pre(void));
@@ -74,7 +87,7 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
 const char *rvl_target_get_target_xml(void);
 size_t rvl_target_get_target_xml_len(void);
 
-const char *rvl_target_get_memory_map(void);
+const rvl_target_memory_t *rvl_target_get_memory_map(void);
 size_t rvl_target_get_memory_map_len(void);
 
 const char *rvl_target_get_name(void);

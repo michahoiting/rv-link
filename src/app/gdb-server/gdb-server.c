@@ -273,28 +273,41 @@ void gdb_server_cmd_qxfer_features_read_target_xml(void)
 void gdb_server_cmd_qxfer_memory_map_read(void)
 {
     size_t memory_map_len;
-    const char *memory_map_str;
-    unsigned int read_addr;
-    unsigned int read_len;
+    const rvl_target_memory_t* memory_map;
+    size_t res_len;
 
-    sscanf(&self.cmd[23], "%x,%x", &read_addr, &read_len);
-
-    if(read_len > GDB_SERIAL_RESPONSE_BUFFER_SIZE) {
-        read_len = GDB_SERIAL_RESPONSE_BUFFER_SIZE;
-    }
+    /*
+     * 假设一包数据可以全部发完！
+     */
 
     memory_map_len = rvl_target_get_memory_map_len();
+    memory_map = rvl_target_get_memory_map();
 
-    if(read_len >= memory_map_len - read_addr) {
-        read_len = memory_map_len - read_addr;
-        self.res[0] = 'l';
-    } else {
-        self.res[0] = 'm';
+    res_len = 0;
+    res_len += snprintf(&self.res[0], GDB_SERIAL_RESPONSE_BUFFER_SIZE, "l<memory-map>");
+    for(self.i = 0; self.i < memory_map_len; self.i++) {
+#if RVL_TARGET_CONFIG_ADDR_WIDTH == 32
+        res_len += snprintf(&self.res[res_len], GDB_SERIAL_RESPONSE_BUFFER_SIZE - res_len,
+                "<memory type=\"%s\" start=\"0x%x\" length=\"0x%x\"",
+                memory_map[self.i].type == rvl_target_memory_type_flash ? "flash" : "ram",
+                (unsigned int)memory_map[self.i].start, (unsigned int)memory_map[self.i].length);
+
+        if(memory_map[self.i].type == rvl_target_memory_type_flash) {
+            res_len += snprintf(&self.res[res_len], GDB_SERIAL_RESPONSE_BUFFER_SIZE - res_len,
+                    "><property name=\"blocksize\">0x%x</property></memory>",
+                    (unsigned int)memory_map[self.i].blocksize);
+        } else {
+            res_len += snprintf(&self.res[res_len], GDB_SERIAL_RESPONSE_BUFFER_SIZE - res_len,
+                    "/>");
+        }
+#else
+#error FIXME
+#endif
     }
+    res_len += snprintf(&self.res[res_len], GDB_SERIAL_RESPONSE_BUFFER_SIZE - res_len,
+            "</memory-map>");
 
-    memory_map_str = rvl_target_get_memory_map();
-    strncpy(&self.res[1], &memory_map_str[read_addr], read_len);
-    gdb_serial_response_done(read_len + 1, GDB_SERIAL_SEND_FLAG_ALL);
+    gdb_serial_response_done(res_len, GDB_SERIAL_SEND_FLAG_ALL);
 }
 
 

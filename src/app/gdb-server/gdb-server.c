@@ -854,6 +854,7 @@ PT_THREAD(gdb_server_connected(void))
     PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_init_post(&self.target_error));
     if(self.target_error == rvl_target_error_none) {
         PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_halt());
+        PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_init_after_halted());
     } else {
         switch(self.target_error) {
         case rvl_target_error_line:

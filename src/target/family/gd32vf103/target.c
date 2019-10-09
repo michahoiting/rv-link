@@ -34,6 +34,9 @@
 #define FMC_CTL_PER         (1 << 1) // Main flash page erase for bank0 command bit
 #define FMC_CTL_PG          (1 << 0) // Main flash program for bank0 command bit
 
+#define MEMORY_DENSITY      0x1FFFF7E0
+
+
 typedef struct gd32vf103_target_s
 {
     struct pt pt;
@@ -42,6 +45,7 @@ typedef struct gd32vf103_target_s
     rvl_target_addr_t start;
     rvl_target_addr_t end;
     int i;
+    rvl_target_memory_t memory_map[3];
 }gd32vf103_target_t;
 
 static gd32vf103_target_t gd32vf103_target_i;
@@ -75,6 +79,34 @@ PT_THREAD(rvl_target_init_post(rvl_target_error_t *err))
             PT_EXIT(&self.pt);
         }
     }
+
+    PT_END(&self.pt);
+}
+
+
+PT_THREAD(rvl_target_init_after_halted(void))
+{
+    uint32_t flash_density;
+
+    PT_BEGIN(&self.pt);
+
+    // get memory density information
+    PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, MEMORY_DENSITY, 4));
+    flash_density = self.reg_value & 0xffff;
+    flash_density *= 1024;
+
+    self.memory_map[0].type = rvl_target_memory_type_ram;
+    self.memory_map[0].start = 0;
+    self.memory_map[0].length = 0x08000000;
+
+    self.memory_map[1].type = rvl_target_memory_type_flash;
+    self.memory_map[1].start = 0x08000000;
+    self.memory_map[1].length = flash_density;
+    self.memory_map[1].blocksize = 0x400;
+
+    self.memory_map[2].type = rvl_target_memory_type_ram;
+    self.memory_map[2].start = 0x08000000 + flash_density;
+    self.memory_map[2].length = ~(0x08000000 + flash_density) + 1;
 
     PT_END(&self.pt);
 }
@@ -204,3 +236,16 @@ const char *rvl_target_get_name(void)
 {
     return "GD32VF103";
 }
+
+
+const rvl_target_memory_t *rvl_target_get_memory_map(void)
+{
+    return &self.memory_map[0];
+}
+
+
+size_t rvl_target_get_memory_map_len(void)
+{
+    return 3;
+}
+

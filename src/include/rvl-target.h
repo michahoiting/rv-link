@@ -63,6 +63,7 @@ typedef struct {
 
 void rvl_target_init(void);
 PT_THREAD(rvl_target_init_post(rvl_target_error_t *err));
+PT_THREAD(rvl_target_init_after_halted(void));
 PT_THREAD(rvl_target_fini_pre(void));
 void rvl_target_fini(void);
 

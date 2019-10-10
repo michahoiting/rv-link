@@ -3,3 +3,8 @@
 .settings/
 build/
 output/
+.pioenvs
+.piolibdeps
+.pio
+.vscode
+

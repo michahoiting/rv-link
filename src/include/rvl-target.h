@@ -66,6 +66,9 @@ PT_THREAD(rvl_target_init_post(rvl_target_error_t *err));
 PT_THREAD(rvl_target_init_after_halted(void));
 PT_THREAD(rvl_target_fini_pre(void));
 void rvl_target_fini(void);
+void rvl_target_set_error(const char *str);
+void rvl_target_get_error(const char **str, uint32_t* pc);
+void rvl_target_clr_error(void);
 
 PT_THREAD(rvl_target_reset(void));
 PT_THREAD(rvl_target_halt(void));

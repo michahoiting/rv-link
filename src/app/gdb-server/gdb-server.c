@@ -319,6 +319,8 @@ PT_THREAD(gdb_server_cmd_qRcmd(void))
 {
     char c;
     size_t ret, len;
+    const char * err_str;
+    uint32_t err_pc;
 
     const char unspported_monitor_command[] = ":( unsupported monitor command!\n";
 
@@ -347,6 +349,17 @@ PT_THREAD(gdb_server_cmd_qRcmd(void))
         PT_WAIT_THREAD(&self.pt_cmd_sub, rvl_target_reset());
         gdb_server_reply_ok();
     } else if(strncmp((char*)self.mem_buffer, "halt", 4) == 0) {
+        gdb_server_reply_ok();
+    } else if(strncmp((char*)self.mem_buffer, "show error", 10) == 0) {
+        rvl_target_get_error(&err_str, &err_pc);
+        snprintf((char*)self.mem_buffer, GDB_SERIAL_RESPONSE_BUFFER_SIZE,
+                "RV-LINK ERROR: %s, @0x%08x\r\n", err_str, (unsigned int)err_pc);
+        len = strlen((char*)self.mem_buffer);
+        self.res[0] = 'O';
+        bin_to_hex(self.mem_buffer, &self.res[1], len);
+        gdb_serial_response_done(len * 2 + 1, GDB_SERIAL_SEND_FLAG_ALL);
+
+        PT_WAIT_UNTIL(&self.pt_cmd_sub, (self.res = gdb_serial_response_buffer()) != NULL);
         gdb_server_reply_ok();
     } else {
         bin_to_hex((uint8_t*)unspported_monitor_command, self.res, sizeof(unspported_monitor_command) - 1);

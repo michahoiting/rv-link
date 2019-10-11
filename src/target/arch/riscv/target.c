@@ -462,10 +462,9 @@ PT_THREAD(rvl_target_halt(void))
 {
     PT_BEGIN(&self.pt);
 
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_CONTROL, (rvl_dmi_reg_t*)(&self.dm.dmcontrol.reg), &self.dmi_result));
-
-    self.dm.dmcontrol.resumereq = 0;
+    self.dm.dmcontrol.reg = 0;
     self.dm.dmcontrol.haltreq = 1;
+    self.dm.dmcontrol.dmactive = 1;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
     PT_END(&self.pt);
@@ -496,9 +495,9 @@ PT_THREAD(rvl_target_resume(void))
     self.dcsr &= ~(1UL << 2); // step
     PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr, CSR_DCSR));
 
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_CONTROL, (rvl_dmi_reg_t*)(&self.dm.dmcontrol.reg), &self.dmi_result));
-    self.dm.dmcontrol.haltreq = 0;
+    self.dm.dmcontrol.reg = 0;
     self.dm.dmcontrol.resumereq = 1;
+    self.dm.dmcontrol.dmactive = 1;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
     PT_END(&self.pt);
@@ -513,9 +512,9 @@ PT_THREAD(rvl_target_step(void))
     self.dcsr |= 1 << 2; // step
     PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr, CSR_DCSR));
 
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_CONTROL, (rvl_dmi_reg_t*)(&self.dm.dmcontrol.reg), &self.dmi_result));
-    self.dm.dmcontrol.haltreq = 0;
+    self.dm.dmcontrol.reg = 0;
     self.dm.dmcontrol.resumereq = 1;
+    self.dm.dmcontrol.dmactive = 1;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
     PT_END(&self.pt);

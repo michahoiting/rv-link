@@ -445,6 +445,9 @@ PT_THREAD(rvl_target_reset(void))
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
     for(self.i = 0; self.i < 100; self.i++) {
+        timer_set(&self.timer, 10 * 1000);
+        PT_WAIT_UNTIL(&self.pt, timer_expired(&self.timer));
+
         PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus.reg), &self.dmi_result));
         if(self.dm.dmstatus.allhalted) {
             break;

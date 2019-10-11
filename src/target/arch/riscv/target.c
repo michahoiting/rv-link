@@ -105,6 +105,30 @@ PT_THREAD(riscv_target_init_post(rvl_target_error_t *err))
         PT_EXIT(&self.pt);
     }
 
+    /*
+     * Pulse dmcontrol.dmactive low to get the Debug Module into a known state.
+     */
+    self.dm.dmcontrol.reg = 0;
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
+    if(self.dmi_result != RISCV_DMI_RESULT_DONE) {
+        *err = rvl_target_error_debug_module;
+        PT_EXIT(&self.pt);
+    }
+
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_CONTROL, (rvl_dmi_reg_t*)(&self.dm.dmcontrol.reg), &self.dmi_result));
+    if(self.dmi_result != RISCV_DMI_RESULT_DONE) {
+        *err = rvl_target_error_debug_module;
+        PT_EXIT(&self.pt);
+    }
+
+    if(self.dm.dmcontrol.dmactive != 0) {
+        *err = rvl_target_error_debug_module;
+        PT_EXIT(&self.pt);
+    }
+
+    /*
+     * Active debug module
+     */
     self.dm.dmcontrol.reg = 0;
     self.dm.dmcontrol.dmactive = 1;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));

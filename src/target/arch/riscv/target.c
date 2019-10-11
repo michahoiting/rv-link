@@ -424,6 +424,7 @@ PT_THREAD(rvl_target_reset(void))
     self.dm.dmcontrol.dmactive = 1;
     self.dm.dmcontrol.haltreq = 1;
     self.dm.dmcontrol.setresethaltreq = 1;
+    self.dm.dmcontrol.hartreset = 1;
     self.dm.dmcontrol.ndmreset = 1;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
@@ -435,7 +436,6 @@ PT_THREAD(rvl_target_reset(void))
     self.dm.dmcontrol.dmactive = 1;
     self.dm.dmcontrol.haltreq = 1;
     self.dm.dmcontrol.setresethaltreq = 1;
-    self.dm.dmcontrol.ndmreset = 0;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
     for(self.i = 0; self.i < 100; self.i++) {

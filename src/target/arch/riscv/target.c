@@ -1,3 +1,5 @@
+#include "pt/pt.h"
+#include "pt/timer.h"
 #include "rvl-target-config.h"
 #include "dm.h"
 #include "dmi.h"
@@ -46,6 +48,7 @@ typedef struct riscv_target_s
 {
     struct pt pt;
     struct pt pt_sub;
+    struct timer timer;
     riscv_dm_t dm;
     uint32_t dmi_result;
     uint32_t i;
@@ -429,7 +432,10 @@ PT_THREAD(rvl_target_reset(void))
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 
     rvl_jtag_srst_put(0);
-    rvl_jtag_delay(100 * 1000); // 100 ms TODO
+
+    timer_set(&self.timer, 100 * 1000);
+    PT_WAIT_UNTIL(&self.pt, timer_expired(&self.timer));
+
     rvl_jtag_srst_put(1);
 
     self.dm.dmcontrol.reg = 0;

@@ -32,7 +32,6 @@
 
 #define RVL_TARGET_CONFIG_RISCV_FEATURE_CSR_CUSTOM \
         "<reg name=\"mtvt\" bitsize=\"32\" regnum=\"840\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
-        "<reg name=\"mnxti\" bitsize=\"32\" regnum=\"902\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
         "<reg name=\"mintstatus\" bitsize=\"32\" regnum=\"903\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
         "<reg name=\"mscratchcsw\" bitsize=\"32\" regnum=\"905\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
         "<reg name=\"mscratchcswl\" bitsize=\"32\" regnum=\"906\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
@@ -45,7 +44,6 @@
         "<reg name=\"msaveepc2\" bitsize=\"32\" regnum=\"2074\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
         "<reg name=\"msavecause2\" bitsize=\"32\" regnum=\"2075\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
         "<reg name=\"mtvt2\" bitsize=\"32\" regnum=\"2093\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
-        "<reg name=\"jalmnxti\" bitsize=\"32\" regnum=\"2094\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
         "<reg name=\"sleepvalue\" bitsize=\"32\" regnum=\"2130\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
         "<reg name=\"txevt\" bitsize=\"32\" regnum=\"2131\" save-restore=\"no\" type=\"int\" group=\"csr\"/>" \
         "<reg name=\"wfe\" bitsize=\"32\" regnum=\"2129\" save-restore=\"no\" type=\"int\" group=\"csr\"/>"

@@ -139,7 +139,12 @@ PT_THREAD(rvl_target_flash_erase(rvl_target_addr_t addr, size_t len, int* err))
     PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, FMC_KEY, 4));
 
     // Check LK
-    PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, FMC_CTL, 4));
+    for(self.i = 0; self.i < 6; self.i++) {
+        PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, FMC_CTL, 4));
+        if((self.reg_value & FMC_CTL_LK) == 0) {
+            break;
+        }
+    }
     if(self.reg_value & FMC_CTL_LK) {
         *err = 1;
         PT_EXIT(&self.pt);

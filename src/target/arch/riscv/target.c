@@ -328,16 +328,16 @@ PT_THREAD(rvl_target_read_core_registers(rvl_target_reg_t *regs))
         regs[31] = self.dmi_data;
     }
 
-    PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
     if(self.dm.abstractcs.cmderr) {
         rvl_target_set_error(riscv_abstractcs_cmderr_str[self.dm.abstractcs.cmderr]);
 
         self.dm.abstractcs.reg = 0;
         self.dm.abstractcs.cmderr = 0x7;
-        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
         regs[32] = 0xffffffff;
     } else {
-        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
         regs[32] = self.dm.data[0];
     }
 
@@ -724,7 +724,7 @@ static PT_THREAD(riscv_read_mem(uint8_t* mem, rvl_target_addr_t addr, size_t len
     for(self.i = 0; self.i < len + 1; self.i++) {
         self.dmi_data = addr + (self.i << aamsize);
         self.dmi_op = RISCV_DMI_OP_WRITE;
-        PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_DATA1, &self.dmi_data, &self.dmi_op));
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dtm_dmi(RISCV_DM_DATA1, &self.dmi_data, &self.dmi_op));
         if(self.i > 0) {
             switch(aamsize) {
             case 0:
@@ -754,44 +754,44 @@ static PT_THREAD(riscv_read_mem(uint8_t* mem, rvl_target_addr_t addr, size_t len
 
         self.dmi_data = self.dm.command_access_memory.reg;
         self.dmi_op = RISCV_DMI_OP_WRITE;
-        PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_ABSTRACT_CMD, &self.dmi_data, &self.dmi_op));
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dtm_dmi(RISCV_DM_ABSTRACT_CMD, &self.dmi_data, &self.dmi_op));
 
         self.dmi_data = 0;
         self.dmi_op = RISCV_DMI_OP_READ;
-        PT_WAIT_THREAD(&self.pt, rvl_dtm_dmi(RISCV_DM_DATA0, &self.dmi_data, &self.dmi_op));
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dtm_dmi(RISCV_DM_DATA0, &self.dmi_data, &self.dmi_op));
     }
 
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
     if(self.dm.abstractcs.cmderr) {
         rvl_target_set_error(riscv_abstractcs_cmderr_str[self.dm.abstractcs.cmderr]);
 
         self.dm.abstractcs.reg = 0;
         self.dm.abstractcs.cmderr = 0x7;
-        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
     }
 
 #else
 
     for(self.i = 0; self.i < len; self.i++) {
         self.dm.data[1] = addr + (self.i << aamsize);
-        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_DATA1, (rvl_dmi_reg_t)(self.dm.data[1]), &self.dmi_result));
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_DATA1, (rvl_dmi_reg_t)(self.dm.data[1]), &self.dmi_result));
 
         self.dm.command_access_memory.reg = 0;
         self.dm.command_access_memory.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_MEM;
         self.dm.command_access_memory.aamsize = aamsize;
 
-        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_memory.reg), &self.dmi_result));
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_memory.reg), &self.dmi_result));
 
-        PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
         if(self.dm.abstractcs.cmderr) {
             rvl_target_set_error(riscv_abstractcs_cmderr_str[self.dm.abstractcs.cmderr]);
 
             self.dm.abstractcs.reg = 0;
             self.dm.abstractcs.cmderr = 0x7;
-            PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+            PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
             self.dm.data[0] = 0xffffffff;
         } else {
-            PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
+            PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_read(RISCV_DM_DATA0, (rvl_dmi_reg_t*)(&self.dm.data[0]), &self.dmi_result));
         }
 
         switch(aamsize) {
@@ -822,24 +822,24 @@ static PT_THREAD(riscv_write_mem(uint32_t mem, rvl_target_addr_t addr, int aamsi
     PT_BEGIN(&self.pt_sub);
 
     self.dm.data[1] = addr;
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_DATA1, (rvl_dmi_reg_t)(self.dm.data[1]), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_DATA1, (rvl_dmi_reg_t)(self.dm.data[1]), &self.dmi_result));
     self.dm.data[0] = mem;
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_DATA0, (rvl_dmi_reg_t)(self.dm.data[0]), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_DATA0, (rvl_dmi_reg_t)(self.dm.data[0]), &self.dmi_result));
 
     self.dm.command_access_memory.reg = 0;
     self.dm.command_access_memory.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_MEM;
     self.dm.command_access_memory.aamsize = aamsize;
     self.dm.command_access_memory.write = 1;
 
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_memory.reg), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CMD, (rvl_dmi_reg_t)(self.dm.command_access_memory.reg), &self.dmi_result));
 
-    PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
     if(self.dm.abstractcs.cmderr) {
         rvl_target_set_error(riscv_abstractcs_cmderr_str[self.dm.abstractcs.cmderr]);
 
         self.dm.abstractcs.reg = 0;
         self.dm.abstractcs.cmderr = 0x7;
-        PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
     }
 
     PT_END(&self.pt_sub);

@@ -797,15 +797,15 @@ static PT_THREAD(riscv_read_mem(uint8_t* mem, rvl_target_addr_t addr, size_t len
         switch(aamsize) {
         case 0:
             pbyte = (uint8_t*)mem;
-            pbyte[self.i - 1] = self.dm.data[0] & 0xff;
+            pbyte[self.i] = self.dm.data[0] & 0xff;
             break;
         case 1:
             phalfword = (uint16_t*)mem;
-            phalfword[self.i - 1] = self.dm.data[0] & 0xffff;
+            phalfword[self.i] = self.dm.data[0] & 0xffff;
             break;
         case 2:
             pword = (uint32_t*)mem;
-            pword[self.i - 1] = self.dm.data[0];
+            pword[self.i] = self.dm.data[0];
             break;
         default:
             break;

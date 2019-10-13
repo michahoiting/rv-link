@@ -860,15 +860,17 @@ PT_THREAD(gdb_server_connected(void))
     while(rvl_serial_getchar(&c)) {};
 
     rvl_led_gdb_connect(1);
-    gdb_server_target_run(false);
     self.gdb_connected = true;
 
     rvl_target_init();
     PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_init_post(&self.target_error));
+
     if(self.target_error == rvl_target_error_none) {
         PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_halt());
+        gdb_server_target_run(false);
         PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_init_after_halted(&self.target_error));
     }
+
     if(self.target_error != rvl_target_error_none) {
         switch(self.target_error) {
         case rvl_target_error_line:
@@ -903,13 +905,14 @@ PT_THREAD(gdb_server_disconnected(void))
 {
     PT_BEGIN(&self.pt_sub_routine);
 
-    if(self.target_error == rvl_target_error_none) {
+    if(self.target_running == false) {
         PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_resume());
-        PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_fini_pre());
+        gdb_server_target_run(true);
     }
+
+    PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_fini_pre());
     rvl_target_fini();
 
-    gdb_server_target_run(true);
     self.gdb_connected = false;
     rvl_led_gdb_connect(0);
 

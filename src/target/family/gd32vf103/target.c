@@ -34,6 +34,8 @@
 #define FMC_CTL_PER         (1 << 1) // Main flash page erase for bank0 command bit
 #define FMC_CTL_PG          (1 << 0) // Main flash program for bank0 command bit
 
+#define FMC_OBSTAT_SPC      (1 << 1) // Option bytes security protection code
+
 #define MEMORY_DENSITY      0x1FFFF7E0
 
 
@@ -84,14 +86,26 @@ PT_THREAD(rvl_target_init_post(rvl_target_error_t *err))
 }
 
 
-PT_THREAD(rvl_target_init_after_halted(void))
+PT_THREAD(rvl_target_init_after_halted(rvl_target_error_t *err))
 {
     uint32_t flash_density;
 
     PT_BEGIN(&self.pt);
 
+    // check security protection
+    PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, FMC_OBSTAT, 4));
+    if(self.reg_value & FMC_OBSTAT_SPC) {
+        *err = rvl_target_error_protected;
+        PT_EXIT(&self.pt);
+    }
+
     // get memory density information
     PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, MEMORY_DENSITY, 4));
+    if(self.reg_value == 0 || self.reg_value == 0xffffffff) {
+        *err = rvl_target_error_other;
+        PT_EXIT(&self.pt);
+    }
+
     flash_density = self.reg_value & 0xffff;
     flash_density *= 1024;
 

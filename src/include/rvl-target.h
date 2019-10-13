@@ -44,6 +44,7 @@ typedef enum
     rvl_target_error_line = 1, // 连接线的问题，JTAG 线没有接好，没有供电，逻辑电平不匹配等
     rvl_target_error_compat = 2, // 兼容性问题，
     rvl_target_error_debug_module = 3, // Debug Module 的问题
+    rvl_target_error_protected = 4, // target 被保护，必须解除保护才能进行后续的操作
     rvl_target_error_other = 255,
 }rvl_target_error_t;
 
@@ -63,7 +64,7 @@ typedef struct {
 
 void rvl_target_init(void);
 PT_THREAD(rvl_target_init_post(rvl_target_error_t *err));
-PT_THREAD(rvl_target_init_after_halted(void));
+PT_THREAD(rvl_target_init_after_halted(rvl_target_error_t *err));
 PT_THREAD(rvl_target_fini_pre(void));
 void rvl_target_fini(void);
 void rvl_target_set_error(const char *str);

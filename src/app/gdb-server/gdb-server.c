@@ -867,8 +867,9 @@ PT_THREAD(gdb_server_connected(void))
     PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_init_post(&self.target_error));
     if(self.target_error == rvl_target_error_none) {
         PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_halt());
-        PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_init_after_halted());
-    } else {
+        PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_init_after_halted(&self.target_error));
+    }
+    if(self.target_error != rvl_target_error_none) {
         switch(self.target_error) {
         case rvl_target_error_line:
             rvl_serial_puts("\nRV-LINK ERROR: the target is not connected!\n");
@@ -878,6 +879,9 @@ PT_THREAD(gdb_server_connected(void))
             break;
         case rvl_target_error_debug_module:
             rvl_serial_puts("\nRV-LINK ERROR: something wrong with debug module!\n");
+            break;
+        case rvl_target_error_protected:
+            rvl_serial_puts("\nRV-LINK ERROR: the target under protected! disable protection then try again.\n");
             break;
         default:
             rvl_serial_puts("\nRV-LINK ERROR: unknown error!\n");

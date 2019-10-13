@@ -53,6 +53,7 @@ static gdb_server_t gdb_server_i;
 
 
 PT_THREAD(gdb_server_cmd_q(void));
+PT_THREAD(gdb_server_cmd_qSupported(void));
 void gdb_server_cmd_qxfer_features_read_target_xml(void);
 void gdb_server_cmd_qxfer_memory_map_read(void);
 PT_THREAD(gdb_server_cmd_qRcmd(void));
@@ -201,14 +202,6 @@ PT_THREAD(gdb_server_poll(void))
 }
 
 
-const char qSupported_res[] =
-        "PacketSize=405"
-        ";QStartNoAckMode+"
-        ";qXfer:features:read+"
-        ";qXfer:memory-map:read+"
-        ;
-
-
 /*
  * ‘q name params...’
  * General query (‘q’) and set (‘Q’).
@@ -218,10 +211,7 @@ PT_THREAD(gdb_server_cmd_q(void))
     PT_BEGIN(&self.pt_cmd);
 
     if(strncmp(self.cmd, "qSupported:", 11) == 0){
-        gdb_serial_no_ack_mode(false);
-        strncpy(self.res, qSupported_res, GDB_SERIAL_RESPONSE_BUFFER_SIZE);
-        gdb_serial_response_done(strlen(qSupported_res), GDB_SERIAL_SEND_FLAG_ALL);
-        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_connected());
+        PT_WAIT_THREAD(&self.pt_cmd, gdb_server_cmd_qSupported());
     } else if(strncmp(self.cmd, "qXfer:features:read:target.xml:", 31) == 0){
         gdb_server_cmd_qxfer_features_read_target_xml();
     } else if(strncmp(self.cmd, "qXfer:memory-map:read::", 23) == 0){
@@ -235,6 +225,30 @@ PT_THREAD(gdb_server_cmd_q(void))
     PT_END(&self.pt_cmd);
 }
 
+
+/*
+ * ‘qSupported [:gdbfeature [;gdbfeature]... ]’
+ * Tell the remote stub about features supported by gdb, and query the stub for
+ * features it supports.
+ */
+PT_THREAD(gdb_server_cmd_qSupported(void))
+{
+    const char qSupported_res[] =
+            "PacketSize=405"
+            ";QStartNoAckMode+"
+            ";qXfer:features:read+"
+            ";qXfer:memory-map:read+"
+            ;
+
+    PT_BEGIN(&self.pt_cmd_sub);
+
+    gdb_serial_no_ack_mode(false);
+    strncpy(self.res, qSupported_res, GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+    gdb_serial_response_done(strlen(qSupported_res), GDB_SERIAL_SEND_FLAG_ALL);
+    PT_WAIT_THREAD(&self.pt_cmd_sub, gdb_server_connected());
+
+    PT_END(&self.pt_cmd_sub);
+}
 
 /*
  * qXfer:features:read:target.xml

@@ -401,6 +401,11 @@ PT_THREAD(rvl_target_write_register(rvl_target_reg_t reg, int regno))
         PT_WAIT_THREAD(&self.pt, riscv_write_register(reg, regno + 0x1000 - 1));
     } else if(regno <= (0x1000 + 64)) { // CSRs
         PT_WAIT_THREAD(&self.pt, riscv_write_register(reg, regno - 65));
+    } else if(regno == 4161) {  // priv
+        PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr, CSR_DCSR));
+        self.dcsr &= ~0x3;
+        self.dcsr |= reg & 0x3;
+        PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr, CSR_DCSR));
     } else {
 
     }

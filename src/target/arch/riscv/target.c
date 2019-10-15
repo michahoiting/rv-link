@@ -192,9 +192,41 @@ PT_THREAD(riscv_target_init_post(rvl_target_error_t *err))
 }
 
 
+PT_THREAD(riscv_target_init_after_halted(rvl_target_error_t *err))
+{
+    PT_BEGIN(&self.pt);
+
+    PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr.word, CSR_DCSR));
+    if(self.dcsr.xdebugver != 4) {
+        *err = rvl_target_error_compat;
+        PT_EXIT(&self.pt);
+    }
+
+    /*
+     * ebreak instructions in X-mode enter Debug Mode.
+     */
+    self.dcsr.ebreakm = 1;
+    self.dcsr.ebreaks = 1;
+    self.dcsr.ebreaku = 1;
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr.word, CSR_DCSR));
+
+    PT_END(&self.pt);
+}
+
+
 PT_THREAD(riscv_target_fini_pre(void))
 {
     PT_BEGIN(&self.pt);
+
+    PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr.word, CSR_DCSR));
+
+    /*
+     * ebreak instructions in X-mode behave as described in the Privileged Spec.
+     */
+    self.dcsr.ebreakm = 0;
+    self.dcsr.ebreaks = 0;
+    self.dcsr.ebreaku = 0;
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr.word, CSR_DCSR));
 
 #if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
 

@@ -56,6 +56,7 @@ static gd32vf103_target_t gd32vf103_target_i;
 
 void riscv_target_init(void);
 PT_THREAD(riscv_target_init_post(rvl_target_error_t *err));
+PT_THREAD(riscv_target_init_after_halted(rvl_target_error_t *err));
 PT_THREAD(riscv_target_fini_pre(void));
 void riscv_target_fini(void);
 uint32_t riscv_target_get_idcode(void);
@@ -91,6 +92,11 @@ PT_THREAD(rvl_target_init_after_halted(rvl_target_error_t *err))
     uint32_t flash_density;
 
     PT_BEGIN(&self.pt);
+
+    PT_WAIT_THREAD(&self.pt, riscv_target_init_after_halted(err));
+    if(*err != rvl_target_error_none) {
+        PT_EXIT(&self.pt);
+    }
 
     // check security protection
     PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, FMC_OBSTAT, 4));

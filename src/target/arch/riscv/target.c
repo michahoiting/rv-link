@@ -36,6 +36,28 @@ typedef union riscv_csr_mcontrol_u
     };
 }riscv_csr_mcontrol_t;
 
+typedef union riscv_csr_dcsr_u
+{
+    uint32_t word;
+    struct {
+        unsigned int prv: 2;
+        unsigned int step: 1;
+        unsigned int nmip: 1;
+        unsigned int mprven: 1;
+        unsigned int reserved5: 1;
+        unsigned int cause: 3;
+        unsigned int stoptime: 1;
+        unsigned int stopcount: 1;
+        unsigned int stepie: 1;
+        unsigned int ebreaku: 1;
+        unsigned int ebreaks: 1;
+        unsigned int reserved14: 1;
+        unsigned int ebreakm: 1;
+        unsigned int reserved16: 12;
+        unsigned int xdebugver: 4;
+    };
+}riscv_csr_dcsr_t;
+
 
 typedef struct riscv_breakpoint_s
 {
@@ -52,7 +74,7 @@ typedef struct riscv_target_s
     riscv_dm_t dm;
     uint32_t dmi_result;
     uint32_t i;
-    rvl_target_reg_t dcsr;
+    riscv_csr_dcsr_t dcsr;
     rvl_dtm_idcode_t idcode;
     rvl_dtm_dtmcs_t dtmcs;
     rvl_target_reg_t tselect;
@@ -379,8 +401,8 @@ PT_THREAD(rvl_target_read_register(rvl_target_reg_t *reg, int regno))
     } else if(regno <= (0x1000 + 64)) { // CSRs
         PT_WAIT_THREAD(&self.pt, riscv_read_register(reg, regno - 65));
     } else if(regno == 4161) {  // priv
-        PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr, CSR_DCSR));
-        *reg = self.dcsr & 0x3;
+        PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr.word, CSR_DCSR));
+        *reg = self.dcsr.prv;
     } else {
         *reg = 0xffffffff;
     }
@@ -402,10 +424,9 @@ PT_THREAD(rvl_target_write_register(rvl_target_reg_t reg, int regno))
     } else if(regno <= (0x1000 + 64)) { // CSRs
         PT_WAIT_THREAD(&self.pt, riscv_write_register(reg, regno - 65));
     } else if(regno == 4161) {  // priv
-        PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr, CSR_DCSR));
-        self.dcsr &= ~0x3;
-        self.dcsr |= reg & 0x3;
-        PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr, CSR_DCSR));
+        PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr.word, CSR_DCSR));
+        self.dcsr.prv= reg;
+        PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr.word, CSR_DCSR));
     } else {
 
     }
@@ -533,9 +554,9 @@ PT_THREAD(rvl_target_resume(void))
 {
     PT_BEGIN(&self.pt);
 
-    PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr, CSR_DCSR));
-    self.dcsr &= ~(1UL << 2); // step
-    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr, CSR_DCSR));
+    PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr.word, CSR_DCSR));
+    self.dcsr.step = 0;
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr.word, CSR_DCSR));
 
     self.dm.dmcontrol.reg = 0;
     self.dm.dmcontrol.resumereq = 1;
@@ -550,9 +571,9 @@ PT_THREAD(rvl_target_step(void))
 {
     PT_BEGIN(&self.pt);
 
-    PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr, CSR_DCSR));
-    self.dcsr |= 1 << 2; // step
-    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr, CSR_DCSR));
+    PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr.word, CSR_DCSR));
+    self.dcsr.step = 1;
+    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr.word, CSR_DCSR));
 
     self.dm.dmcontrol.reg = 0;
     self.dm.dmcontrol.resumereq = 1;

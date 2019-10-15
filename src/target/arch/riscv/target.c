@@ -79,7 +79,6 @@ typedef struct riscv_target_s
     rvl_dtm_dtmcs_t dtmcs;
     rvl_target_reg_t tselect;
     riscv_csr_mcontrol_t mcontrol;
-    riscv_csr_mcontrol_t mcontrol_rb;
     rvl_dmi_reg_t dmi_data;
     uint32_t dmi_op;
     const char *err_msg;
@@ -628,11 +627,13 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
             self.tselect = self.i;
 
             PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
-            PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.mcontrol.reg, CSR_TDATA1));
 
+            self.mcontrol.reg = 0;
+            self.mcontrol.type = 2;
             self.mcontrol.dmode = 1;
             self.mcontrol.action = 1;
             self.mcontrol.m = 1;
+            self.mcontrol.s = 1;
             self.mcontrol.u = 1;
 
             switch(type) {
@@ -650,26 +651,25 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
                 self.mcontrol.load = 1;
                 break;
             default:
-                break; // FIXME
+                break;
             }
-
-//            switch(kind) {
-//            case 1:
-//                self.mcontrol.sizelo = 1;
-//                break;
-//            case 2:
-//                self.mcontrol.sizelo = 2;
-//                break;
-//            case 4:
-//                self.mcontrol.sizelo = 3;
-//                break;
-//            default:
-//                break; // FIXME
-//            }
-
+#if 0
+            switch(kind) {
+            case 1:
+                self.mcontrol.sizelo = 1;
+                break;
+            case 2:
+                self.mcontrol.sizelo = 2;
+                break;
+            case 4:
+                self.mcontrol.sizelo = 3;
+                break;
+            default:
+                break;
+            }
+#endif
             PT_WAIT_THREAD(&self.pt, riscv_write_register(self.mcontrol.reg, CSR_TDATA1));
             PT_WAIT_THREAD(&self.pt, riscv_write_register(self.breakpoints[self.tselect].addr, CSR_TDATA2));
-            PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.mcontrol_rb.reg, CSR_TDATA1));
             break;
         }
     }

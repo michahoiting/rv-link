@@ -59,6 +59,20 @@ typedef union riscv_csr_dcsr_u
 }riscv_csr_dcsr_t;
 
 
+#define RISCV_CSR_DCSR_CAUSE_EBREAK                 1
+#define RISCV_CSR_DCSR_CAUSE_TRIGGER                2
+#define RISCV_CSR_DCSR_CAUSE_HALT_REQ               3
+#define RISCV_CSR_DCSR_CAUSE_STEP                   4
+#define RISCV_CSR_DCSR_CAUSE_RESET_HALT_REQ         5
+
+
+#define RISCV_AAMSIZE_8BITS                         0
+#define RISCV_AAMSIZE_16BITS                        1
+#define RISCV_AAMSIZE_32BITS                        2
+#define RISCV_AAMSIZE_64BITS                        3
+#define RISCV_AAMSIZE_128BITS                       4
+
+
 typedef struct riscv_breakpoint_s
 {
     rvl_target_breakpoint_type_t type;
@@ -79,11 +93,15 @@ typedef struct riscv_target_s
     rvl_dtm_dtmcs_t dtmcs;
     rvl_target_reg_t tselect;
     riscv_csr_mcontrol_t mcontrol;
+    rvl_target_reg_t dpc;
     rvl_dmi_reg_t dmi_data;
     uint32_t dmi_op;
     const char *err_msg;
     uint32_t err_pc;
     riscv_breakpoint_t breakpoints[RVL_TARGET_CONFIG_BREAKPOINT_NUM];
+    uint32_t wp_inst;
+    uint32_t wp_addr_base_regno;
+    rvl_target_addr_t wp_addr_offset;
 }riscv_target_t;
 
 static riscv_target_t riscv_target_i;
@@ -94,6 +112,7 @@ static PT_THREAD(riscv_read_register(rvl_target_reg_t* reg, uint32_t regno));
 static PT_THREAD(riscv_write_register(rvl_target_reg_t reg, uint32_t regno));
 static PT_THREAD(riscv_read_mem(uint8_t* mem, rvl_target_addr_t addr, size_t len, int aamsize));
 static PT_THREAD(riscv_write_mem(uint32_t mem, rvl_target_addr_t addr, int aamsize));
+static void riscv_parse_watchpoint_inst(uint32_t inst, uint32_t* regno, uint32_t* offset);
 
 
 const char* riscv_abstractcs_cmderr_str[8] = {
@@ -471,11 +490,11 @@ PT_THREAD(rvl_target_read_memory(uint8_t* mem, rvl_target_addr_t addr, size_t le
     PT_BEGIN(&self.pt);
 
     if(((uint32_t)mem & 3) == 0 && (addr & 3) == 0 && (len & 3) == 0) {
-        PT_WAIT_THREAD(&self.pt, riscv_read_mem(mem, addr, len / 4, 2));
+        PT_WAIT_THREAD(&self.pt, riscv_read_mem(mem, addr, len / 4, RISCV_AAMSIZE_32BITS));
     } else if(((uint32_t)mem & 1) == 0 && (addr & 1) == 0 && (len & 1) == 0) {
-        PT_WAIT_THREAD(&self.pt, riscv_read_mem(mem, addr, len / 2, 1));
+        PT_WAIT_THREAD(&self.pt, riscv_read_mem(mem, addr, len / 2, RISCV_AAMSIZE_16BITS));
     } else {
-        PT_WAIT_THREAD(&self.pt, riscv_read_mem(mem, addr, len, 0));
+        PT_WAIT_THREAD(&self.pt, riscv_read_mem(mem, addr, len, RISCV_AAMSIZE_8BITS));
     }
 
     PT_END(&self.pt);
@@ -488,15 +507,15 @@ PT_THREAD(rvl_target_write_memory(const uint8_t* mem, rvl_target_addr_t addr, si
 
     if(((uint32_t)mem & 3) == 0 && (addr & 3) == 0 && (len & 3) == 0) {
         for(self.i = 0; self.i < len; self.i += 4) {
-            PT_WAIT_THREAD(&self.pt, riscv_write_mem(*((uint32_t*)&mem[self.i]), addr + self.i, 2));
+            PT_WAIT_THREAD(&self.pt, riscv_write_mem(*((uint32_t*)&mem[self.i]), addr + self.i, RISCV_AAMSIZE_32BITS));
         }
     } else if(((uint32_t)mem & 1) == 0 && (addr & 1) == 0 && (len & 1) == 0) {
         for(self.i = 0; self.i < len; self.i += 2) {
-            PT_WAIT_THREAD(&self.pt, riscv_write_mem(*((uint16_t*)&mem[self.i]), addr + self.i, 1));
+            PT_WAIT_THREAD(&self.pt, riscv_write_mem(*((uint16_t*)&mem[self.i]), addr + self.i, RISCV_AAMSIZE_16BITS));
         }
     } else {
         for(self.i = 0; self.i < len; self.i++) {
-            PT_WAIT_THREAD(&self.pt, riscv_write_mem(mem[self.i], addr + self.i, 0));
+            PT_WAIT_THREAD(&self.pt, riscv_write_mem(mem[self.i], addr + self.i, RISCV_AAMSIZE_8BITS));
         }
     }
 
@@ -565,16 +584,103 @@ PT_THREAD(rvl_target_halt(void))
 }
 
 
-PT_THREAD(rvl_target_halt_check(int* halted))
+PT_THREAD(rvl_target_halt_check(rvl_target_halt_info_t* halt_info))
 {
+    int has_watchpoint;
+
     PT_BEGIN(&self.pt);
 
     PT_WAIT_THREAD(&self.pt, rvl_dmi_read(RISCV_DM_STATUS, (rvl_dmi_reg_t*)(&self.dm.dmstatus.reg), &self.dmi_result));
 
     if(self.dm.dmstatus.allhalted) {
-        *halted = 1;
+        PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr.word, CSR_DCSR));
+        if(self.dcsr.cause == RISCV_CSR_DCSR_CAUSE_EBREAK) {
+            halt_info->reason = rvl_target_halt_reason_software_breakpoint;
+        } else if(self.dcsr.cause == RISCV_CSR_DCSR_CAUSE_TRIGGER) {
+            halt_info->reason = rvl_target_halt_reason_other;
+#if 0 // GD32VF103 do not implement mcontrol.hit
+            for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
+                if(self.breakpoints[self.i].type != unused_breakpoint) {
+                    self.tselect = self.i;
+                    PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
+                    PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.mcontrol.reg, CSR_TDATA1));
+                    if(self.mcontrol.hit) {
+                        if(self.breakpoints[self.i].type == hardware_breakpoint) {
+                            halt_info->reason = rvl_target_halt_reason_hardware_breakpoint;
+                        } else if(self.breakpoints[self.i].type == write_watchpoint) {
+                            halt_info->reason = rvl_target_halt_reason_write_watchpoint;
+                            halt_info->addr = self.breakpoints[self.i].addr;
+                        } else if(self.breakpoints[self.i].type == read_watchpoint) {
+                            halt_info->reason = rvl_target_halt_reason_read_watchpoint;
+                            halt_info->addr = self.breakpoints[self.i].addr;
+                        } else if(self.breakpoints[self.i].type == access_watchpoint) {
+                            halt_info->reason = rvl_target_halt_reason_access_watchpoint;
+                            halt_info->addr = self.breakpoints[self.i].addr;
+                        } else {
+                            halt_info->reason = rvl_target_halt_reason_other;
+                        }
+                        break;
+                    }
+                }
+            }
+#else
+            PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dpc, CSR_DPC));
+            for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
+                if(self.breakpoints[self.i].type == hardware_breakpoint) {
+                    if(self.breakpoints[self.i].addr == self.dpc) {
+                        halt_info->reason = rvl_target_halt_reason_hardware_breakpoint;
+                        break;
+                    }
+                }
+            }
+
+            if(halt_info->reason == rvl_target_halt_reason_other) {
+                has_watchpoint = 0;
+                for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
+                    if(self.breakpoints[self.i].type == write_watchpoint) {
+                        has_watchpoint = 1;
+                        break;
+                    }
+                    if(self.breakpoints[self.i].type == read_watchpoint) {
+                        has_watchpoint = 1;
+                        break;
+                    }
+                    if(self.breakpoints[self.i].type == access_watchpoint) {
+                        has_watchpoint = 1;
+                        break;
+                    }
+                }
+
+                if(has_watchpoint) {
+                    PT_WAIT_THREAD(&self.pt, riscv_read_mem((uint8_t*)&self.wp_inst, self.dpc, 4, RISCV_AAMSIZE_16BITS));
+                    riscv_parse_watchpoint_inst(self.wp_inst, &self.wp_addr_base_regno, &self.wp_addr_offset);
+                    PT_WAIT_THREAD(&self.pt, riscv_read_register(&(halt_info->addr), self.wp_addr_base_regno + 0x1000));
+                    halt_info->addr += self.wp_addr_offset;
+
+                    if(halt_info->addr != 0xffffffff) {
+                        for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
+                            if(halt_info->addr == self.breakpoints[self.i].addr) {
+                                if(self.breakpoints[self.i].type == write_watchpoint) {
+                                    halt_info->reason = rvl_target_halt_reason_write_watchpoint;
+                                }
+                                if(self.breakpoints[self.i].type == read_watchpoint) {
+                                    halt_info->reason = rvl_target_halt_reason_read_watchpoint;
+                                }
+                                if(self.breakpoints[self.i].type == access_watchpoint) {
+                                    halt_info->reason = rvl_target_halt_reason_access_watchpoint;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+#endif
+        } else {
+            halt_info->reason = rvl_target_halt_reason_other;
+        }
     } else {
-        *halted = 0;
+        halt_info->reason = rvl_target_halt_reason_running;
     }
 
     PT_END(&self.pt);
@@ -903,4 +1009,96 @@ static PT_THREAD(riscv_write_mem(uint32_t mem, rvl_target_addr_t addr, int aamsi
     PT_END(&self.pt_sub);
 }
 
+
+static void riscv_parse_watchpoint_inst(uint32_t inst, uint32_t* regno, uint32_t* offset)
+{
+    uint32_t opcode;
+    int32_t offset_s;
+    if((inst & 0x3) == 0x3) {
+        // 32 bits Instruction
+        opcode = inst & 0x7f;
+        switch(opcode) {
+        case 0x03: // LOAD
+        case 0x07: // LOAD-FP
+            *regno = (inst >> 15) & 0x1f;
+            offset_s = inst & 0xfff00000;
+            offset_s = offset_s >> 20;
+            break;
+        case 0x23: // STORE
+        case 0x27: // STORE-FP
+            *regno = (inst >> 15) & 0x1f;
+            offset_s = (inst & 0xfe000000) | ((inst << 13) & 0x01f00000);
+            offset_s = offset_s >> 20;
+            break;
+        default:
+            *regno = 0;
+            offset_s = 0;
+            break;
+        }
+    } else {
+        // 16 bits Instruction, RV32 和 RV64 是不一样的，当前仅考虑 RV32
+        opcode = ((inst & 0xe000) >> 11) | (inst & 0x3);
+        switch(opcode) {
+        case 0x4: // FLD
+        case 0x8: // LW
+        case 0xc: // FLW, LD
+        case 0x14: // FSD, SQ
+        case 0x18: // SW
+        case 0x1c: // FSW, SD
+            *regno = ((inst >> 7) & 0x7) + 8;
+            break;
+
+        case 0x6: // FLDSP, LQSP
+        case 0xa: // LWSP
+        case 0xe: // FLWSP, LDSP
+        case 0x16: // FSDSP, SQSP
+        case 0x1a: // SWSP
+        case 0x1e: // FSWSP, SDSP
+            *regno = 2;
+            break;
+
+        default:
+            *regno = 0;
+            break;
+        }
+
+        switch(opcode) {
+        case 0x4: // FLD
+        case 0x14: // FSD
+            offset_s = ((inst & 0x1c00) >> 7) | ((inst & 0x6) << 1);
+            break;
+
+        case 0x8: // LW
+        case 0xc: // FLW
+        case 0x18: // SW
+        case 0x1c: // FSW
+            offset_s = ((inst & 0x1c00) >> 7) | ((inst & 0x40) >> 4) | ((inst & 0x20) << 1);
+            break;
+
+        case 0x6: // FLDSP
+            offset_s = ((inst & 0x1000) >> 7) | ((inst & 0x60) >> 2) | ((inst & 0x1c) << 4);
+            break;
+
+        case 0xa: // LWSP
+        case 0xe: // FLWSP
+            offset_s = ((inst & 0x1000) >> 7) | ((inst & 0x70) >> 2) | ((inst & 0xc) << 4);
+            break;
+
+        case 0x16: // FSDSP
+            offset_s = ((inst & 0x1c00) >> 7) | ((inst & 0x380) >> 1);
+            break;
+
+        case 0x1a: // SWSP
+        case 0x1e: // FSWSP
+            offset_s = ((inst & 0x1e00) >> 7) | ((inst & 0x180) >> 1);
+            break;
+
+        default:
+            offset_s = 0;
+            break;
+        }
+    }
+
+    *offset = offset_s;
+}
 

@@ -29,6 +29,24 @@ typedef uint64_t rvl_target_addr_t;
 
 typedef enum
 {
+    rvl_target_halt_reason_running = 0,
+    rvl_target_halt_reason_hardware_breakpoint = 1,
+    rvl_target_halt_reason_software_breakpoint = 2,
+    rvl_target_halt_reason_write_watchpoint = 3,
+    rvl_target_halt_reason_read_watchpoint = 4,
+    rvl_target_halt_reason_access_watchpoint = 5,
+    rvl_target_halt_reason_other = 6,
+}rvl_target_halt_reason_t;
+
+
+typedef struct
+{
+    rvl_target_halt_reason_t reason;
+    rvl_target_addr_t addr;
+}rvl_target_halt_info_t;
+
+typedef enum
+{
     software_breakpoint = 0,
     hardware_breakpoint = 1,
     write_watchpoint = 2,
@@ -73,7 +91,7 @@ void rvl_target_clr_error(void);
 
 PT_THREAD(rvl_target_reset(void));
 PT_THREAD(rvl_target_halt(void));
-PT_THREAD(rvl_target_halt_check(int* halted));
+PT_THREAD(rvl_target_halt_check(rvl_target_halt_info_t* halt_info));
 PT_THREAD(rvl_target_resume(void));
 PT_THREAD(rvl_target_step(void));
 

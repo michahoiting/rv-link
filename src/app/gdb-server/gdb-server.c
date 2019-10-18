@@ -25,7 +25,7 @@ typedef struct gdb_server_s
     char *res;
     bool target_running;
     bool gdb_connected;
-    int halted;
+    rvl_target_halt_info_t halt_info;
     rvl_target_error_t target_error;
     rvl_target_addr_t mem_addr;
     size_t mem_len;
@@ -144,11 +144,27 @@ PT_THREAD(gdb_server_poll(void))
             }
 
             if(self.target_running) {
-                PT_WAIT_THREAD(&self.pt_server, rvl_target_halt_check(&self.halted));
-                if(self.halted) {
+                PT_WAIT_THREAD(&self.pt_server, rvl_target_halt_check(&self.halt_info));
+                if(self.halt_info.reason != rvl_target_halt_reason_running) {
                     gdb_server_target_run(false);
-                    strncpy(self.res, "T05", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
-                    gdb_serial_response_done(3, GDB_SERIAL_SEND_FLAG_ALL);
+
+                    if(self.halt_info.reason == rvl_target_halt_reason_other) {
+                        strncpy(self.res, "T05", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+                    } else if(self.halt_info.reason == rvl_target_halt_reason_write_watchpoint) {
+                        snprintf(self.res, GDB_SERIAL_RESPONSE_BUFFER_SIZE, "T05watch:%x;", (unsigned int)self.halt_info.addr);
+                    } else if(self.halt_info.reason == rvl_target_halt_reason_read_watchpoint) {
+                        snprintf(self.res, GDB_SERIAL_RESPONSE_BUFFER_SIZE, "T05rwatch:%x;", (unsigned int)self.halt_info.addr);
+                    } else if(self.halt_info.reason == rvl_target_halt_reason_access_watchpoint) {
+                        snprintf(self.res, GDB_SERIAL_RESPONSE_BUFFER_SIZE, "T05awatch:%x;", (unsigned int)self.halt_info.addr);
+                    } else if(self.halt_info.reason == rvl_target_halt_reason_hardware_breakpoint) {
+                        strncpy(self.res, "T05hwbreak:;", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+                    } else if(self.halt_info.reason == rvl_target_halt_reason_software_breakpoint) {
+                        strncpy(self.res, "T05swbreak:;", GDB_SERIAL_RESPONSE_BUFFER_SIZE);
+                    } else {
+
+                    }
+
+                    gdb_serial_response_done(strlen(self.res), GDB_SERIAL_SEND_FLAG_ALL);
                 }
             }
         } else {
@@ -238,6 +254,8 @@ PT_THREAD(gdb_server_cmd_qSupported(void))
             ";QStartNoAckMode+"
             ";qXfer:features:read+"
             ";qXfer:memory-map:read+"
+            ";swbreak+"
+            ";hwbreak+"
             ;
 
     PT_BEGIN(&self.pt_cmd_sub);

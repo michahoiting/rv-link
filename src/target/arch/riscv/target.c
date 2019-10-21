@@ -755,13 +755,13 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
                 if(kind == 2) {
                     PT_WAIT_THREAD(&self.pt, riscv_read_mem(
                             (uint8_t*)&self.software_breakpoints[self.i].orig_inst,
-                            addr, 2, RISCV_AAMSIZE_16BITS));
+                            addr, 1, RISCV_AAMSIZE_16BITS));
                     PT_WAIT_THREAD(&self.pt, riscv_write_mem(
                             c_ebreak, addr, RISCV_AAMSIZE_16BITS));
                 } else {
                     PT_WAIT_THREAD(&self.pt, riscv_read_mem(
                             (uint8_t*)&self.software_breakpoints[self.i].orig_inst,
-                            addr, 4, RISCV_AAMSIZE_16BITS));
+                            addr, 2, RISCV_AAMSIZE_16BITS));
                     PT_WAIT_THREAD(&self.pt, riscv_write_mem(
                             ebreak, addr, RISCV_AAMSIZE_32BITS));
                 }

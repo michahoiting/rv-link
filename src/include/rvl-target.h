@@ -47,12 +47,15 @@ typedef struct
 
 typedef enum
 {
-    software_breakpoint = 0,
-    hardware_breakpoint = 1,
-    write_watchpoint = 2,
-    read_watchpoint = 3,
-    access_watchpoint = 4,
-    unused_breakpoint = 5,
+    /*
+     * 与 gdb Remote Serial Protocol 中 z/Z 命令的 type 字段保持一致
+     */
+    rvl_target_breakpoint_type_software = 0,
+    rvl_target_breakpoint_type_hardware = 1,
+    rvl_target_breakpoint_type_write_watchpoint = 2,
+    rvl_target_breakpoint_type_read_watchpoint = 3,
+    rvl_target_breakpoint_type_access_watchpoint = 4,
+    rvl_target_breakpoint_type_unused = 5,
 }rvl_target_breakpoint_type_t;
 
 

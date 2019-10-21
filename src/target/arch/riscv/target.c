@@ -7,8 +7,8 @@
 #include "rvl-target.h"
 #include "rvl-jtag.h"
 
-#ifndef RVL_TARGET_CONFIG_BREAKPOINT_NUM
-#define RVL_TARGET_CONFIG_BREAKPOINT_NUM     4
+#ifndef RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM
+#define RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM       4
 #endif
 
 
@@ -83,7 +83,7 @@ typedef struct riscv_breakpoint_s
     rvl_target_breakpoint_type_t type;
     rvl_target_addr_t addr;
     int kind;
-}riscv_breakpoint_t;
+}riscv_hardware_breakpoint_t;
 
 typedef struct riscv_software_breakpoint_s
 {
@@ -111,7 +111,7 @@ typedef struct riscv_target_s
     uint32_t dmi_op;
     const char *err_msg;
     uint32_t err_pc;
-    riscv_breakpoint_t breakpoints[RVL_TARGET_CONFIG_BREAKPOINT_NUM];
+    riscv_hardware_breakpoint_t hardware_breakpoints[RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM];
     riscv_software_breakpoint_t software_breakpoints[RVL_TARGET_CONFIG_SOFTWARE_BREAKPOINT_NUM];
     uint32_t wp_inst;
     uint32_t wp_addr_base_regno;
@@ -145,12 +145,12 @@ void riscv_target_init(void)
     PT_INIT(&self.pt);
     PT_INIT(&self.pt_sub);
 
-    for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
-        self.breakpoints[self.i].type = unused_breakpoint;
+    for(self.i = 0; self.i < RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM; self.i++) {
+        self.hardware_breakpoints[self.i].type = rvl_target_breakpoint_type_unused;
     }
 
     for(self.i = 0; self.i < RVL_TARGET_CONFIG_SOFTWARE_BREAKPOINT_NUM; self.i++) {
-        self.software_breakpoints[self.i].type = unused_breakpoint;
+        self.software_breakpoints[self.i].type = rvl_target_breakpoint_type_unused;
     }
 
     rvl_target_clr_error();
@@ -612,23 +612,23 @@ PT_THREAD(rvl_target_halt_check(rvl_target_halt_info_t* halt_info))
         } else if(self.dcsr.cause == RISCV_CSR_DCSR_CAUSE_TRIGGER) {
             halt_info->reason = rvl_target_halt_reason_other;
 #if 0 // GD32VF103 do not implement mcontrol.hit
-            for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
-                if(self.breakpoints[self.i].type != unused_breakpoint) {
+            for(self.i = 0; self.i < RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM; self.i++) {
+                if(self.hardware_breakpoints[self.i].type != rvl_target_breakpoint_type_unused) {
                     self.tselect = self.i;
                     PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
                     PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.mcontrol.reg, CSR_TDATA1));
                     if(self.mcontrol.hit) {
-                        if(self.breakpoints[self.i].type == hardware_breakpoint) {
+                        if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_hardware) {
                             halt_info->reason = rvl_target_halt_reason_hardware_breakpoint;
-                        } else if(self.breakpoints[self.i].type == write_watchpoint) {
+                        } else if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_write_watchpoint) {
                             halt_info->reason = rvl_target_halt_reason_write_watchpoint;
-                            halt_info->addr = self.breakpoints[self.i].addr;
-                        } else if(self.breakpoints[self.i].type == read_watchpoint) {
+                            halt_info->addr = self.hardware_breakpoints[self.i].addr;
+                        } else if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_read_watchpoint) {
                             halt_info->reason = rvl_target_halt_reason_read_watchpoint;
-                            halt_info->addr = self.breakpoints[self.i].addr;
-                        } else if(self.breakpoints[self.i].type == access_watchpoint) {
+                            halt_info->addr = self.hardware_breakpoints[self.i].addr;
+                        } else if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_access_watchpoint) {
                             halt_info->reason = rvl_target_halt_reason_access_watchpoint;
-                            halt_info->addr = self.breakpoints[self.i].addr;
+                            halt_info->addr = self.hardware_breakpoints[self.i].addr;
                         } else {
                             halt_info->reason = rvl_target_halt_reason_other;
                         }
@@ -638,9 +638,9 @@ PT_THREAD(rvl_target_halt_check(rvl_target_halt_info_t* halt_info))
             }
 #else
             PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dpc, CSR_DPC));
-            for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
-                if(self.breakpoints[self.i].type == hardware_breakpoint) {
-                    if(self.breakpoints[self.i].addr == self.dpc) {
+            for(self.i = 0; self.i < RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM; self.i++) {
+                if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_hardware) {
+                    if(self.hardware_breakpoints[self.i].addr == self.dpc) {
                         halt_info->reason = rvl_target_halt_reason_hardware_breakpoint;
                         break;
                     }
@@ -649,16 +649,16 @@ PT_THREAD(rvl_target_halt_check(rvl_target_halt_info_t* halt_info))
 
             if(halt_info->reason == rvl_target_halt_reason_other) {
                 has_watchpoint = 0;
-                for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
-                    if(self.breakpoints[self.i].type == write_watchpoint) {
+                for(self.i = 0; self.i < RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM; self.i++) {
+                    if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_write_watchpoint) {
                         has_watchpoint = 1;
                         break;
                     }
-                    if(self.breakpoints[self.i].type == read_watchpoint) {
+                    if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_read_watchpoint) {
                         has_watchpoint = 1;
                         break;
                     }
-                    if(self.breakpoints[self.i].type == access_watchpoint) {
+                    if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_access_watchpoint) {
                         has_watchpoint = 1;
                         break;
                     }
@@ -671,15 +671,15 @@ PT_THREAD(rvl_target_halt_check(rvl_target_halt_info_t* halt_info))
                     halt_info->addr += self.wp_addr_offset;
 
                     if(halt_info->addr != 0xffffffff) {
-                        for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
-                            if(halt_info->addr == self.breakpoints[self.i].addr) {
-                                if(self.breakpoints[self.i].type == write_watchpoint) {
+                        for(self.i = 0; self.i < RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM; self.i++) {
+                            if(halt_info->addr == self.hardware_breakpoints[self.i].addr) {
+                                if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_write_watchpoint) {
                                     halt_info->reason = rvl_target_halt_reason_write_watchpoint;
                                 }
-                                if(self.breakpoints[self.i].type == read_watchpoint) {
+                                if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_read_watchpoint) {
                                     halt_info->reason = rvl_target_halt_reason_read_watchpoint;
                                 }
-                                if(self.breakpoints[self.i].type == access_watchpoint) {
+                                if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_access_watchpoint) {
                                     halt_info->reason = rvl_target_halt_reason_access_watchpoint;
                                 }
                                 break;
@@ -740,9 +740,9 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
     const uint32_t ebreak = 0x00100073;
     PT_BEGIN(&self.pt);
 
-    if(type == software_breakpoint) {
+    if(type == rvl_target_breakpoint_type_software) {
         for(self.i = 0; self.i < RVL_TARGET_CONFIG_SOFTWARE_BREAKPOINT_NUM; self.i++) {
-            if(self.software_breakpoints[self.i].type == unused_breakpoint) {
+            if(self.software_breakpoints[self.i].type == rvl_target_breakpoint_type_unused) {
                 self.software_breakpoints[self.i].type = type;
                 self.software_breakpoints[self.i].addr = addr;
                 self.software_breakpoints[self.i].kind = kind;
@@ -768,11 +768,11 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
             PT_EXIT(&self.pt);
         }
     } else {
-        for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
-            if(self.breakpoints[self.i].type == unused_breakpoint) {
-                self.breakpoints[self.i].type = type;
-                self.breakpoints[self.i].addr = addr;
-                self.breakpoints[self.i].kind = kind;
+        for(self.i = 0; self.i < RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM; self.i++) {
+            if(self.hardware_breakpoints[self.i].type == rvl_target_breakpoint_type_unused) {
+                self.hardware_breakpoints[self.i].type = type;
+                self.hardware_breakpoints[self.i].addr = addr;
+                self.hardware_breakpoints[self.i].kind = kind;
                 self.tselect = self.i;
 
                 PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
@@ -786,16 +786,16 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
                 self.mcontrol.u = 1;
 
                 switch(type) {
-                case hardware_breakpoint:
+                case rvl_target_breakpoint_type_hardware:
                     self.mcontrol.execute = 1;
                     break;
-                case write_watchpoint:
+                case rvl_target_breakpoint_type_write_watchpoint:
                     self.mcontrol.store = 1;
                     break;
-                case read_watchpoint:
+                case rvl_target_breakpoint_type_read_watchpoint:
                     self.mcontrol.load = 1;
                     break;
-                case access_watchpoint:
+                case rvl_target_breakpoint_type_access_watchpoint:
                     self.mcontrol.store = 1;
                     self.mcontrol.load = 1;
                     break;
@@ -818,12 +818,12 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
                 }
 #endif
                 PT_WAIT_THREAD(&self.pt, riscv_write_register(self.mcontrol.reg, CSR_TDATA1));
-                PT_WAIT_THREAD(&self.pt, riscv_write_register(self.breakpoints[self.tselect].addr, CSR_TDATA2));
+                PT_WAIT_THREAD(&self.pt, riscv_write_register(self.hardware_breakpoints[self.tselect].addr, CSR_TDATA2));
                 break;
             }
         }
 
-        if(self.i == RVL_TARGET_CONFIG_BREAKPOINT_NUM) {
+        if(self.i == RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM) {
             *err = 0x0e;
             PT_EXIT(&self.pt);
         }
@@ -838,7 +838,7 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
 {
     PT_BEGIN(&self.pt);
 
-    if(type == software_breakpoint) {
+    if(type == rvl_target_breakpoint_type_software) {
         for(self.i = 0; self.i < RVL_TARGET_CONFIG_SOFTWARE_BREAKPOINT_NUM; self.i++) {
             if(self.software_breakpoints[self.i].type == type
                     && self.software_breakpoints[self.i].addr == addr
@@ -856,20 +856,20 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
                 (const uint8_t*)&self.software_breakpoints[self.i].orig_inst,
                 addr, kind == 2 ? 1 : 2, RISCV_AAMSIZE_16BITS));
 
-        self.software_breakpoints[self.i].type = unused_breakpoint;
+        self.software_breakpoints[self.i].type = rvl_target_breakpoint_type_unused;
         self.software_breakpoints[self.i].addr = 0;
         self.software_breakpoints[self.i].kind = 0;
     } else {
-        for(self.i = 0; self.i < RVL_TARGET_CONFIG_BREAKPOINT_NUM; self.i++) {
-            if(self.breakpoints[self.i].type == type
-                    && self.breakpoints[self.i].addr == addr
-                    && self.breakpoints[self.i].kind == kind) {
+        for(self.i = 0; self.i < RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM; self.i++) {
+            if(self.hardware_breakpoints[self.i].type == type
+                    && self.hardware_breakpoints[self.i].addr == addr
+                    && self.hardware_breakpoints[self.i].kind == kind) {
                 self.tselect = self.i;
                 break;
             }
         }
 
-        if(self.i == RVL_TARGET_CONFIG_BREAKPOINT_NUM) {
+        if(self.i == RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM) {
             *err = 0x0e;
             PT_EXIT(&self.pt);
         }
@@ -877,9 +877,9 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
         PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
         PT_WAIT_THREAD(&self.pt, riscv_write_register(0, CSR_TDATA1));
 
-        self.breakpoints[self.i].type = unused_breakpoint;
-        self.breakpoints[self.i].addr = 0;
-        self.breakpoints[self.i].kind = 0;
+        self.hardware_breakpoints[self.i].type = rvl_target_breakpoint_type_unused;
+        self.hardware_breakpoints[self.i].addr = 0;
+        self.hardware_breakpoints[self.i].kind = 0;
     }
 
     *err = 0;

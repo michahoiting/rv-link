@@ -66,6 +66,7 @@ PT_THREAD(gdb_server_cmd_c(void));
 PT_THREAD(gdb_server_cmd_s(void));
 PT_THREAD(gdb_server_cmd_m(void));
 PT_THREAD(gdb_server_cmd_M(void));
+PT_THREAD(gdb_server_cmd_X(void));
 PT_THREAD(gdb_server_cmd_p(void));
 PT_THREAD(gdb_server_cmd_P(void));
 PT_THREAD(gdb_server_cmd_z(void));
@@ -194,6 +195,8 @@ PT_THREAD(gdb_server_poll(void))
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_m());
             } else if(c == 'M') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_M());
+            } else if(c == 'X') {
+                PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_X());
             } else if(c == 'p') {
                 PT_WAIT_THREAD(&self.pt_server, gdb_server_cmd_p());
             } else if(c == 'P') {
@@ -616,6 +619,40 @@ PT_THREAD(gdb_server_cmd_M(void))
 
     gdb_server_reply_ok();
 
+    PT_END(&self.pt_cmd);
+}
+
+
+/*
+ * ‘X addr,length:XX...’
+ * Write data to memory, where the data is transmitted in binary.
+ */
+PT_THREAD(gdb_server_cmd_X(void))
+{
+    const char *p;
+    size_t length;
+
+    PT_BEGIN(&self.pt_cmd);
+
+    sscanf(&self.cmd[1], "%x,%x", (unsigned int*)(&self.mem_addr), (unsigned int*)(&self.mem_len));
+    if(self.mem_len == 0) {
+        gdb_server_reply_ok();
+        PT_EXIT(&self.pt_cmd);
+    }
+
+    p = strchr(&self.cmd[1], ':');
+    p++;
+
+    if(self.mem_len > sizeof(self.mem_buffer)) {
+        self.mem_len = sizeof(self.mem_buffer);
+    }
+
+    length = self.cmd_len - ((size_t)p - (size_t)self.cmd);
+    bin_decode((uint8_t*)p, self.mem_buffer, length);
+
+    PT_WAIT_THREAD(&self.pt_cmd, rvl_target_write_memory(self.mem_buffer, self.mem_addr, self.mem_len));
+
+    gdb_server_reply_ok();
     PT_END(&self.pt_cmd);
 }
 

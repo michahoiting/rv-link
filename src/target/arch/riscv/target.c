@@ -1139,7 +1139,7 @@ static void riscv_parse_watchpoint_inst(uint32_t inst, uint32_t* regno, uint32_t
         switch(opcode) {
         case 0x4: // FLD
         case 0x14: // FSD
-            offset_s = ((inst & 0x1c00) >> 7) | ((inst & 0x6) << 1);
+            offset_s = ((inst & 0x1c00) >> 7) | ((inst & 0x60) << 1);
             break;
 
         case 0x8: // LW

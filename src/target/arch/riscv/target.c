@@ -1057,6 +1057,52 @@ static PT_THREAD(riscv_write_mem(const uint8_t* mem, rvl_target_addr_t addr, siz
 
     PT_BEGIN(&self.pt_sub);
 
+#if 1 // optimize
+    for(self.i = 0; self.i < len; self.i++) {
+        self.dmi_data = addr + (self.i << aamsize);
+        self.dmi_op = RISCV_DMI_OP_WRITE;
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dtm_dmi(RISCV_DM_DATA1, &self.dmi_data, &self.dmi_op));
+
+        switch(aamsize) {
+        case RISCV_AAMSIZE_8BITS:
+            pbyte = (const uint8_t*)mem;
+            self.dm.data[0] = pbyte[self.i];
+            break;
+        case RISCV_AAMSIZE_16BITS:
+            phalfword = (const uint16_t*)mem;
+            self.dm.data[0] = phalfword[self.i];
+            break;
+        case RISCV_AAMSIZE_32BITS:
+            pword = (const uint32_t*)mem;
+            self.dm.data[0] = pword[self.i];
+            break;
+        default:
+            break;
+        }
+
+        self.dmi_data = self.dm.data[0];
+        self.dmi_op = RISCV_DMI_OP_WRITE;
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dtm_dmi(RISCV_DM_DATA0, &self.dmi_data, &self.dmi_op));
+
+        self.dm.command_access_memory.reg = 0;
+        self.dm.command_access_memory.cmdtype = RISCV_DM_ABSTRACT_CMD_ACCESS_MEM;
+        self.dm.command_access_memory.aamsize = aamsize;
+        self.dm.command_access_memory.write = 1;
+
+        self.dmi_data = self.dm.command_access_memory.reg;
+        self.dmi_op = RISCV_DMI_OP_WRITE;
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dtm_dmi(RISCV_DM_ABSTRACT_CMD, &self.dmi_data, &self.dmi_op));
+    }
+
+    PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_read(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t*)(&self.dm.abstractcs.reg), &self.dmi_result));
+    if(self.dm.abstractcs.cmderr) {
+        rvl_target_set_error(riscv_abstractcs_cmderr_str[self.dm.abstractcs.cmderr]);
+
+        self.dm.abstractcs.reg = 0;
+        self.dm.abstractcs.cmderr = 0x7;
+        PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
+    }
+#else
     for(self.i = 0; self.i < len; self.i++) {
         self.dm.data[1] = addr + (self.i << aamsize);
         PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_DATA1, (rvl_dmi_reg_t)(self.dm.data[1]), &self.dmi_result));
@@ -1095,6 +1141,7 @@ static PT_THREAD(riscv_write_mem(const uint8_t* mem, rvl_target_addr_t addr, siz
             PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
         }
     }
+#endif
 
     PT_END(&self.pt_sub);
 }

@@ -101,6 +101,7 @@ typedef struct riscv_target_s
     riscv_dm_t dm;
     uint32_t dmi_result;
     uint32_t i;
+    uint32_t ii;
     riscv_csr_dcsr_t dcsr;
     rvl_dtm_idcode_t idcode;
     rvl_dtm_dtmcs_t dtmcs;
@@ -953,30 +954,30 @@ static PT_THREAD(riscv_read_mem(uint8_t* mem, rvl_target_addr_t addr, size_t len
     PT_BEGIN(&self.pt_sub);
 
 #if 1 // optimize
-    for(self.i = 0; self.i < len + 1; self.i++) {
-        self.dmi_data = addr + (self.i << aamsize);
+    for(self.ii = 0; self.ii < len + 1; self.ii++) {
+        self.dmi_data = addr + (self.ii << aamsize);
         self.dmi_op = RISCV_DMI_OP_WRITE;
         PT_WAIT_THREAD(&self.pt_sub, rvl_dtm_dmi(RISCV_DM_DATA1, &self.dmi_data, &self.dmi_op));
-        if(self.i > 0) {
+        if(self.ii > 0) {
             switch(aamsize) {
             case 0:
                 pbyte = (uint8_t*)mem;
-                pbyte[self.i - 1] = self.dmi_data & 0xff;
+                pbyte[self.ii - 1] = self.dmi_data & 0xff;
                 break;
             case 1:
                 phalfword = (uint16_t*)mem;
-                phalfword[self.i - 1] = self.dmi_data & 0xffff;
+                phalfword[self.ii - 1] = self.dmi_data & 0xffff;
                 break;
             case 2:
                 pword = (uint32_t*)mem;
-                pword[self.i - 1] = self.dmi_data;
+                pword[self.ii - 1] = self.dmi_data;
                 break;
             default:
                 break;
             }
         }
 
-        if(self.i == len) {
+        if(self.ii == len) {
             break;
         }
 
@@ -1004,8 +1005,8 @@ static PT_THREAD(riscv_read_mem(uint8_t* mem, rvl_target_addr_t addr, size_t len
 
 #else
 
-    for(self.i = 0; self.i < len; self.i++) {
-        self.dm.data[1] = addr + (self.i << aamsize);
+    for(self.ii = 0; self.ii < len; self.ii++) {
+        self.dm.data[1] = addr + (self.ii << aamsize);
         PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_DATA1, (rvl_dmi_reg_t)(self.dm.data[1]), &self.dmi_result));
 
         self.dm.command_access_memory.reg = 0;
@@ -1029,15 +1030,15 @@ static PT_THREAD(riscv_read_mem(uint8_t* mem, rvl_target_addr_t addr, size_t len
         switch(aamsize) {
         case 0:
             pbyte = (uint8_t*)mem;
-            pbyte[self.i] = self.dm.data[0] & 0xff;
+            pbyte[self.ii] = self.dm.data[0] & 0xff;
             break;
         case 1:
             phalfword = (uint16_t*)mem;
-            phalfword[self.i] = self.dm.data[0] & 0xffff;
+            phalfword[self.ii] = self.dm.data[0] & 0xffff;
             break;
         case 2:
             pword = (uint32_t*)mem;
-            pword[self.i] = self.dm.data[0];
+            pword[self.ii] = self.dm.data[0];
             break;
         default:
             break;
@@ -1058,23 +1059,23 @@ static PT_THREAD(riscv_write_mem(const uint8_t* mem, rvl_target_addr_t addr, siz
     PT_BEGIN(&self.pt_sub);
 
 #if 1 // optimize
-    for(self.i = 0; self.i < len; self.i++) {
-        self.dmi_data = addr + (self.i << aamsize);
+    for(self.ii = 0; self.ii < len; self.ii++) {
+        self.dmi_data = addr + (self.ii << aamsize);
         self.dmi_op = RISCV_DMI_OP_WRITE;
         PT_WAIT_THREAD(&self.pt_sub, rvl_dtm_dmi(RISCV_DM_DATA1, &self.dmi_data, &self.dmi_op));
 
         switch(aamsize) {
         case RISCV_AAMSIZE_8BITS:
             pbyte = (const uint8_t*)mem;
-            self.dm.data[0] = pbyte[self.i];
+            self.dm.data[0] = pbyte[self.ii];
             break;
         case RISCV_AAMSIZE_16BITS:
             phalfword = (const uint16_t*)mem;
-            self.dm.data[0] = phalfword[self.i];
+            self.dm.data[0] = phalfword[self.ii];
             break;
         case RISCV_AAMSIZE_32BITS:
             pword = (const uint32_t*)mem;
-            self.dm.data[0] = pword[self.i];
+            self.dm.data[0] = pword[self.ii];
             break;
         default:
             break;
@@ -1103,22 +1104,22 @@ static PT_THREAD(riscv_write_mem(const uint8_t* mem, rvl_target_addr_t addr, siz
         PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_ABSTRACT_CS, (rvl_dmi_reg_t)(self.dm.abstractcs.reg), &self.dmi_result));
     }
 #else
-    for(self.i = 0; self.i < len; self.i++) {
-        self.dm.data[1] = addr + (self.i << aamsize);
+    for(self.ii = 0; self.ii < len; self.ii++) {
+        self.dm.data[1] = addr + (self.ii << aamsize);
         PT_WAIT_THREAD(&self.pt_sub, rvl_dmi_write(RISCV_DM_DATA1, (rvl_dmi_reg_t)(self.dm.data[1]), &self.dmi_result));
 
         switch(aamsize) {
         case RISCV_AAMSIZE_8BITS:
             pbyte = (const uint8_t*)mem;
-            self.dm.data[0] = pbyte[self.i];
+            self.dm.data[0] = pbyte[self.ii];
             break;
         case RISCV_AAMSIZE_16BITS:
             phalfword = (const uint16_t*)mem;
-            self.dm.data[0] = phalfword[self.i];
+            self.dm.data[0] = phalfword[self.ii];
             break;
         case RISCV_AAMSIZE_32BITS:
             pword = (const uint32_t*)mem;
-            self.dm.data[0] = pword[self.i];
+            self.dm.data[0] = pword[self.ii];
             break;
         default:
             break;

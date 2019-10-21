@@ -739,6 +739,7 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
 {
     const uint16_t c_ebreak = 0x9002;
     const uint32_t ebreak = 0x00100073;
+
     PT_BEGIN(&self.pt);
 
     if(type == rvl_target_breakpoint_type_software) {
@@ -747,19 +748,13 @@ PT_THREAD(rvl_target_insert_breakpoint(rvl_target_breakpoint_type_t type, rvl_ta
                 self.software_breakpoints[self.i].type = type;
                 self.software_breakpoints[self.i].addr = addr;
                 self.software_breakpoints[self.i].kind = kind;
-                if(kind == 2) {
-                    PT_WAIT_THREAD(&self.pt, riscv_read_mem(
-                            (uint8_t*)&self.software_breakpoints[self.i].orig_inst,
-                            addr, 1, RISCV_AAMSIZE_16BITS));
-                    PT_WAIT_THREAD(&self.pt, riscv_write_mem(
-                            (const uint8_t*)&c_ebreak, addr, 1, RISCV_AAMSIZE_16BITS));
-                } else {
-                    PT_WAIT_THREAD(&self.pt, riscv_read_mem(
-                            (uint8_t*)&self.software_breakpoints[self.i].orig_inst,
-                            addr, 2, RISCV_AAMSIZE_16BITS));
-                    PT_WAIT_THREAD(&self.pt, riscv_write_mem(
-                            (const uint8_t*)&ebreak, addr, 2, RISCV_AAMSIZE_16BITS));
-                }
+
+                PT_WAIT_THREAD(&self.pt, riscv_read_mem(
+                        (uint8_t*)&self.software_breakpoints[self.i].orig_inst,
+                        addr, kind == 2 ? 1 : 2, RISCV_AAMSIZE_16BITS));
+                PT_WAIT_THREAD(&self.pt, riscv_write_mem(
+                        kind == 2 ? (const uint8_t*)&c_ebreak : (const uint8_t*)&ebreak,
+                        addr, kind == 2 ? 1 : 2, RISCV_AAMSIZE_16BITS));
                 break;
             }
         }
@@ -844,6 +839,11 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
             if(self.software_breakpoints[self.i].type == type
                     && self.software_breakpoints[self.i].addr == addr
                     && self.software_breakpoints[self.i].kind == kind) {
+                PT_WAIT_THREAD(&self.pt, riscv_write_mem(
+                        (const uint8_t*)&self.software_breakpoints[self.i].orig_inst,
+                        addr, kind == 2 ? 1 : 2, RISCV_AAMSIZE_16BITS));
+
+                self.software_breakpoints[self.i].type = rvl_target_breakpoint_type_unused;
                 break;
             }
         }
@@ -852,20 +852,17 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
             *err = 0x0e;
             PT_EXIT(&self.pt);
         }
-
-        PT_WAIT_THREAD(&self.pt, riscv_write_mem(
-                (const uint8_t*)&self.software_breakpoints[self.i].orig_inst,
-                addr, kind == 2 ? 1 : 2, RISCV_AAMSIZE_16BITS));
-
-        self.software_breakpoints[self.i].type = rvl_target_breakpoint_type_unused;
-        self.software_breakpoints[self.i].addr = 0;
-        self.software_breakpoints[self.i].kind = 0;
     } else {
         for(self.i = 0; self.i < RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM; self.i++) {
             if(self.hardware_breakpoints[self.i].type == type
                     && self.hardware_breakpoints[self.i].addr == addr
                     && self.hardware_breakpoints[self.i].kind == kind) {
                 self.tselect = self.i;
+
+                PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
+                PT_WAIT_THREAD(&self.pt, riscv_write_register(0, CSR_TDATA1));
+
+                self.hardware_breakpoints[self.i].type = rvl_target_breakpoint_type_unused;
                 break;
             }
         }
@@ -874,13 +871,6 @@ PT_THREAD(rvl_target_remove_breakpoint(rvl_target_breakpoint_type_t type,rvl_tar
             *err = 0x0e;
             PT_EXIT(&self.pt);
         }
-
-        PT_WAIT_THREAD(&self.pt, riscv_write_register(self.tselect, CSR_TSELECT));
-        PT_WAIT_THREAD(&self.pt, riscv_write_register(0, CSR_TDATA1));
-
-        self.hardware_breakpoints[self.i].type = rvl_target_breakpoint_type_unused;
-        self.hardware_breakpoints[self.i].addr = 0;
-        self.hardware_breakpoints[self.i].kind = 0;
     }
 
     *err = 0;

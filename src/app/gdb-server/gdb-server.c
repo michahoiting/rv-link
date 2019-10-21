@@ -938,11 +938,15 @@ PT_THREAD(gdb_server_disconnected(void))
     PT_BEGIN(&self.pt_sub_routine);
 
     if(self.target_running == false) {
-        PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_resume());
+        if(self.target_error != rvl_target_error_line) {
+            PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_resume());
+        }
         gdb_server_target_run(true);
     }
 
-    PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_fini_pre());
+    if(self.target_error != rvl_target_error_line) {
+        PT_WAIT_THREAD(&self.pt_sub_routine, rvl_target_fini_pre());
+    }
     rvl_target_fini();
 
     self.gdb_connected = false;

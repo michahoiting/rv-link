@@ -248,6 +248,14 @@ PT_THREAD(riscv_target_init_after_halted(rvl_target_error_t *err))
     self.dcsr.ebreaku = 1;
     PT_WAIT_THREAD(&self.pt, riscv_write_register(self.dcsr.word, CSR_DCSR));
 
+    /*
+     * clear all hardware breakpoints
+     */
+    for(self.i = 0; self.i < RVL_TARGET_CONFIG_HARDWARE_BREAKPOINT_NUM; self.i++) {
+        PT_WAIT_THREAD(&self.pt, riscv_write_register(self.i, CSR_TSELECT));
+        PT_WAIT_THREAD(&self.pt, riscv_write_register(0, CSR_TDATA1));
+    }
+
     PT_END(&self.pt);
 }
 
@@ -256,11 +264,10 @@ PT_THREAD(riscv_target_fini_pre(void))
 {
     PT_BEGIN(&self.pt);
 
-    PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr.word, CSR_DCSR));
-
     /*
      * ebreak instructions in X-mode behave as described in the Privileged Spec.
      */
+    PT_WAIT_THREAD(&self.pt, riscv_read_register(&self.dcsr.word, CSR_DCSR));
     self.dcsr.ebreakm = 0;
     self.dcsr.ebreaks = 0;
     self.dcsr.ebreaku = 0;
@@ -268,6 +275,9 @@ PT_THREAD(riscv_target_fini_pre(void))
 
 #if RVL_TARGET_CONFIG_RISCV_DEBUG_SPEC == RISCV_DEBUG_SPEC_VERSION_V0P13
 
+    /*
+     * Disable debug module
+     */
     self.dm.dmcontrol.reg = 0;
     PT_WAIT_THREAD(&self.pt, rvl_dmi_write(RISCV_DM_CONTROL, (rvl_dmi_reg_t)(self.dm.dmcontrol.reg), &self.dmi_result));
 

@@ -45,7 +45,7 @@
 #define TDO_PIN     GPIO_PIN_3
 
 #define SRST_PORT   GPIOA
-#define SRST_PIN    GPIO_PIN_10
+#define SRST_PIN    GPIO_PIN_9
 
 #endif
 

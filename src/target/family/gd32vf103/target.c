@@ -195,10 +195,18 @@ PT_THREAD(rvl_target_flash_erase(rvl_target_addr_t addr, size_t len, int* err))
             PT_EXIT(&self.pt);
         }
         if(self.reg_value & FMC_STAT_WPERR) {
+            self.reg_value = FMC_STAT_WPERR;
+            PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, FMC_STAT, 4));
             *err = 3;
             PT_EXIT(&self.pt);
         }
     }
+
+    /*
+     * 擦除完成后清除 PER 位
+     */
+    self.reg_value = 0;
+    PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, FMC_CTL, 4));
 
     *err = 0;
 
@@ -213,6 +221,21 @@ PT_THREAD(rvl_target_flash_write(rvl_target_addr_t addr, size_t len, uint8_t* bu
     self.reg_value = FMC_CTL_PG;
     PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, FMC_CTL, 4));
 
+#if 1 // optimize
+    PT_WAIT_THREAD(&self.pt, rvl_target_write_memory(buffer, addr, len));
+
+    PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_value, FMC_STAT, 4));
+    if(self.reg_value & FMC_STAT_BUSY) {
+        *err = 2;
+        PT_EXIT(&self.pt);
+    }
+    if(self.reg_value & FMC_STAT_PGERR) {
+        self.reg_value = FMC_STAT_PGERR;
+        PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, FMC_STAT, 4));
+        *err = 3;
+        PT_EXIT(&self.pt);
+    }
+# else
     self.start = addr;
     for(self.i = 0; self.i < len; self.i += 4) {
         // GD32VF103 Word programming time:
@@ -232,6 +255,8 @@ PT_THREAD(rvl_target_flash_write(rvl_target_addr_t addr, size_t len, uint8_t* bu
                 PT_EXIT(&self.pt);
             }
             if(self.reg_value & FMC_STAT_PGERR) {
+                self.reg_value = FMC_STAT_PGERR;
+                PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, FMC_STAT, 4));
                 *err = 3;
                 PT_EXIT(&self.pt);
             }
@@ -239,6 +264,13 @@ PT_THREAD(rvl_target_flash_write(rvl_target_addr_t addr, size_t len, uint8_t* bu
 
         self.start += 4;
     }
+#endif
+
+    /*
+     * 写完成后清除 PG 位
+     */
+    self.reg_value = 0;
+    PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, FMC_CTL, 4));
 
     *err = 0;
 

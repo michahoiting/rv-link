@@ -36,6 +36,35 @@
 
 #define FMC_OBSTAT_SPC      (1 << 1) // Option bytes security protection code
 
+
+#define RCU_BASE                    0x40021000
+#define RCU_CTL                     (RCU_BASE + 0x00)
+#define RCU_CFG0                    (RCU_BASE + 0x04)
+
+#define RCU_CTL_PLLSTB              (1 << 25)
+#define RCU_CTL_PLLEN               (1 << 24)
+#define RCU_CTL_IRC8MSTB            (1 << 1)
+#define RCU_CTL_IRC8MEN             (1 << 0)
+
+#define RCU_CFG0_PLLMF(a)           (((a & 0xf) << 18) | ((a & 0x10) << 25))
+#define RCU_CFG0_PLLMF_MSK          ((0xf << 18) | (1 << 29))
+#define RCU_CFG0_PLLSEL             (1 << 16)
+#define RCU_CFG0_APB1PSC_MSK        (7 << 8)
+#define RCU_CFG0_APB1PSC_DIV1       (0 << 8)
+#define RCU_CFG0_APB1PSC_DIV2       (4 << 8)
+#define RCU_CFG0_APB1PSC_DIV4       (5 << 8)
+#define RCU_CFG0_APB1PSC_DIV8       (6 << 8)
+#define RCU_CFG0_APB1PSC_DIV16      (7 << 8)
+#define RCU_CFG0_SCSS_MSK           (3 << 2)
+#define RCU_CFG0_SCSS_IRC8M         (0 << 2)
+#define RCU_CFG0_SCSS_HXTAL         (1 << 2)
+#define RCU_CFG0_SCSS_PLL           (2 << 2)
+#define RCU_CFG0_SCS_MSK            (3 << 0)
+#define RCU_CFG0_SCS_IRC8M          (0 << 0)
+#define RCU_CFG0_SCS_HXTAL          (1 << 0)
+#define RCU_CFG0_SCS_PLL            (2 << 0)
+
+
 #define MEMORY_DENSITY      0x1FFFF7E0
 
 
@@ -44,6 +73,9 @@ typedef struct gd32vf103_target_s
     struct pt pt;
     struct timer timer;
     uint32_t reg_value;
+    uint32_t reg_value1;
+#define reg_rcu_ctl                 reg_value
+#define reg_rcu_cfg0                reg_value1
     rvl_target_addr_t start;
     rvl_target_addr_t end;
     int i;
@@ -151,6 +183,35 @@ void rvl_target_fini(void)
 PT_THREAD(rvl_target_flash_erase(rvl_target_addr_t addr, size_t len, int* err))
 {
     PT_BEGIN(&self.pt);
+
+    // Reset system clock: IRC8M 8MHz
+    PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_rcu_ctl, RCU_CTL, 4));
+    PT_WAIT_THREAD(&self.pt, rvl_target_read_memory((uint8_t*)&self.reg_rcu_cfg0, RCU_CFG0, 4));
+    if((self.reg_rcu_ctl & RCU_CTL_IRC8MSTB) != RCU_CTL_IRC8MSTB)
+    {
+        self.reg_rcu_ctl |= RCU_CTL_IRC8MEN;
+        PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_rcu_ctl, RCU_CTL, 4));
+    }
+    if((self.reg_rcu_cfg0 & RCU_CFG0_SCSS_MSK) != RCU_CFG0_SCSS_IRC8M) {
+        self.reg_rcu_cfg0 &= ~RCU_CFG0_SCS_MSK;
+        self.reg_rcu_cfg0 |= RCU_CFG0_SCS_IRC8M;
+        PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_rcu_cfg0, RCU_CFG0, 4));
+    }
+    if((self.reg_rcu_ctl & RCU_CTL_PLLSTB)) {
+        self.reg_rcu_ctl &= ~(RCU_CTL_PLLEN);
+        PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_rcu_ctl, RCU_CTL, 4));
+    }
+
+    // Setup system clock: PLL 108MHz
+    self.reg_rcu_cfg0 = RCU_CFG0_PLLMF(108 / (8 / 2)) | RCU_CFG0_APB1PSC_DIV2;
+    PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_rcu_cfg0, RCU_CFG0, 4));
+
+    self.reg_rcu_ctl |= RCU_CTL_PLLEN;
+    PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_rcu_ctl, RCU_CTL, 4));
+
+    self.reg_rcu_cfg0 &= ~RCU_CFG0_SCS_MSK;
+    self.reg_rcu_cfg0 |= RCU_CFG0_SCS_PLL;
+    PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_rcu_cfg0, RCU_CFG0, 4));
 
     // Unlock the FMC_CTL registers
     self.reg_value = FMC_KEY_VALUE1;
@@ -284,6 +345,12 @@ PT_THREAD(rvl_target_flash_done(void))
 
     self.reg_value = FMC_CTL_LK;
     PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_value, FMC_CTL, 4));
+
+    self.reg_rcu_cfg0 = RCU_CFG0_PLLMF(108 / (8 / 2));
+    PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_rcu_cfg0, RCU_CFG0, 4));
+
+    self.reg_rcu_ctl = 0x83;
+    PT_WAIT_THREAD(&self.pt, rvl_target_write_memory((uint8_t*)&self.reg_rcu_ctl, RCU_CTL, 4));
 
     PT_END(&self.pt);
 }

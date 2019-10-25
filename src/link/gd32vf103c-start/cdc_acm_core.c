@@ -33,7 +33,7 @@ OF SUCH DAMAGE.
 */
 
 #include "cdc_acm_core.h"
-#include "rvl-link-config.h"
+#include <rvl-link-config.h>
 
 #define USBD_VID                          0x28e9
 #define USBD_PID                          0x018a

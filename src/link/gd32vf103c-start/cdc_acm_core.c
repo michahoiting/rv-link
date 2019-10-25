@@ -33,6 +33,7 @@ OF SUCH DAMAGE.
 */
 
 #include "cdc_acm_core.h"
+#include "rvl-link-config.h"
 
 #define USBD_VID                          0x28e9
 #define USBD_PID                          0x018a
@@ -238,13 +239,7 @@ void* const usbd_strings[] =
 {
     [STR_IDX_LANGID] = (uint8_t *)&usbd_language_id_desc,
     [STR_IDX_MFC] = USBD_STRING_DESC("RV-LINK"),
-#if defined(LINK_GD32VF103C_START)
-    [STR_IDX_PRODUCT] = USBD_STRING_DESC("GD32VF103C-START"),
-#elif defined(LINK_LONGAN_NANO)
-    [STR_IDX_PRODUCT] = USBD_STRING_DESC("Longan Nano"),
-#else
-    [STR_IDX_PRODUCT] = USBD_STRING_DESC("GD32 USB CDC ACM in FS Mode"),
-#endif
+    [STR_IDX_PRODUCT] = USBD_STRING_DESC(RVL_LINK_CONFIG_NAME),
     [STR_IDX_SERIAL] = USBD_STRING_DESC("GD32XXX-3.0.0-7z8x9yer")
 };
 

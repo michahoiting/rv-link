@@ -9,8 +9,6 @@ void rvl_jtag_init(void)
 {
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);
-    rcu_periph_clock_enable(RCU_AF);
-    AFIO_PCF0 = (AFIO_PCF0 & 0xF8FFFFFF) | 0x04000000;
 
     gpio_init(TCK_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, TCK_PIN);
     gpio_init(TMS_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, TMS_PIN);

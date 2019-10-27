@@ -8,20 +8,25 @@
 #include "rvl-link-config.h"
 
 
-#define TCK_PORT    GPIOA
-#define TCK_PIN     GPIO_PIN_14
+// PB13, SCK
+#define TCK_PORT    GPIOB
+#define TCK_PIN     GPIO_PIN_13
 
-#define TMS_PORT    GPIOA
-#define TMS_PIN     GPIO_PIN_13
+// PB12, CS
+#define TMS_PORT    GPIOB
+#define TMS_PIN     GPIO_PIN_12
 
-#define TDI_PORT    GPIOA
+// PB15, MOSI
+#define TDI_PORT    GPIOB
 #define TDI_PIN     GPIO_PIN_15
 
+// PB14, MISO
 #define TDO_PORT    GPIOB
-#define TDO_PIN     GPIO_PIN_3
+#define TDO_PIN     GPIO_PIN_14
 
+// PA8
 #define SRST_PORT   GPIOA
-#define SRST_PIN    GPIO_PIN_9
+#define SRST_PIN    GPIO_PIN_8
 
 
 static inline void rvl_jtag_tms_put(int tms)

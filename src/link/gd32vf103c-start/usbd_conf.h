@@ -38,16 +38,24 @@ OF SUCH DAMAGE.
 #include "usb_conf.h"
 
 #define USBD_CFG_MAX_NUM                    1
-#define USBD_ITF_MAX_NUM                    1
+#define USBD_ITF_MAX_NUM                    6
 
 #define USB_STR_DESC_MAX_SIZE               64
 
 #define USB_STRING_COUNT                    4U
 
 /* endpoint count used by the CDC ACM device */
-#define CDC_ACM_CMD_EP                     EP2_IN
+#define CDC_ACM_CMD_EP                     0x84
 #define CDC_ACM_DATA_IN_EP                 EP1_IN
-#define CDC_ACM_DATA_OUT_EP                EP3_OUT
+#define CDC_ACM_DATA_OUT_EP                EP1_OUT
+
+#define CDC_ACM1_CMD_EP                    0x85
+#define CDC_ACM1_DATA_IN_EP                EP2_IN
+#define CDC_ACM1_DATA_OUT_EP               EP2_OUT
+
+#define CDC_ACM2_CMD_EP                    0x86
+#define CDC_ACM2_DATA_IN_EP                EP3_IN
+#define CDC_ACM2_DATA_OUT_EP               EP3_OUT
 
 #define CDC_ACM_CMD_PACKET_SIZE            8
 #define CDC_ACM_DATA_PACKET_SIZE           64

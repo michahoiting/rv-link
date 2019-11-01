@@ -92,9 +92,13 @@ typedef struct
 
 #pragma pack()
 
+#define USB_CDC_ACM_NUM         3
+
 typedef struct
 {
-//    usb_desc_itf_association                          itf_association;
+#if USB_CDC_ACM_NUM > 1
+    usb_desc_itf_association                          itf_association;
+#endif
     usb_desc_itf                                      itf_command;
     usb_descriptor_header_function_struct             cdc_header;
     usb_descriptor_call_managment_function_struct     cdc_call_managment;
@@ -109,7 +113,7 @@ typedef struct
 typedef struct
 {
     usb_desc_config                config;
-    usb_descriptor_cdc_set_struct  cdc[1];
+    usb_descriptor_cdc_set_struct  cdc[USB_CDC_ACM_NUM];
 } usb_descriptor_configuration_set_struct;
 
 extern void* const usbd_strings[USB_STRING_COUNT];

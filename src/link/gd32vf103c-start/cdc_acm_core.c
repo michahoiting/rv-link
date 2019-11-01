@@ -106,7 +106,7 @@ usb_descriptor_configuration_set_struct configuration_descriptor =
         .bMaxPower = 0x32
     },
 
-    .cdc_loopback_interface = 
+    .cdc[0].itf_command =
     {
         .header = 
          {
@@ -122,7 +122,7 @@ usb_descriptor_configuration_set_struct configuration_descriptor =
         .iInterface = 0x00
     },
 
-    .cdc_loopback_header = 
+    .cdc[0].cdc_header =
     {
         .header =
          {
@@ -133,7 +133,7 @@ usb_descriptor_configuration_set_struct configuration_descriptor =
         .bcdCDC = 0x0110
     },
 
-    .cdc_loopback_call_managment = 
+    .cdc[0].cdc_call_managment =
     {
         .header = 
          {
@@ -145,7 +145,7 @@ usb_descriptor_configuration_set_struct configuration_descriptor =
         .bDataInterface = 0x01
     },
 
-    .cdc_loopback_acm = 
+    .cdc[0].cdc_acm =
     {
         .header = 
          {
@@ -156,7 +156,7 @@ usb_descriptor_configuration_set_struct configuration_descriptor =
         .bmCapabilities = 0x02,
     },
 
-    .cdc_loopback_union = 
+    .cdc[0].cdc_union =
     {
         .header = 
          {
@@ -168,7 +168,7 @@ usb_descriptor_configuration_set_struct configuration_descriptor =
         .bSlaveInterface0 = 0x01,
     },
 
-    .cdc_loopback_cmd_endpoint = 
+    .cdc[0].ep_cmd_in =
     {
         .header = 
          {
@@ -181,7 +181,7 @@ usb_descriptor_configuration_set_struct configuration_descriptor =
         .bInterval = 0x0A
     },
 
-    .cdc_loopback_data_interface = 
+    .cdc[0].itf_data =
     {
         .header = 
          {
@@ -197,7 +197,7 @@ usb_descriptor_configuration_set_struct configuration_descriptor =
         .iInterface = 0x00
     },
 
-    .cdc_loopback_out_endpoint = 
+    .cdc[0].ep_data_out =
     {
         .header = 
          {
@@ -210,7 +210,7 @@ usb_descriptor_configuration_set_struct configuration_descriptor =
         .bInterval = 0x00
     },
 
-    .cdc_loopback_in_endpoint = 
+    .cdc[0].ep_data_in =
     {
         .header = 
          {
@@ -253,11 +253,11 @@ void* const usbd_strings[] =
 uint8_t cdc_acm_init (usb_dev *pudev, uint8_t config_index)
 {
     /* initialize the data Tx/Rx endpoint */
-    usbd_ep_setup(pudev, &(configuration_descriptor.cdc_loopback_in_endpoint));
-    usbd_ep_setup(pudev, &(configuration_descriptor.cdc_loopback_out_endpoint));
+    usbd_ep_setup(pudev, &(configuration_descriptor.cdc[0].ep_data_in));
+    usbd_ep_setup(pudev, &(configuration_descriptor.cdc[0].ep_data_out));
 
     /* initialize the command Tx endpoint */
-    usbd_ep_setup(pudev, &(configuration_descriptor.cdc_loopback_cmd_endpoint));
+    usbd_ep_setup(pudev, &(configuration_descriptor.cdc[0].ep_cmd_in));
 
     return USBD_OK;
 }

@@ -94,16 +94,22 @@ typedef struct
 
 typedef struct
 {
+//    usb_desc_itf_association                          itf_association;
+    usb_desc_itf                                      itf_command;
+    usb_descriptor_header_function_struct             cdc_header;
+    usb_descriptor_call_managment_function_struct     cdc_call_managment;
+    usb_descriptor_acm_function_struct                cdc_acm;
+    usb_descriptor_union_function_struct              cdc_union;
+    usb_desc_ep                                       ep_cmd_in;
+    usb_desc_itf                                      itf_data;
+    usb_desc_ep                                       ep_data_out;
+    usb_desc_ep                                       ep_data_in;
+}usb_descriptor_cdc_set_struct;
+
+typedef struct
+{
     usb_desc_config                config;
-    usb_desc_itf                   cdc_loopback_interface;
-    usb_descriptor_header_function_struct             cdc_loopback_header;
-    usb_descriptor_call_managment_function_struct     cdc_loopback_call_managment;
-    usb_descriptor_acm_function_struct                cdc_loopback_acm;
-    usb_descriptor_union_function_struct              cdc_loopback_union;
-    usb_desc_ep                    cdc_loopback_cmd_endpoint;
-    usb_desc_itf                   cdc_loopback_data_interface;
-    usb_desc_ep                    cdc_loopback_out_endpoint;
-    usb_desc_ep                    cdc_loopback_in_endpoint;
+    usb_descriptor_cdc_set_struct  cdc[1];
 } usb_descriptor_configuration_set_struct;
 
 extern void* const usbd_strings[USB_STRING_COUNT];

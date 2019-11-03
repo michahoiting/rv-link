@@ -118,7 +118,7 @@ typedef struct
 
 extern void* const usbd_strings[USB_STRING_COUNT];
 extern const usb_desc_dev device_descriptor;
-extern usb_descriptor_configuration_set_struct configuration_descriptor;
+extern const usb_descriptor_configuration_set_struct configuration_descriptor;
 
 extern usb_class_core usbd_cdc_cb;
 

@@ -95,7 +95,7 @@ const usb_desc_dev device_descriptor =
 };
 
 /* USB device configuration descriptor */
-usb_descriptor_configuration_set_struct configuration_descriptor = 
+const usb_descriptor_configuration_set_struct configuration_descriptor =
 {
     .config = 
     {
@@ -554,9 +554,6 @@ uint8_t cdc_acm_init (usb_dev *pudev, uint8_t config_index)
     usbd_ep_setup(pudev, &(configuration_descriptor.cdc[2].ep_data_out));
 #endif
 
-    /* initialize the command Tx endpoint */
-//    usbd_ep_setup(pudev, &(configuration_descriptor.cdc[0].ep_cmd_in));
-
     return USBD_OK;
 }
 
@@ -582,9 +579,6 @@ uint8_t cdc_acm_deinit (usb_dev *pudev, uint8_t config_index)
     usbd_ep_clear(pudev, CDC_ACM2_DATA_IN_EP);
     usbd_ep_clear(pudev, CDC_ACM2_DATA_OUT_EP);
 #endif
-
-    /* deinitialize the command Tx endpoint */
-//    usbd_ep_clear(pudev, CDC_ACM_CMD_EP);
 
     return USBD_OK;
 }

@@ -49,11 +49,15 @@ OF SUCH DAMAGE.
 #endif
 
 #ifdef USB_FS_CORE
-    #define RX_FIFO_FS_SIZE                         128
-    #define TX0_FIFO_FS_SIZE                        64
-    #define TX1_FIFO_FS_SIZE                        128
-    #define TX2_FIFO_FS_SIZE                        0
-    #define TX3_FIFO_FS_SIZE                        0
+    /* In terms of 32-bit words. */
+    #define RX_FIFO_FS_SIZE                         (256 / 4)
+    #define TX0_FIFO_FS_SIZE                        (256 / 4)
+    #define TX1_FIFO_FS_SIZE                        (256 / 4)
+    #define TX2_FIFO_FS_SIZE                        (256 / 4)
+    #define TX3_FIFO_FS_SIZE                        (256 / 4)
+#if (RX_FIFO_FS_SIZE + TX0_FIFO_FS_SIZE + TX1_FIFO_FS_SIZE + TX1_FIFO_FS_SIZE + TX1_FIFO_FS_SIZE) > ((1024 + 256) / 4)
+    #error "Invalid FIFO setting!"
+#endif
 #endif /* USB_FS_CORE */
 
 #ifdef USB_HS_CORE

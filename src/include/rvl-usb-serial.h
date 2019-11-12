@@ -19,8 +19,7 @@ See the Mulan PSL v1 for more details.
  * 以下三个函数由 app 的 main 函数调用，由 link 的 USB Serial 组件实现。
  */
 void usb_serial_init(void);
-PT_THREAD(usb_serial_recv_poll(void));
-PT_THREAD(usb_serial_send_poll(void));
+void usb_serial_poll(void);
 
 /*
  * USB Serial 接收到数据后调用 usb_serial_put_recv_data 向使用虚拟串口的组件传递数据，

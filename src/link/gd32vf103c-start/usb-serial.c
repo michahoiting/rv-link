@@ -21,6 +21,7 @@ See the Mulan PSL v1 for more details.
 extern uint8_t packet_sent, packet_receive;
 extern uint32_t receive_length;
 
+
 usb_core_driver USB_OTG_dev =
 {
     .dev = {
@@ -46,6 +47,10 @@ static usb_serial_t usb_serial_i;
 static uint8_t usb_serial_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
 
 
+PT_THREAD(usb_serial_recv_poll(void));
+PT_THREAD(usb_serial_send_poll(void));
+
+
 void usb_serial_init(void)
 {
     PT_INIT(&self.pt_recv);
@@ -58,6 +63,13 @@ void usb_serial_init(void)
     usb_timer_init();
     usb_intr_config();
     usbd_init (&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
+}
+
+
+void usb_serial_poll(void)
+{
+    usb_serial_recv_poll();
+    usb_serial_send_poll();
 }
 
 
@@ -98,4 +110,3 @@ PT_THREAD(usb_serial_send_poll(void))
 
     PT_END(&self.pt_send);
 }
-

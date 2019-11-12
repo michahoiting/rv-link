@@ -28,8 +28,7 @@ int main(void)
     for(;;) {
         rvl_led_poll();
         rvl_serial_poll();
-        usb_serial_recv_poll();
-        usb_serial_send_poll();
+        usb_serial_poll();
         gdb_server_poll();
     }
 }

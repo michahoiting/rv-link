@@ -693,7 +693,9 @@ uint8_t cdc_acm_req_handler (usb_dev *pudev, usb_req *req)
             break;
         case SET_LINE_CODING:
             /* set the value of the current command to be processed */
-            cdc_cmd = req->bRequest;
+            if(req->wIndex == 0x02) {
+                cdc_cmd = SET_LINE_CODING;
+            }
             /* enable EP0 prepare to receive command data packet */
             pudev->dev.transc_out[0].xfer_buf = usb_cmd_buffer;
             pudev->dev.transc_out[0].remain_len = req->wLength;
@@ -757,7 +759,7 @@ void cdc_acm_data_send (usb_dev *pudev, uint32_t data_len)
 */
 uint8_t cdc_acm_EP0_RxReady (usb_dev *pudev)
 {
-    if (NO_CMD != cdc_cmd) {
+    if (SET_LINE_CODING == cdc_cmd) {
         /* process the command data */
         linecoding.dwDTERate = (uint32_t)(usb_cmd_buffer[0] | 
                                          (usb_cmd_buffer[1] << 8) |
@@ -769,6 +771,9 @@ uint8_t cdc_acm_EP0_RxReady (usb_dev *pudev)
         linecoding.bDataBits = usb_cmd_buffer[6];
 
         cdc_cmd = NO_CMD;
+
+        void serial1_set_line_coding(uint32_t baudrate, uint32_t data_bits, uint32_t stop_bits, uint32_t parity);
+        serial1_set_line_coding(linecoding.dwDTERate, linecoding.bDataBits, linecoding.bCharFormat, linecoding.bParityType);
     }
 
     return USBD_OK;

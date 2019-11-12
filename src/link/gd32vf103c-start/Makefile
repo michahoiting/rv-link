@@ -11,6 +11,7 @@ link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_timer.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_eclic.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_exti.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_pmu.c \
+link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_usart.c \
 link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/drv_usb_core.c \
 link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/drv_usb_dev.c \
 link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/drv_usbd_int.c \

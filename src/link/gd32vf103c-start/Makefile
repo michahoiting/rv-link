@@ -21,6 +21,8 @@ link/gd32vf103c-start/gd32vf103_hw.c \
 link/gd32vf103c-start/gd32vf103_it.c \
 link/gd32vf103c-start/cdc_acm_core.c \
 link/gd32vf103c-start/usb-serial.c \
+link/gd32vf103c-start/usb-serial1.c \
+link/gd32vf103c-start/usb-serial2.c \
 link/gd32vf103c-start/pt-clock.c \
 link/gd32vf103c-start/rvl-link.c \
 link/gd32vf103c-start/rvl-button.c \

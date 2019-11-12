@@ -16,10 +16,17 @@ See the Mulan PSL v1 for more details.
 #include "pt/pt.h"
 
 /*
- * 以下三个函数由 app 的 main 函数调用，由 link 的 USB Serial 组件实现。
+ * 以下函数由 app 的 main 函数调用，由 link 的 USB Serial 组件实现。
+ * usb_serial_* 对应第1路串口 /dev/ttyACM0，实现 GDB Server，连接 GDB；
+ * usb_serial1_* 对应第2路串口 /dev/ttyACM1，实现与目标机的串口连接，作为虚拟串口使用；
+ * usb_serial2_* 对应第3路串口 /dev/ttyACM2，RV-LINK 的标准输入输出重定向到此串口。
  */
 void usb_serial_init(void);
 void usb_serial_poll(void);
+void usb_serial1_init(void);
+void usb_serial1_poll(void);
+void usb_serial2_init(void);
+void usb_serial2_poll(void);
 
 /*
  * USB Serial 接收到数据后调用 usb_serial_put_recv_data 向使用虚拟串口的组件传递数据，

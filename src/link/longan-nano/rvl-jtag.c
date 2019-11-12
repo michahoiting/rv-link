@@ -36,18 +36,12 @@ void rvl_jtag_fini(void)
     gpio_init(TMS_PORT, GPIO_MODE_AIN, 0, TMS_PIN);
     gpio_init(TDI_PORT, GPIO_MODE_AIN, 0, TDI_PIN);
     gpio_init(TDO_PORT, GPIO_MODE_AIN, 0, TDO_PIN);
-    gpio_init(SRST_PORT, GPIO_MODE_AIN, 0, SRST_PIN);
 }
 
 
 void rvl_jtag_srst_put(int srst)
 {
-    if (srst) {
-        gpio_init(SRST_PORT, GPIO_MODE_AIN, 0, SRST_PIN);
-    } else {
-        gpio_bit_reset(SRST_PORT, SRST_PIN);
-        gpio_init(SRST_PORT, GPIO_MODE_OUT_OD, GPIO_OSPEED_10MHZ, SRST_PIN);
-    }
+
 }
 
 

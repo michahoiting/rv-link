@@ -31,9 +31,6 @@ See the Mulan PSL v1 for more details.
 #define TDO_PORT    GPIOB
 #define TDO_PIN     GPIO_PIN_3
 
-#define SRST_PORT   GPIOA
-#define SRST_PIN    GPIO_PIN_9
-
 
 static inline void rvl_jtag_tms_put(int tms)
 {

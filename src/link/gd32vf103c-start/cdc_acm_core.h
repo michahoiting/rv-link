@@ -92,8 +92,6 @@ typedef struct
 
 #pragma pack()
 
-#define USB_CDC_ACM_NUM         3
-
 typedef struct
 {
     usb_desc_itf                                      itf_command;

@@ -124,7 +124,7 @@ const usb_descriptor_configuration_set_struct_vcom_disable configuration_descrip
             .bDescriptorType = USB_DESCTYPE_CONFIG
          },
         .wTotalLength = sizeof(usb_descriptor_configuration_set_struct_vcom_disable),
-        .bNumInterfaces = 0x02 * USB_CDC_ACM_NUM,
+        .bNumInterfaces = 0x02,
         .bConfigurationValue = 0x01,
         .iConfiguration = 0x00,
         .bmAttributes = 0x80,
@@ -261,7 +261,7 @@ const usb_descriptor_configuration_set_struct_vcom_enable configuration_descript
             .bDescriptorType = USB_DESCTYPE_CONFIG
          },
         .wTotalLength = sizeof(usb_descriptor_configuration_set_struct_vcom_enable),
-        .bNumInterfaces = 0x02 * USB_CDC_ACM_NUM,
+        .bNumInterfaces = 0x04,
         .bConfigurationValue = 0x01,
         .iConfiguration = 0x00,
         .bmAttributes = 0x80,

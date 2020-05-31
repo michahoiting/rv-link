@@ -19,13 +19,11 @@ See the Mulan PSL v1 for more details.
 int main(void)
 {
     rvl_led_init();
+    gdb_server_init();
     rvl_serial_init();
     usb_serial_init();
     usb_serial1_init();
-    usb_serial2_init();
     gdb_serial_init();
-    gdb_server_init();
-
 
     for(;;) {
         rvl_led_poll();
@@ -33,6 +31,5 @@ int main(void)
         usb_serial_poll();
         gdb_server_poll();
         usb_serial1_poll();
-        usb_serial2_poll();
     }
 }

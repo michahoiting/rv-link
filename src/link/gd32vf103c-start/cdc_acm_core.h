@@ -96,9 +96,6 @@ typedef struct
 
 typedef struct
 {
-#if USB_CDC_ACM_NUM > 1
-    usb_desc_itf_association                          itf_association;
-#endif
     usb_desc_itf                                      itf_command;
     usb_descriptor_header_function_struct             cdc_header;
     usb_descriptor_call_managment_function_struct     cdc_call_managment;
@@ -108,17 +105,40 @@ typedef struct
     usb_desc_itf                                      itf_data;
     usb_desc_ep                                       ep_data_out;
     usb_desc_ep                                       ep_data_in;
-}usb_descriptor_cdc_set_struct;
+}usb_descriptor_cdc_set_struct_vcom_disable;
 
 typedef struct
 {
-    usb_desc_config                config;
-    usb_descriptor_cdc_set_struct  cdc[USB_CDC_ACM_NUM];
-} usb_descriptor_configuration_set_struct;
+    usb_desc_config                                   config;
+    usb_descriptor_cdc_set_struct_vcom_disable        cdc[1];
+} usb_descriptor_configuration_set_struct_vcom_disable;
 
-extern void* const usbd_strings[USB_STRING_COUNT];
-extern const usb_desc_dev device_descriptor;
-extern const usb_descriptor_configuration_set_struct configuration_descriptor;
+typedef struct
+{
+    usb_desc_itf_association                          itf_association;
+    usb_desc_itf                                      itf_command;
+    usb_descriptor_header_function_struct             cdc_header;
+    usb_descriptor_call_managment_function_struct     cdc_call_managment;
+    usb_descriptor_acm_function_struct                cdc_acm;
+    usb_descriptor_union_function_struct              cdc_union;
+    usb_desc_ep                                       ep_cmd_in;
+    usb_desc_itf                                      itf_data;
+    usb_desc_ep                                       ep_data_out;
+    usb_desc_ep                                       ep_data_in;
+}usb_descriptor_cdc_set_struct_vcom_enable;
+
+typedef struct
+{
+    usb_desc_config                                   config;
+    usb_descriptor_cdc_set_struct_vcom_enable         cdc[2];
+} usb_descriptor_configuration_set_struct_vcom_enable;
+
+extern void* const usbd_strings_vcom_disable[USB_STRING_COUNT];
+extern void* const usbd_strings_vcom_enable[USB_STRING_COUNT];
+extern const usb_desc_dev device_descriptor_vcom_enable;
+extern const usb_desc_dev device_descriptor_vcom_disable;
+extern const usb_descriptor_configuration_set_struct_vcom_disable configuration_descriptor_vcom_disable;
+extern const usb_descriptor_configuration_set_struct_vcom_enable configuration_descriptor_vcom_enable;
 
 extern usb_class_core usbd_cdc_cb;
 

@@ -11,5 +11,9 @@ See the Mulan PSL v1 for more details.
  */
 #include "pt/pt.h"
 
+typedef struct {
+    int vcom_enable;
+}gdb_server_config_t;
+
 void gdb_server_init(void);
 PT_THREAD(gdb_server_poll(void));

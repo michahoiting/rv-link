@@ -21,17 +21,10 @@ See the Mulan PSL v1 for more details.
 extern uint8_t packet_sent, packet_receive;
 extern uint32_t receive_length;
 
+int rvl_vcom_enable(void);
 
-usb_core_driver USB_OTG_dev =
-{
-    .dev = {
-        .desc = {
-            .dev_desc       = (uint8_t *)&device_descriptor,
-            .config_desc    = (uint8_t *)&configuration_descriptor,
-            .strings        = usbd_strings,
-        }
-    }
-};
+
+usb_core_driver USB_OTG_dev;
 
 typedef struct usb_serial_s
 {
@@ -58,6 +51,16 @@ void usb_serial_init(void)
 
     eclic_global_interrupt_enable();
     eclic_priority_group_set(ECLIC_PRIGROUP_LEVEL2_PRIO2);
+
+    if(rvl_vcom_enable()) {
+        USB_OTG_dev.dev.desc.dev_desc = (uint8_t*)&device_descriptor_vcom_enable;
+        USB_OTG_dev.dev.desc.config_desc = (uint8_t *)&configuration_descriptor_vcom_enable;
+        USB_OTG_dev.dev.desc.strings = usbd_strings_vcom_enable;
+    } else {
+        USB_OTG_dev.dev.desc.dev_desc = (uint8_t*)&device_descriptor_vcom_disable;
+        USB_OTG_dev.dev.desc.config_desc = (uint8_t *)&configuration_descriptor_vcom_disable;
+        USB_OTG_dev.dev.desc.strings = usbd_strings_vcom_disable;
+    }
 
     usb_rcu_config();
     usb_timer_init();

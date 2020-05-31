@@ -20,6 +20,7 @@ See the Mulan PSL v1 for more details.
 #include "rvl-led.h"
 #include "rvl-serial.h"
 #include "rvl-link.h"
+#include "rvl-assert.h"
 #include "gdb-server.h"
 
 #include "rvl-target.h"
@@ -59,6 +60,7 @@ typedef struct gdb_server_s
     rvl_target_addr_t breakpoint_addr;
     int breakpoint_kind;
     int breakpoint_err;
+    gdb_server_config_t config;
 }gdb_server_t;
 
 static gdb_server_t gdb_server_i;
@@ -109,6 +111,8 @@ static size_t bin_decode(const uint8_t* xbin, uint8_t* bin, size_t xbin_len);
 
 void gdb_server_init(void)
 {
+    int err;
+
     PT_INIT(&self.pt_server);
     PT_INIT(&self.pt_cmd);
     PT_INIT(&self.pt_cmd_sub);
@@ -116,6 +120,13 @@ void gdb_server_init(void)
 
     gdb_server_target_run(false);
     self.gdb_connected = false;
+
+    err = rvl_config_read((uint32_t*)&self.config, sizeof(self.config));
+    if(err != sizeof(self.config)) {
+        self.config.vcom_enable = 0;
+        err = rvl_config_write((uint32_t*)&self.config, sizeof(self.config));
+        rvl_assert(err == sizeof(self.config));
+    }
 }
 
 
@@ -409,6 +420,12 @@ PT_THREAD(gdb_server_cmd_qRcmd(void))
 
         PT_WAIT_UNTIL(&self.pt_cmd_sub, (self.res = gdb_serial_response_buffer()) != NULL);
         gdb_server_reply_ok();
+    } else if(strncmp((char*)self.mem_buffer, "rvl vcom on", 11) == 0) {
+        self.config.vcom_enable = 1;
+        rvl_config_write((uint32_t*)&self.config, sizeof(self.config));
+    } else if(strncmp((char*)self.mem_buffer, "rvl vcom off", 12) == 0) {
+        self.config.vcom_enable = 0;
+        rvl_config_write((uint32_t*)&self.config, sizeof(self.config));
     } else {
         bin_to_hex((uint8_t*)unspported_monitor_command, self.res, sizeof(unspported_monitor_command) - 1);
         gdb_serial_response_done((sizeof(unspported_monitor_command) - 1) * 2, GDB_SERIAL_SEND_FLAG_ALL);
@@ -1113,4 +1130,10 @@ static size_t bin_decode(const uint8_t* xbin, uint8_t* bin, size_t xbin_len)
     }
 
     return bin_len;
+}
+
+
+int rvl_vcom_enable(void)
+{
+    return self.config.vcom_enable;
 }

@@ -12,6 +12,7 @@ link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_eclic.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_exti.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_pmu.c \
 link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_usart.c \
+link/gd32vf103c-start/GD32VF103_standard_peripheral/Source/gd32vf103_fmc.c \
 link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/drv_usb_core.c \
 link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/drv_usb_dev.c \
 link/gd32vf103c-start/GD32VF103_usbfs_driver/Source/drv_usbd_int.c \
@@ -23,8 +24,8 @@ link/gd32vf103c-start/gd32vf103_it.c \
 link/gd32vf103c-start/cdc_acm_core.c \
 link/gd32vf103c-start/usb-serial.c \
 link/gd32vf103c-start/usb-serial1.c \
-link/gd32vf103c-start/usb-serial2.c \
 link/gd32vf103c-start/pt-clock.c \
+link/gd32vf103c-start/rvl-config.c \
 link/longan-nano/handlers.c \
 link/longan-nano/rvl-link.c \
 link/longan-nano/rvl-led.c \

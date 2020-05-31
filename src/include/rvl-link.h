@@ -12,6 +12,11 @@ See the Mulan PSL v1 for more details.
 #ifndef __RVL_LINK_H__
 #define __RVL_LINK_H__
 
+#include <stdint.h>
+#include <stddef.h>
+
 const char *rvl_link_get_name(void);
+int rvl_config_write(const uint32_t* config, size_t size);
+int rvl_config_read(uint32_t* config, size_t size);
 
 #endif // __RVL_LINK_H__

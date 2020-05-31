@@ -61,3 +61,8 @@ __attribute__((weak)) void rvl_led_assert(int on)
 
 }
 
+__attribute__((weak)) int rvl_vcom_enable(void)
+{
+    return 0;
+}
+

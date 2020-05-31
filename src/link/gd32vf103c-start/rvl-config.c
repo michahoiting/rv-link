@@ -20,8 +20,8 @@ See the Mulan PSL v1 for more details.
 static int rvl_config_write_real(const uint32_t* config, size_t size)
 {
     int i;
-    const uint32_t* p;
-    uint32_t addr;
+    const uint32_t* psrc;
+    uint32_t addr_dst;
     fmc_state_enum state;
 
     fmc_unlock();
@@ -32,28 +32,28 @@ static int rvl_config_write_real(const uint32_t* config, size_t size)
         return -(__LINE__);
     }
 
-    p = config;
-    addr = RVL_CONFIG_BASE;
+    psrc = config;
+    addr_dst = RVL_CONFIG_BASE;
     for(i = 0; i < size / 4; i++) {
-        state = fmc_word_program(addr, *p);
+        state = fmc_word_program(addr_dst, *psrc);
         if(state != FMC_READY) {
             fmc_lock();
             return -(__LINE__);
         }
-        addr += 4;
-        p++;
+        addr_dst += 4;
+        psrc++;
     }
 
-    p = config;
-    addr = RVL_CONFIG_NOT_BASE;
+    psrc = config;
+    addr_dst = RVL_CONFIG_NOT_BASE;
     for(i = 0; i < size / 4; i++) {
-        state = fmc_word_program(addr, ~*p);
+        state = fmc_word_program(addr_dst, ~*psrc);
         if(state != FMC_READY) {
             fmc_lock();
             return -(__LINE__);
         }
-        addr += 4;
-        p++;
+        addr_dst += 4;
+        psrc++;
     }
 
     fmc_lock();
@@ -64,21 +64,21 @@ static int rvl_config_write_real(const uint32_t* config, size_t size)
 int rvl_config_write(const uint32_t* config, size_t size)
 {
     int i;
-    const uint32_t* p;
-    const uint32_t* q;
+    const uint32_t* psrc;
+    const uint32_t* pdst;
 
     rvl_assert(config != NULL);
     rvl_assert(size <= 512);
     rvl_assert(size % 4 == 0);
 
-    p = config;
-    q = (uint32_t*)RVL_CONFIG_BASE;
+    psrc = config;
+    pdst = (uint32_t*)RVL_CONFIG_BASE;
     for(i = 0; i < size / 4; i++) {
-        if(*q != *p) {
+        if(*pdst != *psrc) {
             return rvl_config_write_real(config, size);
         }
-        q++;
-        p++;
+        pdst++;
+        psrc++;
     }
 
     return (int)size;
@@ -88,26 +88,26 @@ int rvl_config_write(const uint32_t* config, size_t size)
 int rvl_config_read(uint32_t* config, size_t size)
 {
     int i;
-    uint32_t* p;
-    uint32_t* q;
+    uint32_t* pdst;
+    uint32_t* psrc;
 
     rvl_assert(config != NULL);
     rvl_assert(size <= 512);
     rvl_assert(size % 4 == 0);
 
-    p = config;
-    q = (uint32_t*)RVL_CONFIG_BASE;
+    pdst = config;
+    psrc = (uint32_t*)RVL_CONFIG_BASE;
 
     for(i = 0; i < size / 4; i++) {
-        *q = *p;
-        q++;
-        p++;
+        *pdst = *psrc;
+        psrc++;
+        pdst++;
     }
 
-    q = (uint32_t*)RVL_CONFIG_NOT_BASE;
-    p = (uint32_t*)RVL_CONFIG_BASE;
+    psrc = (uint32_t*)RVL_CONFIG_NOT_BASE;
+    pdst = (uint32_t*)RVL_CONFIG_BASE;
     for(i = 0; i < size / 4; i++) {
-        if(*q != (~*p)) {
+        if(*psrc != (~*pdst)) {
             return -(__LINE__);
         }
     }

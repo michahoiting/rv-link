@@ -437,6 +437,16 @@ PT_THREAD(gdb_server_cmd_qRcmd(void))
         } else {
             gdb_server_reply_err(99);
         }
+    } else if(strncmp((char*)self.mem_buffer, "rvl vcom", 8) == 0) {
+        snprintf((char*)self.mem_buffer, GDB_SERIAL_RESPONSE_BUFFER_SIZE,
+                "VCOM: %s\r\n", self.config.vcom_enable ? "on" : "off");
+        len = strlen((char*)self.mem_buffer);
+        self.res[0] = 'O';
+        bin_to_hex(self.mem_buffer, &self.res[1], len);
+        gdb_serial_response_done(len * 2 + 1, GDB_SERIAL_SEND_FLAG_ALL);
+
+        PT_WAIT_UNTIL(&self.pt_cmd_sub, (self.res = gdb_serial_response_buffer()) != NULL);
+        gdb_server_reply_ok();
     } else {
         bin_to_hex((uint8_t*)unspported_monitor_command, self.res, sizeof(unspported_monitor_command) - 1);
         gdb_serial_response_done((sizeof(unspported_monitor_command) - 1) * 2, GDB_SERIAL_SEND_FLAG_ALL);

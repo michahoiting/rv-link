@@ -380,6 +380,7 @@ PT_THREAD(gdb_server_cmd_qRcmd(void))
     size_t ret, len;
     const char * err_str;
     uint32_t err_pc;
+    int err;
 
     const char unspported_monitor_command[] = ":( unsupported monitor command!\n";
 
@@ -422,10 +423,20 @@ PT_THREAD(gdb_server_cmd_qRcmd(void))
         gdb_server_reply_ok();
     } else if(strncmp((char*)self.mem_buffer, "rvl vcom on", 11) == 0) {
         self.config.vcom_enable = 1;
-        rvl_config_write((uint32_t*)&self.config, sizeof(self.config));
+        err = rvl_config_write((uint32_t*)&self.config, sizeof(self.config));
+        if(err == sizeof(self.config)) {
+            gdb_server_reply_ok();
+        } else {
+            gdb_server_reply_err(99);
+        }
     } else if(strncmp((char*)self.mem_buffer, "rvl vcom off", 12) == 0) {
         self.config.vcom_enable = 0;
-        rvl_config_write((uint32_t*)&self.config, sizeof(self.config));
+        err = rvl_config_write((uint32_t*)&self.config, sizeof(self.config));
+        if(err == sizeof(self.config)) {
+            gdb_server_reply_ok();
+        } else {
+            gdb_server_reply_err(99);
+        }
     } else {
         bin_to_hex((uint8_t*)unspported_monitor_command, self.res, sizeof(unspported_monitor_command) - 1);
         gdb_serial_response_done((sizeof(unspported_monitor_command) - 1) * 2, GDB_SERIAL_SEND_FLAG_ALL);

@@ -62,7 +62,7 @@ env.Append(
 )
 
 env.Replace(
-    LDSCRIPT_PATH = join(PROJ_DIR, "src", "link", "gd32vf103c-start", "RISCV", "gcc", board.get("build.ldscript")) 
+    LDSCRIPT_PATH = join(PROJ_DIR, "src", "link", "gd32vf103c-start", "RISCV", "gcc", board.get("build.gd32vf103-sdk.ldscript")) 
 )
 
 

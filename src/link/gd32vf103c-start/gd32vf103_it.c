@@ -49,7 +49,7 @@ extern void usb_timer_irq(void);
 */
 void  USBFS_IRQHandler (void)
 {
-    usbd_isr (&USB_OTG_dev);
+    usbd_isr(&USB_OTG_dev);
 }
 
 /*!
@@ -75,9 +75,7 @@ void USBFS_WKUP_IRQHandler(void)
         SystemInit();
 
         rcu_usb_clock_config(usbfs_prescaler);
-
         rcu_periph_clock_enable(RCU_USBFS);
-
         usb_clock_active(&USB_OTG_dev);
     }
 

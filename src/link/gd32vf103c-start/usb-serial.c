@@ -23,7 +23,6 @@ extern uint32_t receive_length;
 
 int rvl_vcom_enable(void);
 
-
 usb_core_driver USB_OTG_dev;
 
 typedef struct usb_serial_s
@@ -65,7 +64,7 @@ void usb_serial_init(void)
     usb_rcu_config();
     usb_timer_init();
     usb_intr_config();
-    usbd_init (&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
+    usbd_init(&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
 }
 
 

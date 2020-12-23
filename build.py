@@ -1,3 +1,4 @@
+import sys
 from os.path import isdir, join
 
 Import("env")
@@ -33,6 +34,7 @@ env.Replace(
         "-nostartfiles",
         "-Wl,--gc-sections",
         #"-specs=nano.specs"
+        "-Wl,-Map=${TARGET}.map",
     ],
 
     LIBS=["c_nano"]
@@ -65,4 +67,13 @@ env.Replace(
     LDSCRIPT_PATH = join(PROJ_DIR, "src", "link", "gd32vf103c-start", "RISCV", "gcc", board.get("build.gd32vf103-sdk.ldscript")) 
 )
 
+# access to global construction environment
+print(env)
 
+# dump construction environment (for debug purpose)
+print(env.Dump())
+
+# dump board environment (for debug purpose)
+print(board)
+
+print(env.get("PROGNAME"))

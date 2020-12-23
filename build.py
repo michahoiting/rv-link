@@ -14,10 +14,9 @@ env.Replace(
     CCFLAGS=[
         "-Og",
         "-g",
-        "-Wall", 
+        "-Wall",
         "-march=%s" % board.get("build.march"),
         "-mabi=%s" % board.get("build.mabi"),
-        #"-mcmodel=%s" % board.get("build.mcmodel"),
         "-fshort-wchar",
         "-ffunction-sections",
         "-fdata-sections",
@@ -29,11 +28,9 @@ env.Replace(
     LINKFLAGS=[
         "-march=%s" % board.get("build.march"),
         "-mabi=%s" % board.get("build.mabi"),
-        #"-mcmodel=%s" % board.get("build.mcmodel"),
         "-msmall-data-limit=8",
         "-nostartfiles",
         "-Wl,--gc-sections",
-        #"-specs=nano.specs"
         "-Wl,-Map=${TARGET}.map",
     ],
 
@@ -48,32 +45,21 @@ env.Append(ASFLAGS=env.get("CCFLAGS", [])[:])
 env.Append(
 
     CPPPATH = [
-        join(PROJ_DIR, "src", "app", "gdb-server"),
-        join(PROJ_DIR, "src", "include"),
-        join(PROJ_DIR, "src", "link"),
-        join(PROJ_DIR, "src", "target", "family", "gd32vf103"),
-        join(PROJ_DIR, "src", "target", "arch", "riscv"),
         join(PROJ_DIR, "src"),
-        join(PROJ_DIR, "src", "link", "longan-nano"),
+        join(PROJ_DIR, "src", "include"),
+        join(PROJ_DIR, "src", "app", "gdb-server"),
+        join(PROJ_DIR, "src", "link"),
         join(PROJ_DIR, "src", "link", "gd32vf103c-start"),
         join(PROJ_DIR, "src", "link", "gd32vf103c-start", "GD32VF103_standard_peripheral"),
         join(PROJ_DIR, "src", "link", "gd32vf103c-start", "GD32VF103_standard_peripheral", "Include"),
         join(PROJ_DIR, "src", "link", "gd32vf103c-start", "GD32VF103_usbfs_driver", "Include"),
         join(PROJ_DIR, "src", "link", "gd32vf103c-start", "RISCV", "drivers"),
+        join(PROJ_DIR, "src", "link", "longan-nano"),
+        join(PROJ_DIR, "src", "target", "family", "gd32vf103"),
+        join(PROJ_DIR, "src", "target", "arch", "riscv"),
     ]
 )
 
 env.Replace(
     LDSCRIPT_PATH = join(PROJ_DIR, "src", "link", "gd32vf103c-start", "RISCV", "gcc", board.get("build.gd32vf103-sdk.ldscript")) 
 )
-
-# access to global construction environment
-print(env)
-
-# dump construction environment (for debug purpose)
-print(env.Dump())
-
-# dump board environment (for debug purpose)
-print(board)
-
-print(env.get("PROGNAME"))

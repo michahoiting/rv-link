@@ -9,26 +9,27 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT F
 PURPOSE.
 See the Mulan PSL v1 for more details.
  */
-#include "rvl-led.h"
-#include "rvl-serial.h"
-#include "rvl-usb-serial.h"
+
+#include "gdb-serial-buf.h"
 #include "gdb-serial.h"
 #include "gdb-server.h"
+#include "rvl-led.h"
+#include "rvl-usb-serial.h"
 
 
 int main(void)
 {
     rvl_led_init();
-    gdb_server_init();
-    rvl_serial_init();
     usb_serial_init();
     usb_serial1_init();
+    gdb_server_init();
     gdb_serial_init();
+    gdb_serial_buf_init();
 
     for(;;) {
         rvl_led_poll();
-        rvl_serial_poll();
         usb_serial_poll();
+        gdb_serial_buf_poll();
         gdb_server_poll();
         usb_serial1_poll();
     }

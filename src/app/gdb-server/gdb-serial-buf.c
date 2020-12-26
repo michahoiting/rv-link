@@ -9,11 +9,10 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT F
 PURPOSE.
 See the Mulan PSL v1 for more details.
  */
-#include "rvl-serial.h"
 
+#include "gdb-serial-buf.h"
 
-#define RVL_SERIAL_BUFFER_SIZE      256
-
+#define RVL_SERIAL_BUFFER_SIZE 256
 
 typedef struct rvl_serial_s
 {
@@ -26,20 +25,20 @@ static rvl_serial_t rvl_serial_i;
 #define self rvl_serial_i
 
 
-void rvl_serial_init(void)
+void gdb_serial_buf_init(void)
 {
     self.head = 0;
     self.tail = 0;
 }
 
 
-PT_THREAD(rvl_serial_poll(void))
+PT_THREAD(gdb_serial_buf_poll(void))
 {
     return PT_ENDED;
 }
 
 
-size_t rvl_serial_putchar(char c)
+size_t gdb_serial_buf_putchar(char c)
 {
     int head = self.head + 1;
     if (head >= RVL_SERIAL_BUFFER_SIZE) {
@@ -55,14 +54,14 @@ size_t rvl_serial_putchar(char c)
 }
 
 
-size_t rvl_serial_puts(const char *s)
+size_t gdb_serial_buf_puts(const char *s)
 {
     size_t len;
     size_t ret;
 
     len = 0;
     while (*s) {
-        ret = rvl_serial_putchar(*s);
+        ret = gdb_serial_buf_putchar(*s);
         if (ret == 0) {
             break;
         }
@@ -74,7 +73,7 @@ size_t rvl_serial_puts(const char *s)
 }
 
 
-size_t rvl_serial_getchar(char *c)
+size_t gdb_serial_buf_getchar(char *c)
 {
     if (self.tail == self.head) {
         return 0;

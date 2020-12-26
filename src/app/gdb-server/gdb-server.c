@@ -9,22 +9,23 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT F
 PURPOSE.
 See the Mulan PSL v1 for more details.
  */
+
+#include "gdb-serial.h"
+
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
 
-#include "rvl-app-config.h"
-#include "rvl-link-config.h"
-#include "rvl-target-config.h"
-#include "riscv_encoding.h"
-#include "rvl-led.h"
-#include "rvl-serial.h"
-#include "rvl-link.h"
-#include "rvl-assert.h"
+#include "gdb-serial-buf.h"
 #include "gdb-server.h"
-
+#include "riscv_encoding.h"
+#include "rvl-app-config.h"
+#include "rvl-assert.h"
+#include "rvl-led.h"
+#include "rvl-link-config.h"
+#include "rvl-link.h"
+#include "rvl-target-config.h"
 #include "rvl-target.h"
-#include "gdb-serial.h"
 
 typedef int16_t gdb_server_tid_t;
 
@@ -141,14 +142,14 @@ PT_THREAD(gdb_server_poll(void))
         PT_YIELD(&self.pt_server);
 
         if(self.gdb_connected && self.target_running) {
-            ret = rvl_serial_getchar(&c);
+            ret = gdb_serial_buf_getchar(&c);
             if(ret > 0) {
                 self.res[0] = 'O';
                 len = 0;
                 do {
                     bin_to_hex((uint8_t*)&c, &self.res[1 + len * 2], 1);
                     len++;
-                    ret = rvl_serial_getchar(&c);
+                    ret = gdb_serial_buf_getchar(&c);
                 } while (ret > 0);
 
                 gdb_serial_response_done(len * 2 + 1, GDB_SERIAL_SEND_FLAG_ALL);
@@ -386,14 +387,14 @@ PT_THREAD(gdb_server_cmd_qRcmd(void))
 
     PT_BEGIN(&self.pt_cmd_sub);
 
-    ret = rvl_serial_getchar(&c);
+    ret = gdb_serial_buf_getchar(&c);
     if(ret > 0) {
         self.res[0] = 'O';
         len = 0;
         do {
             bin_to_hex((uint8_t*)&c, &self.res[1 + len * 2], 1);
             len++;
-            ret = rvl_serial_getchar(&c);
+            ret = gdb_serial_buf_getchar(&c);
         } while (ret > 0);
 
         gdb_serial_response_done(len * 2 + 1, GDB_SERIAL_SEND_FLAG_ALL);
@@ -938,7 +939,7 @@ PT_THREAD(gdb_server_cmd_vMustReplyEmpty(void))
         gdb_server_reply_empty();
     } else {
         len = 0;
-        while(rvl_serial_getchar(&c)) {
+        while(gdb_serial_buf_getchar(&c)) {
             self.res[len] = c;
             len++;
         }
@@ -977,7 +978,7 @@ PT_THREAD(gdb_server_connected(void))
 
     PT_BEGIN(&self.pt_sub_routine);
 
-    while(rvl_serial_getchar(&c)) {};
+    while(gdb_serial_buf_getchar(&c)) {};
 
     rvl_led_gdb_connect(1);
     self.gdb_connected = true;
@@ -994,28 +995,28 @@ PT_THREAD(gdb_server_connected(void))
     if(self.target_error != rvl_target_error_none) {
         switch(self.target_error) {
         case rvl_target_error_line:
-            rvl_serial_puts("\nRV-LINK ERROR: the target is not connected!\n");
+            gdb_serial_buf_puts("\nRV-LINK ERROR: the target is not connected!\n");
             break;
         case rvl_target_error_compat:
-            rvl_serial_puts("\nRV-LINK ERROR: the target is not supported, upgrade RV-LINK firmware!\n");
+            gdb_serial_buf_puts("\nRV-LINK ERROR: the target is not supported, upgrade RV-LINK firmware!\n");
             break;
         case rvl_target_error_debug_module:
-            rvl_serial_puts("\nRV-LINK ERROR: something wrong with debug module!\n");
+            gdb_serial_buf_puts("\nRV-LINK ERROR: something wrong with debug module!\n");
             break;
         case rvl_target_error_protected:
-            rvl_serial_puts("\nRV-LINK ERROR: the target under protected! disable protection then try again.\n");
+            gdb_serial_buf_puts("\nRV-LINK ERROR: the target under protected! disable protection then try again.\n");
             break;
         default:
-            rvl_serial_puts("\nRV-LINK ERROR: unknown error!\n");
+            gdb_serial_buf_puts("\nRV-LINK ERROR: unknown error!\n");
             break;
         }
     }
 
-    rvl_serial_puts("RV-LINK " RVL_APP_CONFIG_GDB_SERVER_VERSION ": ");
-    rvl_serial_puts(RVL_LINK_CONFIG_NAME);
-    rvl_serial_puts(", configed for ");
-    rvl_serial_puts(rvl_target_get_name());
-    rvl_serial_puts(" family.\n");
+    gdb_serial_buf_puts("RV-LINK " RVL_APP_CONFIG_GDB_SERVER_VERSION ": ");
+    gdb_serial_buf_puts(RVL_LINK_CONFIG_NAME);
+    gdb_serial_buf_puts(", configed for ");
+    gdb_serial_buf_puts(rvl_target_get_name());
+    gdb_serial_buf_puts(" family.\n");
 
     PT_END(&self.pt_sub_routine);
 }

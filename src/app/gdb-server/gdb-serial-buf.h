@@ -9,17 +9,17 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT F
 PURPOSE.
 See the Mulan PSL v1 for more details.
  */
-#ifndef __RVL_SERIAL_H__
-#define __RVL_SERIAL_H__
+#ifndef __GDB_SERIAL_BUF_H__
+#define __GDB_SERIAL_BUF_H__
 
 #include <stddef.h>
 
 #include "pt/pt.h"
 
-void rvl_serial_init(void);
-size_t rvl_serial_putchar(char c);
-size_t rvl_serial_puts(const char *s);
-size_t rvl_serial_getchar(char *c);
-PT_THREAD(rvl_serial_poll(void));
+void gdb_serial_buf_init(void);
+size_t gdb_serial_buf_putchar(char c);
+size_t gdb_serial_buf_puts(const char *s);
+size_t gdb_serial_buf_getchar(char *c);
+PT_THREAD(gdb_serial_buf_poll(void));
 
-#endif // __RVL_SERIAL_H__
+#endif // __GDB_SERIAL_BUF_H__

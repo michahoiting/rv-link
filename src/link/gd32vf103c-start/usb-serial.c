@@ -18,8 +18,8 @@ See the Mulan PSL v1 for more details.
 #include "pt/pt.h"
 #include "rvl-usb-serial.h"
 
-extern uint8_t packet_sent, packet_receive;
-extern uint32_t receive_length;
+extern uint8_t packet_sent_cdc_acm0, packet_received_cdc_acm0;
+extern uint32_t packet_length_cdc_acm0;
 
 int rvl_vcom_enable(void);
 
@@ -51,15 +51,11 @@ void usb_serial_init(void)
     eclic_global_interrupt_enable();
     eclic_priority_group_set(ECLIC_PRIGROUP_LEVEL2_PRIO2);
 
-    if(rvl_vcom_enable()) {
-        USB_OTG_dev.dev.desc.dev_desc = (uint8_t*)&device_descriptor_vcom_enable;
-        USB_OTG_dev.dev.desc.config_desc = (uint8_t *)&configuration_descriptor_vcom_enable;
-        USB_OTG_dev.dev.desc.strings = usbd_strings_vcom_enable;
-    } else {
-        USB_OTG_dev.dev.desc.dev_desc = (uint8_t*)&device_descriptor_vcom_disable;
-        USB_OTG_dev.dev.desc.config_desc = (uint8_t *)&configuration_descriptor_vcom_disable;
-        USB_OTG_dev.dev.desc.strings = usbd_strings_vcom_disable;
-    }
+    int vcom = rvl_vcom_enable();
+    USB_OTG_dev.dev.desc.dev_desc = (uint8_t*)&device_descriptor;
+    USB_OTG_dev.dev.desc.config_desc = vcom ? (uint8_t *) &configuration_descriptor_vcom_enable:
+                                              (uint8_t *) &configuration_descriptor_vcom_disable;
+    USB_OTG_dev.dev.desc.strings = vcom ? usbd_strings_vcom_enable:usbd_strings_vcom_disable;
 
     usb_rcu_config();
     usb_timer_init();
@@ -82,12 +78,12 @@ PT_THREAD(usb_serial_recv_poll(void))
     PT_WAIT_UNTIL(&self.pt_recv, USBD_CONFIGURED == USB_OTG_dev.dev.cur_status);
 
     while (1) {
-        packet_receive = 0;
+        packet_received_cdc_acm0 = 0;
         usbd_ep_recev(&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, (uint8_t*)(usb_serial_recv_buffer), CDC_ACM_DATA_PACKET_SIZE);
 
-        PT_WAIT_UNTIL(&self.pt_recv, packet_receive == 1);
+        PT_WAIT_UNTIL(&self.pt_recv, packet_received_cdc_acm0 == 1);
 
-        PT_WAIT_UNTIL(&self.pt_recv, usb_serial_put_recv_data(usb_serial_recv_buffer, receive_length));
+        PT_WAIT_UNTIL(&self.pt_recv, usb_serial_put_recv_data(usb_serial_recv_buffer, packet_length_cdc_acm0));
     }
 
     PT_END(&self.pt_recv);
@@ -103,10 +99,10 @@ PT_THREAD(usb_serial_send_poll(void))
     while (1) {
         PT_WAIT_UNTIL(&self.pt_send, (self.send_buffer = usb_serial_get_send_data(&self.send_len)) != NULL);
 
-        packet_sent = 0;
+        packet_sent_cdc_acm0 = 0;
         usbd_ep_send(&USB_OTG_dev, CDC_ACM_DATA_IN_EP, (uint8_t*)(self.send_buffer), self.send_len);
 
-        PT_WAIT_UNTIL(&self.pt_send, packet_sent == 1);
+        PT_WAIT_UNTIL(&self.pt_send, packet_sent_cdc_acm0 == 1);
         usb_serial_data_sent();
     }
 

@@ -1,44 +1,40 @@
-/*!
-    \file  cdc_acm_core.h
-    \brief the header file of IAP driver
+/**
+ *     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+ *
+ *     \file  cdc_acm_core.h
+ *     \brief the header file of IAP driver
+ *     \version 2019-6-5, V1.0.0, demo for GD32VF103
+ *
+ *     Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     1. Redistributions of source code must retain the above copyright notice, this
+ *        list of conditions and the following disclaimer.
+ *     2. Redistributions in binary form must reproduce the above copyright notice,
+ *        this list of conditions and the following disclaimer in the documentation
+ *        and/or other materials provided with the distribution.
+ *     3. Neither the name of the copyright holder nor the names of its contributors
+ *        may be used to endorse or promote products derived from this software without
+ *        specific prior written permission.
+ *
+ *     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ */
 
-    \version 2019-6-5, V1.0.0, demo for GD32VF103
-*/
+#ifndef __CDC_ACM_CORE_H__
+#define __CDC_ACM_CORE_H__
 
-/*
-    Copyright (c) 2019, GigaDevice Semiconductor Inc.
-
-    Redistribution and use in source and binary forms, with or without modification, 
-are permitted provided that the following conditions are met:
-
-    1. Redistributions of source code must retain the above copyright notice, this 
-       list of conditions and the following disclaimer.
-    2. Redistributions in binary form must reproduce the above copyright notice, 
-       this list of conditions and the following disclaimer in the documentation 
-       and/or other materials provided with the distribution.
-    3. Neither the name of the copyright holder nor the names of its contributors 
-       may be used to endorse or promote products derived from this software without 
-       specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
-OF SUCH DAMAGE.
-*/
-
-#ifndef CDC_ACM_CORE_H
-#define CDC_ACM_CORE_H
-
-#include "usbd_enum.h"
 #include "usb_ch9_std.h"
+#include "usbd_enum.h"
 #include "usbd_transc.h"
-
 
 #define USB_DESCTYPE_CS_INTERFACE               0x24
 #define USB_CDC_ACM_CONFIG_DESC_SIZE            0x43
@@ -131,16 +127,16 @@ typedef struct
     usb_descriptor_cdc_set_struct_vcom_enable         cdc[2];
 } usb_descriptor_configuration_set_struct_vcom_enable;
 
-extern void* const usbd_strings_vcom_disable[USB_STRING_COUNT];
+extern void* const usbd_strings_vcom_disable[USB_STRING_COUNT-1];
 extern void* const usbd_strings_vcom_enable[USB_STRING_COUNT];
-extern const usb_desc_dev device_descriptor_vcom_enable;
-extern const usb_desc_dev device_descriptor_vcom_disable;
+extern const usb_desc_dev device_descriptor;
 extern const usb_descriptor_configuration_set_struct_vcom_disable configuration_descriptor_vcom_disable;
 extern const usb_descriptor_configuration_set_struct_vcom_enable configuration_descriptor_vcom_enable;
 
 extern usb_class_core usbd_cdc_cb;
 
 /* function declarations */
+
 /* initialize the CDC ACM device */
 uint8_t cdc_acm_init(usb_dev *pudev, uint8_t config_index);
 /* de-initialize the CDC ACM device */
@@ -158,4 +154,4 @@ void cdc_acm_data_send(usb_dev *pudev, uint32_t data_len);
 /* command data received on control endpoint */
 uint8_t cdc_acm_EP0_RxReady(usb_dev  *pudev);
 
-#endif  /* CDC_ACM_CORE_H */
+#endif  /* __CDC_ACM_CORE_H__ */

@@ -255,8 +255,8 @@ void gd_longan_nano_uart_set_line_coding(uart_typedef_enum uartnum, uint32_t bau
 {
     usart_disable(UART_ITF[uartnum]);
     usart_baudrate_set(UART_ITF[uartnum], baudrate);
-    usart_word_length_set(UART_ITF[uartnum], data_bits);
-    usart_stop_bit_set(UART_ITF[uartnum], stop_bits);
-    usart_parity_config(UART_ITF[uartnum], parity);
+//    usart_word_length_set(UART_ITF[uartnum], data_bits);
+//    usart_stop_bit_set(UART_ITF[uartnum], stop_bits);
+//    usart_parity_config(UART_ITF[uartnum], parity);
     usart_enable(UART_ITF[uartnum]);
 }

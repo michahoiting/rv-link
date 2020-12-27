@@ -63,7 +63,7 @@ void gdb_serial_init(void)
 
 const char* gdb_serial_command_buffer(void)
 {
-    for(; command.index_scan < command.total_len; command.index_scan++) {
+    for (; command.index_scan < command.total_len; command.index_scan++) {
         if(command.index_dollar == -1 && command.buffer[command.index_scan] == '$') {
             command.index_dollar = command.index_scan;
         }
@@ -73,11 +73,11 @@ const char* gdb_serial_command_buffer(void)
         }
     }
 
-    if(command.index_dollar >= 0 && command.index_sharp > 0) {
+    if (command.index_dollar >= 0 && command.index_sharp > 0) {
         command.gdb_server_own = true;
         command.cmd_len = command.index_sharp - command.index_dollar - 1;
         return &command.buffer[command.index_dollar + 1];
-    } else if(command.total_len == 1 && command.buffer[0] == '\x03') {
+    } else if (command.total_len == 1 && command.buffer[0] == '\x03') {
         command.gdb_server_own = true;
         command.cmd_len = 1;
         return &command.buffer[0];
@@ -106,10 +106,10 @@ void gdb_serial_command_done(void)
 
 bool usb_serial_put_recv_data(const uint8_t* buffer, size_t len)
 {
-    if(command.gdb_server_own) {
+    if (command.gdb_server_own) {
         return false;
     } else {
-        if(sizeof(command.buffer) - command.total_len < len) {
+        if (sizeof(command.buffer) - command.total_len < len) {
             return false;
         } else {
             memcpy(&command.buffer[command.total_len], buffer, len);
@@ -120,9 +120,9 @@ bool usb_serial_put_recv_data(const uint8_t* buffer, size_t len)
 }
 
 
-char * gdb_serial_response_buffer(void)
+char* gdb_serial_response_buffer(void)
 {
-    if(response.gdb_server_own) {
+    if (response.gdb_server_own) {
         // 前两个字节用作填入 '+' 和 '$'
         return &response.buffer[2];
     } else {
@@ -137,9 +137,9 @@ void gdb_serial_response_done(size_t len, uint32_t send_flags)
     response.gdb_server_own = false;
     response.total_len = len;
 
-    if(send_flags & GDB_SERIAL_SEND_FLAG_DOLLAR) {
+    if (send_flags & GDB_SERIAL_SEND_FLAG_DOLLAR) {
         response.buffer[1] = '$';
-        if(!response.no_ack_mode) {
+        if (!response.no_ack_mode) {
             response.buffer[0] = '+';
             response.index_start = 0;
             response.total_len += 2;
@@ -149,7 +149,7 @@ void gdb_serial_response_done(size_t len, uint32_t send_flags)
         }
     }
 
-    if(send_flags & GDB_SERIAL_SEND_FLAG_SHARP) {
+    if (send_flags & GDB_SERIAL_SEND_FLAG_SHARP) {
         response.buffer[response.total_len + response.index_start] = '#';
         response.total_len++;
 
@@ -162,7 +162,7 @@ void gdb_serial_response_done(size_t len, uint32_t send_flags)
 
 const uint8_t* usb_serial_get_send_data(size_t* len)
 {
-    if(response.gdb_server_own) {
+    if (response.gdb_server_own) {
         return NULL;
     } else {
         *len = response.total_len;
@@ -187,7 +187,7 @@ static uint8_t gdb_serial_checksum(const uint8_t* p, size_t len)
     uint32_t checksum = 0;
     size_t i;
 
-    for(i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         checksum += p[i];
     }
     checksum &= 0xff;

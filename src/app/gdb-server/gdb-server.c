@@ -26,6 +26,7 @@ See the Mulan PSL v1 for more details.
 #include "rvl-link.h"
 #include "rvl-target-config.h"
 #include "rvl-target.h"
+#include "rvl-uart-serial.h"
 
 typedef int16_t gdb_server_tid_t;
 
@@ -137,6 +138,12 @@ PT_THREAD(gdb_server_poll(void))
     size_t ret, len;
 
     PT_BEGIN(&self.pt_server);
+
+    RVL_DEBUG_LOG(&self.pt_server, ("RV-LINK " RVL_APP_CONFIG_GDB_SERVER_VERSION ": "));
+    RVL_DEBUG_LOG(&self.pt_server, (RVL_LINK_CONFIG_NAME));
+    RVL_DEBUG_LOG(&self.pt_server, (", configed for "));
+    RVL_DEBUG_LOG(&self.pt_server, (rvl_target_get_name()));
+    RVL_DEBUG_LOG(&self.pt_server, (" family, started.\n"));
 
     while (1) {
         PT_YIELD(&self.pt_server);

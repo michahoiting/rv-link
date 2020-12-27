@@ -14,6 +14,7 @@ See the Mulan PSL v1 for more details.
 #include "gdb-serial.h"
 #include "gdb-server.h"
 #include "rvl-led.h"
+#include "rvl-uart-serial.h"
 #include "rvl-usb-serial.h"
 
 
@@ -22,6 +23,7 @@ int main(void)
     rvl_led_init();
     usb_serial_init();
     usb_serial1_init();
+    uart_serial2_init();
     gdb_server_init();
     gdb_serial_init();
     gdb_serial_buf_init();

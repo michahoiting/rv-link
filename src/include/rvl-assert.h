@@ -12,19 +12,30 @@ See the Mulan PSL v1 for more details.
 #ifndef __RVL_ASSERT_H__
 #define __RVL_ASSERT_H__
 
-#ifdef RVL_ASSERT_EN
-
 #include "rvl-led.h"
+#include "rvl-uart-serial.h"
 
+#ifdef RVL_DEBUG_EN
+
+#define RVL_DEBUG_LOG(pt, message) \
+do \
+{ \
+    PT_WAIT_THREAD((pt), (uart_serial2_puts message)); \
+} \
+while (0)
+#else
+#define RVL_DEBUG_LOG(pt, message)
+#endif
+
+
+#ifdef RVL_ASSERT_EN
 #define rvl_assert(cond) \
   do { \
     if(!(cond)) { rvl_led_assert(1); for(;;) {} } \
   } while (0)
 
 #else
-
 #define rvl_assert(cond)
-
 #endif
 
 #endif /* __RVL_ASSERT_H__ */

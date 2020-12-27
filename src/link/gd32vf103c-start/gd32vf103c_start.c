@@ -1,34 +1,34 @@
 /*!
     \file    gd32vf103c_start.c
     \brief   firmware functions to manage leds, keys, COM ports
-    
+
     \version 2019-06-05, V1.0.0, demo for GD32VF103
 */
 
 /*
     Copyright (c) 2019, GigaDevice Semiconductor Inc.
 
-    Redistribution and use in source and binary forms, with or without modification, 
+    Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
-    1. Redistributions of source code must retain the above copyright notice, this 
+    1. Redistributions of source code must retain the above copyright notice, this
        list of conditions and the following disclaimer.
-    2. Redistributions in binary form must reproduce the above copyright notice, 
-       this list of conditions and the following disclaimer in the documentation 
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
        and/or other materials provided with the distribution.
-    3. Neither the name of the copyright holder nor the names of its contributors 
-       may be used to endorse or promote products derived from this software without 
+    3. Neither the name of the copyright holder nor the names of its contributors
+       may be used to endorse or promote products derived from this software without
        specific prior written permission.
 
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
 */
 
@@ -59,7 +59,7 @@ static const uint8_t KEY_IRQn[KEYn]             = {WAKEUP_KEY_EXTI_IRQn};
 /*!
     \brief      configure led GPIO
     \param[in]  lednum: specify the led to be configured
-      \arg        LED1
+      \arg        LED_1
     \param[out] none
     \retval     none
 */
@@ -67,7 +67,7 @@ void gd_eval_led_init(led_typedef_enum lednum)
 {
     /* enable the led clock */
     rcu_periph_clock_enable(GPIO_CLK[lednum]);
-    /* configure led GPIO port */ 
+    /* configure led GPIO port */
     gpio_init(GPIO_PORT[lednum], GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN[lednum]);
     GPIO_BC(GPIO_PORT[lednum]) = GPIO_PIN[lednum];
 }
@@ -75,7 +75,7 @@ void gd_eval_led_init(led_typedef_enum lednum)
 /*!
     \brief      turn on selected led
     \param[in]  lednum: specify the led to be turned on
-      \arg        LED1
+      \arg        LED_1
     \param[out] none
     \retval     none
 */
@@ -87,7 +87,7 @@ void gd_eval_led_on(led_typedef_enum lednum)
 /*!
     \brief      turn off selected led
     \param[in]  lednum: specify the led to be turned off
-      \arg        LED1
+      \arg        LED_1
     \param[out] none
     \retval     none
 */
@@ -99,7 +99,7 @@ void gd_eval_led_off(led_typedef_enum lednum)
 /*!
     \brief      toggle selected led
     \param[in]  lednum: specify the led to be toggled
-      \arg        LED1
+      \arg        LED_1
     \param[out] none
     \retval     none
 */
@@ -113,13 +113,13 @@ void gd_eval_led_toggle(led_typedef_enum lednum)
     \brief      configure key
     \param[in]  keynum: specify the key to be configured
       \arg        KEY_WAKEUP: wakeup key
-    \param[in]  keymode: specify button mode
+    \param[in]  key_mode: specify button mode
       \arg        KEY_MODE_GPIO: key will be used as simple IO
       \arg        KEY_MODE_EXTI: key will be connected to EXTI line with interrupt
     \param[out] none
     \retval     none
 */
-void gd_eval_key_init(key_typedef_enum keynum, keymode_typedef_enum keymode)
+void gd_eval_key_init(key_typedef_enum keynum, key_mode_typedef_enum key_mode)
 {
     /* enable the key clock */
     rcu_periph_clock_enable(KEY_CLK[keynum]);
@@ -128,7 +128,7 @@ void gd_eval_key_init(key_typedef_enum keynum, keymode_typedef_enum keymode)
     /* configure button pin as input */
     gpio_init(KEY_PORT[keynum], GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, KEY_PIN[keynum]);
 
-    if (keymode == KEY_MODE_EXTI) {
+    if (key_mode == KEY_MODE_EXTI) {
         /* enable and set key EXTI interrupt to the lowest priority */
         eclic_irq_enable(KEY_IRQn[keynum],1, 1);
 

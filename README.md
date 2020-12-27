@@ -6,7 +6,7 @@ RV-LINK: In application debugger for RISC-V microcontrollers, RISC-V emulator, u
 
 Like [Blackmagic](https://github.com/blacksphere/blackmagic), but designed for RISC-V.
 
-This (mirrored) [GitHub](https://github.com/michahoiting/rv-link) repository is originally cloned from https://gitee.com/zoomdy/RV-LINK.
+[This (mirrored) GitHub](https://github.com/michahoiting/rv-link) repository is originally cloned from https://gitee.com/zoomdy/RV-LINK.
 The main developments take place in GitLab [here](https://gitlab.melroy.org/micha/RV-LINK), and tends to included various improvements.
 
 **See also my blog [Using JTAG on the GD32VF103 using RV-Link](https://gitlab.melroy.org/micha/blogs/-/blob/master/Using-JTAG-on-the-GD32VF103-using-RV-Link/Using-JTAG-on-the-GD32VF103-using-RV-Link.md)**

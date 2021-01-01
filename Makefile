@@ -9,9 +9,9 @@ elf += $(OUTPUT_DIR)/longan-nano-alt+gd32vf103+gdb-server.elf
 
 all: $(elf)
 
-get_link = $(shell echo $@ | awk -F'.' '{print $$1}' | awk -F'/' '{print $$2}' | awk -F'+' '{print $$1}')
+get_link =   $(shell echo $@ | awk -F'.' '{print $$1}' | awk -F'/' '{print $$2}' | awk -F'+' '{print $$1}')
 get_target = $(shell echo $@ | awk -F'.' '{print $$1}' | awk -F'/' '{print $$2}' | awk -F'+' '{print $$2}')
-get_app = $(shell echo $@ | awk -F'.' '{print $$1}' | awk -F'/' '{print $$2}' | awk -F'+' '{print $$3}')
+get_app =    $(shell echo $@ | awk -F'.' '{print $$1}' | awk -F'/' '{print $$2}' | awk -F'+' '{print $$3}')
 
 $(OUTPUT_DIR)/%.elf:
 	make -C src clean

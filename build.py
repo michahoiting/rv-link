@@ -24,7 +24,6 @@ env.Replace(
         "-msmall-data-limit=8",
     ],
 
-
     LINKFLAGS=[
         "-march=%s" % board.get("build.march"),
         "-mabi=%s" % board.get("build.mabi"),
@@ -37,29 +36,28 @@ env.Replace(
     LIBS=["c_nano"]
 )
 
-
 # copy CCFLAGS to ASFLAGS (-x assembler-with-cpp mode)
 env.Append(ASFLAGS=env.get("CCFLAGS", [])[:])
-
 
 env.Append(
 
     CPPPATH = [
-        join(PROJ_DIR, "src"),
-        join(PROJ_DIR, "src", "include"),
-        join(PROJ_DIR, "src", "app", "gdb-server"),
-        join(PROJ_DIR, "src", "link"),
-        join(PROJ_DIR, "src", "link", "gd32vf103c-start"),
-        join(PROJ_DIR, "src", "link", "gd32vf103c-start", "GD32VF103_standard_peripheral"),
-        join(PROJ_DIR, "src", "link", "gd32vf103c-start", "GD32VF103_standard_peripheral", "Include"),
-        join(PROJ_DIR, "src", "link", "gd32vf103c-start", "GD32VF103_usbfs_driver", "Include"),
-        join(PROJ_DIR, "src", "link", "gd32vf103c-start", "RISCV", "drivers"),
-        join(PROJ_DIR, "src", "link", "longan-nano"),
-        join(PROJ_DIR, "src", "target", "family", "gd32vf103"),
-        join(PROJ_DIR, "src", "target", "arch", "riscv"),
+        join(PROJ_DIR), # all project includes are relative to the project directory
+
+        # project external library dependencies
+        join(PROJ_DIR, "lib"),
+
+        # include paths needed to build the gd32vf103-sdk
+        join(PROJ_DIR, "lib", "gd32vf103-sdk", "GD32VF103_standard_peripheral"),
+        join(PROJ_DIR, "lib", "gd32vf103-sdk", "GD32VF103_standard_peripheral", "Include"),
+        join(PROJ_DIR, "lib", "gd32vf103-sdk", "GD32VF103_usbfs_driver", "Include"),
+        join(PROJ_DIR, "lib", "gd32vf103-sdk", "RISCV", "drivers"),
+ 
+        # needed for gd32vf103_libopt.h, usb_conf.h, usbd_conf.h to build with the gd32vf103-sdk
+        join(PROJ_DIR, "rv-link", "link", "arch", "gd32vf103c"),
     ]
 )
 
 env.Replace(
-    LDSCRIPT_PATH = join(PROJ_DIR, "src", "link", "gd32vf103c-start", "RISCV", "gcc", board.get("build.gd32vf103-sdk.ldscript")) 
+    LDSCRIPT_PATH = join(PROJ_DIR, "lib", "gd32vf103-sdk", "RISCV", "gcc", board.get("build.gd32vf103-sdk.ldscript"))
 )

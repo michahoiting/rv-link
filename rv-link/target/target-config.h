@@ -12,14 +12,14 @@ See the Mulan PSL v1 for more details.
 #ifndef __RV_LINK_TARGET_TARGET_CONFIG_H__
 #define __RV_LINK_TARGET_TARGET_CONFIG_H__
 
-#if defined(TARGET_GD32VF103)
+#if defined(RVL_TARGET_GD32VF103)
 #include <rv-link/target/family/gd32vf103/target-config.h>
-#elif defined(TARGET_RISCV-DEBUG-SPEC-V0P11)
+#elif defined(RVL_TARGET_RISCV-DEBUG-SPEC-V0P11)
 #include <rv-link/target/family/riscv-debug-spec-v0p11/target-config.h>
-#elif defined(TARGET_RISCV-DEBUG-SPEC-V0P13)
+#elif defined(RVL_TARGET_RISCV-DEBUG-SPEC-V0P13)
 #include <rv-link/target/family/riscv-debug-spec-v0p13/target-config.h>
 #else
-#error No defined TARGET_X defined
+#error No defined RVL_TARGET_X defined
 #endif
 
 #endif /* __RV_LINK_TARGET_TARGET_CONFIG_H__ */

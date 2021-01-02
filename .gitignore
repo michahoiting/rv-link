@@ -7,3 +7,4 @@ output/
 .piolibdeps
 .pio
 .vscode
+*.code-workspace

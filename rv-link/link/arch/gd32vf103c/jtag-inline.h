@@ -1,11 +1,11 @@
-#ifndef __RV_LINK_LINK_ARCH_GD32VF103C_LONGAN_NANO_JTAG_INLINE_H__
-#define __RV_LINK_LINK_ARCH_GD32VF103C_LONGAN_NANO_JTAG_INLINE_H__
+#ifndef __RV_LINK_LINK_ARCH_GD32VF193C_JTAG_INLINE_H__
+#define __RV_LINK_LINK_ARCH_GD32VF193C_JTAG_INLINE_H__
 /*
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
- * \file  rv-link/link/arch/gd32vf103c/longan-nano/jtag-inline.h
- * \brief TODO
+ * \file  rv-link/link/arch/gd32vf103c/jtag-inline.h
+ * \brief JTAG inline functions
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -25,26 +25,24 @@
 #include <gd32vf103-sdk/RISCV/drivers/riscv_encoding.h>
 #include <gd32vf103-sdk/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h>
 
-
-#define TCK_PORT    GPIOA
-#define TCK_PIN     GPIO_PIN_14
-
-#define TMS_PORT    GPIOA
-#define TMS_PIN     GPIO_PIN_13
-
-#define TDI_PORT    GPIOA
-#define TDI_PIN     GPIO_PIN_15
-
-#define TDO_PORT    GPIOB
-#define TDO_PIN     GPIO_PIN_3
+/* own component header file includes */
+#if defined(RVL_LINK_GD32VF103C_START)
+#include <rv-link/link/arch/gd32vf103c/gd32vf103c-start/link-config.h>
+#elif defined(RVL_LINK_LONGAN_NANO)
+#include <rv-link/link/arch/gd32vf103c/longan-nano/link-config.h>
+#elif defined(RVL_LINK_LONGAN_NANO_ALT)
+#include <rv-link/link/arch/gd32vf103c/longan-nano-alt/jtag-inline.h>
+#else
+#error No RVL_LINK_X defined
+#endif
 
 
 static inline void rvl_jtag_tms_put(int tms)
 {
     if (tms) {
-        GPIO_BOP(TMS_PORT) = (uint32_t)TMS_PIN;
+        GPIO_BOP(RVL_LINK_TMS_PORT) = (uint32_t)RVL_LINK_TMS_PIN;
     } else {
-        GPIO_BC(TMS_PORT) = (uint32_t)TMS_PIN;
+        GPIO_BC(RVL_LINK_TMS_PORT) = (uint32_t)RVL_LINK_TMS_PIN;
     }
 }
 
@@ -52,9 +50,9 @@ static inline void rvl_jtag_tms_put(int tms)
 static inline void rvl_jtag_tdi_put(int tdi)
 {
     if (tdi) {
-        GPIO_BOP(TDI_PORT) = (uint32_t)TDI_PIN;
+        GPIO_BOP(RVL_LINK_TDI_PORT) = (uint32_t)RVL_LINK_TDI_PIN;
     } else {
-        GPIO_BC(TDI_PORT) = (uint32_t)TDI_PIN;
+        GPIO_BC(RVL_LINK_TDI_PORT) = (uint32_t)RVL_LINK_TDI_PIN;
     }
 }
 
@@ -62,9 +60,9 @@ static inline void rvl_jtag_tdi_put(int tdi)
 static inline void rvl_jtag_tck_put(int tck)
 {
     if (tck) {
-        GPIO_BOP(TCK_PORT) = (uint32_t)TCK_PIN;
+        GPIO_BOP(RVL_LINK_TCK_PORT) = (uint32_t)RVL_LINK_TCK_PIN;
     } else {
-        GPIO_BC(TCK_PORT) = (uint32_t)TCK_PIN;
+        GPIO_BC(RVL_LINK_TCK_PORT) = (uint32_t)RVL_LINK_TCK_PIN;
     }
 }
 
@@ -113,11 +111,11 @@ static inline void rvl_jtag_tck_low_delay()
 
 static inline int rvl_jtag_tdo_get()
 {
-    if ((uint32_t) RESET != (GPIO_ISTAT(TDO_PORT) & (TDO_PIN))) {
+    if ((uint32_t) RESET != (GPIO_ISTAT(RVL_LINK_TDO_PORT) & (RVL_LINK_TDO_PIN))) {
         return 1;
     } else {
         return 0;
     }
 }
 
-#endif /* __RV_LINK_LINK_ARCH_GD32VF103C_LONGAN_NANO_JTAG_INLINE_H__ */
+#endif /* __RV_LINK_LINK_ARCH_GD32VF193C_JTAG_INLINE_H__ */

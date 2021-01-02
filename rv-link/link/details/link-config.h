@@ -19,14 +19,14 @@
  */
 
 /* other project header file includes */
-#if defined(LINK_GD32VF103C_START)
+#if defined(RVL_LINK_GD32VF103C_START)
 #include <rv-link/link/arch/gd32vf103c/gd32vf103c-start/link-config.h>
-#elif defined(LINK_LONGAN_NANO)
+#elif defined(RVL_LINK_LONGAN_NANO)
 #include <rv-link/link/arch/gd32vf103c/longan-nano/link-config.h>
-#elif defined(LINK_LONGAN_NANO_ALT)
+#elif defined(RVL_LINK_LONGAN_NANO_ALT)
 #include <rv-link/link/arch/gd32vf103c/longan-nano-alt/link-config.h>
 #else
-#error No LINK_X defined
+#error No RVL_LINK_X defined
 #endif
 
 #endif /* __RV_LINK_LINK_DETAILS_LINK_CONFIG_H__ */

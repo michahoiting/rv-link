@@ -2,7 +2,7 @@
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
- * \file  rv-link/link/arch/gd32vf103c/longan-nano/jtag.c
+ * \file  rv-link/link/arch/gd32vf103c/jtag.c
  * \brief TODO
  *
  * RV-LINK is licensed under the Mulan PSL v1.
@@ -24,35 +24,41 @@
 #include <gd32vf103-sdk/RISCV/drivers/riscv_encoding.h>
 
 /* own component header file includes */
-#include <rv-link/link/arch/gd32vf103c/longan-nano/jtag-inline.h>
+#include <rv-link/link/arch/gd32vf103c/jtag-inline.h>
 
 
 void rvl_jtag_init(void)
 {
-    rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);
-    rcu_periph_clock_enable(RCU_AF);
-    AFIO_PCF0 = (AFIO_PCF0 & 0xF8FFFFFF) | 0x04000000;
-
-    gpio_init(TCK_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, TCK_PIN);
-    gpio_init(TMS_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, TMS_PIN);
-    gpio_init(TDI_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, TDI_PIN);
-    gpio_init(TDO_PORT, GPIO_MODE_IPU, 0, TDO_PIN);
+    gpio_init(RVL_LINK_TCK_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, RVL_LINK_TCK_PIN);
+    gpio_init(RVL_LINK_TMS_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, RVL_LINK_TMS_PIN);
+    gpio_init(RVL_LINK_TDI_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, RVL_LINK_TDI_PIN);
+    gpio_init(RVL_LINK_TDO_PORT, GPIO_MODE_IPU, 0, RVL_LINK_TDO_PIN);
 }
 
 
 void rvl_jtag_fini(void)
 {
-    gpio_init(TCK_PORT, GPIO_MODE_AIN, 0, TCK_PIN);
-    gpio_init(TMS_PORT, GPIO_MODE_AIN, 0, TMS_PIN);
-    gpio_init(TDI_PORT, GPIO_MODE_AIN, 0, TDI_PIN);
-    gpio_init(TDO_PORT, GPIO_MODE_AIN, 0, TDO_PIN);
+    gpio_init(RVL_LINK_TCK_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TCK_PIN);
+    gpio_init(RVL_LINK_TMS_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TMS_PIN);
+    gpio_init(RVL_LINK_TDI_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TDI_PIN);
+    gpio_init(RVL_LINK_TDO_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TDO_PIN);
+#ifdef RVL_LINK_SRST_PORT
+    gpio_init(RVL_LINK_SRST_PORT, GPIO_MODE_AIN, 0, RVL_LINK_SRST_PIN);
+#endif
 }
 
 
 void rvl_jtag_srst_put(int srst)
 {
-
+#ifdef RVL_LINK_SRST_PORT
+    if (srst) {
+        gpio_init(RVL_LINK_SRST_PORT, GPIO_MODE_AIN, 0, RVL_LINK_SRST_PIN);
+    } else {
+        gpio_bit_reset(RVL_LINK_SRST_PORT, RVL_LINK_SRST_PIN);
+        gpio_init(RVL_LINK_SRST_PORT, GPIO_MODE_OUT_OD, GPIO_OSPEED_10MHZ, RVL_LINK_SRST_PIN);
+    }
+#endif
 }
 
 

@@ -34,7 +34,6 @@ typedef struct rvl_led_s
     struct pt pt;
     bool gdb_connect;
     bool target_run;
-    bool link_active;
     uint32_t on_period;
     uint32_t off_period;
     uint32_t mcycle_start;
@@ -58,7 +57,6 @@ void rvl_led_init(void)
 
     self.gdb_connect = false;
     self.target_run = false;
-    self.link_active = false;
 
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOC);
@@ -112,7 +110,11 @@ void rvl_led_gdb_connect(int connect)
 
 void rvl_led_link_run(int on)
 {
-    self.link_active = (bool)on;
+    if (!on) {
+        gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
+    } else {
+        gpio_bit_reset(LED_GREEN_PORT, LED_GREEN_PIN);
+    }
 }
 
 

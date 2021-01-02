@@ -88,7 +88,6 @@ PT_THREAD(rvl_usb_serial1_recv_poll(void))
         for (self.i_usb_recv_buffer = 0; self.i_usb_recv_buffer < cdc_acm1_packet_length; self.i_usb_recv_buffer++) {
             PT_WAIT_THREAD(&self.pt_recv, rvl_serial_putchar(self.usb_recv_buffer[self.i_usb_recv_buffer]));
         }
-        rvl_led_link_run(true);
     }
 
     PT_END(&self.pt_recv);
@@ -120,7 +119,6 @@ PT_THREAD(rvl_usb_serial1_send_poll(void))
         usbd_ep_send(&USB_OTG_dev, CDC_ACM1_DATA_IN_EP, (uint8_t*)(self.usb_send_buffer), i);
 
         PT_WAIT_UNTIL(&self.pt_send, cdc_acm1_packet_sent);
-        rvl_led_link_run(true);
     }
 
     PT_END(&self.pt_send);

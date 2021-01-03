@@ -5,7 +5,7 @@
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/arch/gd32vf103c/longan-nano/link-config.h
- * \brief Configuration header file for the Longan Nano board
+ * \brief Link configuration header file for the Longan Nano board
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.

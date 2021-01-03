@@ -1,11 +1,11 @@
-#ifndef __RV_LINK_LINK_ARCH_GD32VF103C_GD32VF103C_START_CONFIG_H__
-#define __RV_LINK_LINK_ARCH_GD32VF103C_GD32VF103C_START_CONFIG_H__
+#ifndef __RV_LINK_LINK_ARCH_GD32VF103C_GD32VF103C_START_LINK_CONFIG_H__
+#define __RV_LINK_LINK_ARCH_GD32VF103C_GD32VF103C_START_LINK_CONFIG_H__
 /*
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
- * \file  rv-link/link/arch/gd32vf103c/longan-nano/link-config.h
- * \brief Configuration header file for the Longan Nano board
+ * \file  rv-link/link/arch/gd32vf103c/gd32vf103c-start/link-config.h
+ * \brief Link configuration header file for the GD32VF103C-START board
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -44,4 +44,4 @@
 
 #define RVL_LINK_CONFIG_NAME                "GD32VF103C-START"
 
-#endif /* __RV_LINK_LINK_ARCH_GD32VF103C_GD32VF103C_START_CONFIG_H__ */
+#endif /* __RV_LINK_LINK_ARCH_GD32VF103C_GD32VF103C_START_LINK_CONFIG_H__ */

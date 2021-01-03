@@ -5,13 +5,13 @@
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/arch/gd32vf103c/jtag-inline.h
- * \brief JTAG inline functions
+ * \brief JTAG inline functions for GD32VF193C boards
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
  * You may obtain a copy of Mulan PSL v1 at:
  *     http://license.coscl.org.cn/MulanPSL
- * 
+ *
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
@@ -26,15 +26,7 @@
 #include <gd32vf103-sdk/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h>
 
 /* own component header file includes */
-#if defined(RVL_LINK_GD32VF103C_START)
-#include <rv-link/link/arch/gd32vf103c/gd32vf103c-start/link-config.h>
-#elif defined(RVL_LINK_LONGAN_NANO)
-#include <rv-link/link/arch/gd32vf103c/longan-nano/link-config.h>
-#elif defined(RVL_LINK_LONGAN_NANO_ALT)
-#include <rv-link/link/arch/gd32vf103c/longan-nano-alt/jtag-inline.h>
-#else
-#error No RVL_LINK_X defined
-#endif
+#include <rv-link/link/arch/gd32vf103c/link-config.h>
 
 
 static inline void rvl_jtag_tms_put(int tms)

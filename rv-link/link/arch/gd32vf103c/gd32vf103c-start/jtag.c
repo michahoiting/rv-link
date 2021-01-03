@@ -2,8 +2,8 @@
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
- * \file  rv-link/link/arch/gd32vf103c/jtag.c
- * \brief TODO
+ * \file  rv-link/link/arch/gd32vf103c/gd32vf103c-start/jtag.c
+ * \brief JTAG functions for the GD32VF103C-START board.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -24,7 +24,7 @@
 #include <gd32vf103-sdk/RISCV/drivers/riscv_encoding.h>
 
 /* own component header file includes */
-#include <rv-link/link/arch/gd32vf103c/jtag-inline.h>
+#include <rv-link/link/arch/gd32vf103c/gd32vf103c-start/link-config.h>
 
 
 void rvl_jtag_init(void)

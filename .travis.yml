@@ -1,0 +1,18 @@
+language: python
+python:
+    - "3.7"
+
+# Cache PlatformIO packages using Travis CI container-based infrastructure
+sudo: false
+cache:
+    directories:
+        - "~/.platformio"
+        - $HOME/.cache/pip
+
+install:
+    - pip install -U platformio
+    - pio update
+    - pio platform install --with-package tool-dfuutil gd32v
+    - pio platform update
+script:
+    - pio run

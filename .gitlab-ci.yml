@@ -1,4 +1,4 @@
-image: mhoiting/platformio-cli-gd32v-docker:latest
+image: mhoiting/platformio-cli-gd32v-docker:v0.1.0
 
 stages:
     - build

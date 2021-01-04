@@ -1,5 +1,8 @@
 # RV-LINK
 
+[![Travis Build Status](https://travis-ci.com/michahoiting/rv-link.svg?branch=master)](https://travis-ci.com/michahoiting/rv-link)
+[![GitLab Build Status](https://gitlab.melroy.org/micha/rv-link/badges/master/pipeline.svg)](https://gitlab.melroy.org/micha/rv-link/badges/master/pipeline.svg)
+
 用 RISC-V 开发板实现的 RISC-V 仿真器。
 
 RV-LINK 的目标是做 RISC-V 仿真器，但是 RV-LINK 项目并不包含硬件，RV-LINK 为现有的 RISC-V 开发板编写固件，烧录了 RV-LINK 固件的开发板可以做为仿真器使用。
@@ -36,3 +39,6 @@ RV-LINK 可以调试的 RISC-V MCU：
 
 ## 类似项目
 - [Black Magic](https://github.com/blacksphere/blackmagic)，用于 ARM Cortex-A/M，同样采取通过 USB 串口提供 GDB Server 的办法。
+
+## Downloads
+[Artifacts](https://gitlab.melroy.org/micha/rv-link/-/jobs/artifacts/master/download?job=build)

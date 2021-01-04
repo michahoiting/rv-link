@@ -5,7 +5,7 @@
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/arch/gd32vf103c/jtag-inline.h
- * \brief JTAG inline functions for GD32VF193C boards
+ * \brief Common JTAG inline functions for GD32VF193C boards.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.

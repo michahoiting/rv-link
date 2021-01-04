@@ -4,7 +4,7 @@
  *     Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  *     \file    rv-link/link/serial.h
- *     \brief   Functions to handle a USART connected to the target machine.
+ *     \brief   Functions to handle the  USART connected to the target machine.
  *              The rvl_usb_serial1 realizes the serial connection with a
  *              (configurable) USART of target machine, and uses it as a USB
  *              virtual serial port.

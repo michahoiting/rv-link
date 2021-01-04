@@ -5,7 +5,7 @@
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/arch/gd32vf103c/link-config.h
- * \brief Top level link configuration header file for GD32VF103C boards
+ * \brief Top level link configuration header file for GD32VF103C boards.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -23,9 +23,8 @@
 #include <rv-link/link/arch/gd32vf103c/gd32vf103c-start/link-config.h>
 #elif defined(RVL_LINK_LONGAN_NANO)
 #include <rv-link/link/arch/gd32vf103c/longan-nano/link-config.h>
-//TODO Fix and verify longan-nano-alt build. See also issue #43.
-//#elif defined(RVL_LINK_LONGAN_NANO_ALT)
-//#include <rv-link/link/arch/gd32vf103c/longan-nano-alt/link-config.h>
+#elif defined(RVL_LINK_LONGAN_NANO_ALT)
+#include <rv-link/link/arch/gd32vf103c/longan-nano-alt/link-config.h>
 #else
 #error No RVL_LINK_X defined
 #endif

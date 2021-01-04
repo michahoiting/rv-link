@@ -5,7 +5,7 @@
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/details/link-config.h
- * \brief TODO
+ * \brief Top level link configuration header file for supported boards.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.

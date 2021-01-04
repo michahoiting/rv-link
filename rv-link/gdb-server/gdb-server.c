@@ -2,8 +2,8 @@
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
- * \file  TODO
- * \brief TODO
+ * \file  rv-link/gdb-server/gdb-server.c
+ * \brief Implementation of the GDB server.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.

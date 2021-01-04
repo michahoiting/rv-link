@@ -11,6 +11,7 @@ build:
         name: "firmware"
         expire_in: 1 week
         paths:
-            - .pio/build/sipeed-longan-nano/firmware.*
             - .pio/build/gd32vf103c-start/firmware.*
+            - .pio/build/sipeed-longan-nano/firmware.*
+            - .pio/build/sipeed-longan-nano-alt/firmware.*
         when: always

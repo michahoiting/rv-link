@@ -1,8 +1,8 @@
 /**
  *     Copyright (c) 2019, GigaDevice Semiconductor Inc.
  *
- *     \file  usbd_conf.h
- *     \brief the header file of USB device-mode configuration
+ *     \file  rv-link/link/arch/gd32vf103c/usbd_conf.h
+ *     \brief The header file of USB device-mode configuration.
  *     \version 2019-6-5, V1.0.0, demo for GD32VF103
  *
  *     Redistribution and use in source and binary forms, with or without modification,

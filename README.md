@@ -15,4 +15,4 @@ The main developments take place in GitLab [here](https://gitlab.melroy.org/mich
 **See also my blog [Using JTAG on the GD32VF103 using RV-Link](https://gitlab.melroy.org/micha/blogs/-/blob/master/Using-JTAG-on-the-GD32VF103-using-RV-Link/Using-JTAG-on-the-GD32VF103-using-RV-Link.md)**
 
 ## Downloads
-[Artifacts](https://gitlab.melroy.org/micha/rv-link/-/jobs/artifacts/master/download?job=build)
+[Download artifacts](https://gitlab.melroy.org/micha/rv-link/-/jobs/artifacts/master/download?job=build)

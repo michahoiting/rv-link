@@ -15,7 +15,6 @@ See the Mulan PSL v1 for more details.
 
 #include <rv-link/details/assert.h>
 #include <rv-link/link/jtag.h>
-#include <rv-link/link/jtag-inline.h>
 #include <rv-link/target/target-config.h>
 
 

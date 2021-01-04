@@ -132,6 +132,8 @@ void rvl_serial_init(void)
     rcu_periph_clock_enable(UART_CLK);
 
 #ifdef UART_GPIO_REMAP
+    rcu_periph_clock_enable(RCU_AF);
+
     /* enable USART GPIO remapping */
     gpio_pin_remap_config(UART_GPIO_REMAP, ENABLE);
 #endif

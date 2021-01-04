@@ -1,6 +1,6 @@
 /*!
-    \file  gd32vf103_it.c
-    \brief main interrupt service routines
+    \file  rv-link/link/arch/gd32vf103c/details/gd32vf103_it.c
+    \brief Main interrupt service routines.
 
     \version 2019-6-5, V1.0.0, demo for GD32VF103
 */

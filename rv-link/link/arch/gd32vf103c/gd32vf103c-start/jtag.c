@@ -3,7 +3,7 @@
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/arch/gd32vf103c/gd32vf103c-start/jtag.c
- * \brief JTAG functions for the GD32VF103C-START board.
+ * \brief JTAG functions specifically for the GD32VF103C-START board.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -21,7 +21,6 @@
 
 /* other library header file includes */
 #include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
-#include <gd32vf103-sdk/RISCV/drivers/riscv_encoding.h>
 
 /* own component header file includes */
 #include <rv-link/link/arch/gd32vf103c/gd32vf103c-start/link-config.h>
@@ -59,13 +58,4 @@ void rvl_jtag_srst_put(int srst)
         gpio_init(RVL_LINK_SRST_PORT, GPIO_MODE_OUT_OD, GPIO_OSPEED_10MHZ, RVL_LINK_SRST_PIN);
     }
 #endif
-}
-
-
-void rvl_jtag_delay(uint32_t us)
-{
-    uint32_t start = read_csr(mcycle);
-    uint32_t period = us * 96; // CPU run @96MHz
-
-    while (read_csr(mcycle) - start < period) ;
 }

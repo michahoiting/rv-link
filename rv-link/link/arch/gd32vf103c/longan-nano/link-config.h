@@ -5,7 +5,7 @@
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/arch/gd32vf103c/longan-nano/link-config.h
- * \brief Link configuration header file for the Longan Nano board
+ * \brief Link configuration header file for the Longan Nano board.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -21,6 +21,7 @@
 /* other project header file includes */
 #include <gd32vf103-sdk/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h>
 
+#define RVL_LINK_CONFIG_NAME                "Longan Nano"
 
 /* JTAG TCK pin definition */
 #define RVL_LINK_TCK_PORT                   GPIOA
@@ -41,7 +42,5 @@
 /* JTAG SRST pin definition */
 #undef RVL_LINK_SRST_PORT
 #undef RVL_LINK_SRST_PIN                    /* No JTAG SRST pin defined */
-
-#define RVL_LINK_CONFIG_NAME                "Longan Nano"
 
 #endif /* __RV_LINK_LINK_ARCH_GD32VF103C_LONGAN_NANO_LINK_CONFIG_H__ */

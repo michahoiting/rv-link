@@ -5,7 +5,7 @@
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/link.h
- * \brief Link features
+ * \brief Interface of link related functions.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -20,4 +20,4 @@
 
 const char* rvl_link_get_name(void);
 
-#endif // __RV_LINK_LINK_LINK_H__
+#endif /* __RV_LINK_LINK_LINK_H__ */

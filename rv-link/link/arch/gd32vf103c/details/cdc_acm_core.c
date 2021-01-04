@@ -2,7 +2,7 @@
  *     Copyright (c) 2019, GigaDevice Semiconductor Inc.
  *
  *     \file  rv-link/link/arch/gd32vf103c/details/cdc_acm_core.c
- *     \brief CDC ACM driver
+ *     \brief CDC ACM driver.
  *     \version 2019-6-5, V1.0.0, demo for GD32VF103
  *
  *     Redistribution and use in source and binary forms, with or without modification,

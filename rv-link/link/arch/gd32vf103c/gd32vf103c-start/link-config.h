@@ -5,7 +5,7 @@
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/arch/gd32vf103c/gd32vf103c-start/link-config.h
- * \brief Link configuration header file for the GD32VF103C-START board
+ * \brief Link configuration header file for the GD32VF103C-START board.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -21,6 +21,7 @@
 /* other project header file includes */
 #include <gd32vf103-sdk/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h>
 
+#define RVL_LINK_CONFIG_NAME                "GD32VF103C-START"
 
 /* JTAG TCK pin definition */
 #define RVL_LINK_TCK_PORT                   GPIOB
@@ -41,7 +42,5 @@
 /* JTAG SRST pin definition */
 #define RVL_LINK_SRST_PORT                  GPIOB
 #define RVL_LINK_SRST_PIN                   GPIO_PIN_0 /* PB0 */
-
-#define RVL_LINK_CONFIG_NAME                "GD32VF103C-START"
 
 #endif /* __RV_LINK_LINK_ARCH_GD32VF103C_GD32VF103C_START_LINK_CONFIG_H__ */

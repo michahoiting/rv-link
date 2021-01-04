@@ -4,8 +4,9 @@
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
- * \file  TODO
- * \brief TODO
+ * \file  rv-link/link/arch/gd32vf103c/usb-serial.c
+ * \brief Application defined handling of the CDC ACM USB driver and handling of
+ *        CDC_ACM_DATA EP of the CDC ACM USB device.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.

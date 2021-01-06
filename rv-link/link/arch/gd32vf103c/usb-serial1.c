@@ -28,7 +28,6 @@
 
 /* own component header file includes */
 #include <rv-link/link/arch/gd32vf103c/details/cdc_acm_core.h>
-#include <rv-link/link/led.h>
 #include <rv-link/link/serial.h>
 
 

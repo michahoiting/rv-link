@@ -42,14 +42,14 @@ typedef struct rvl_led_s
 static rvl_led_t rvl_led_i;
 #define self rvl_led_i
 
-#define LED_RED_PORT            GPIOC
-#define LED_RED_PIN             GPIO_PIN_13
+#define LED_RBG_RED_PORT            GPIOC
+#define LED_RBG_RED_PIN             GPIO_PIN_13
 
-#define LED_GREEN_PORT          GPIOA
-#define LED_GREEN_PIN           GPIO_PIN_1
+#define LED_RBG_GREEN_PORT          GPIOA
+#define LED_RBG_GREEN_PIN           GPIO_PIN_1
 
-#define LED_BLUE_PORT           GPIOA
-#define LED_BLUE_PIN            GPIO_PIN_2
+#define LED_RBG_BLUE_PORT           GPIOA
+#define LED_RBG_BLUE_PIN            GPIO_PIN_2
 
 void rvl_led_init(void)
 {
@@ -61,14 +61,14 @@ void rvl_led_init(void)
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOC);
 
-    gpio_init(LED_RED_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, LED_RED_PIN);
-    gpio_bit_set(LED_RED_PORT, LED_RED_PIN);
+    gpio_init(LED_RBG_RED_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, LED_RBG_RED_PIN);
+    gpio_bit_set(LED_RBG_RED_PORT, LED_RBG_RED_PIN);
 
-    gpio_init(LED_GREEN_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, LED_GREEN_PIN);
-    gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
+    gpio_init(LED_RBG_GREEN_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, LED_RBG_GREEN_PIN);
+    gpio_bit_set(LED_RBG_GREEN_PORT, LED_RBG_GREEN_PIN);
 
-    gpio_init(LED_BLUE_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, LED_BLUE_PIN);
-    gpio_bit_set(LED_BLUE_PORT, LED_BLUE_PIN);
+    gpio_init(LED_RBG_BLUE_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, LED_RBG_BLUE_PIN);
+    gpio_bit_set(LED_RBG_BLUE_PORT, LED_RBG_BLUE_PIN);
 }
 
 
@@ -90,11 +90,11 @@ PT_THREAD(rvl_led_poll(void))
         self.off_period = 100 * 1000 * 1000;
     }
 
-    gpio_bit_reset(LED_GREEN_PORT, LED_GREEN_PIN);
+    gpio_bit_reset(LED_RBG_GREEN_PORT, LED_RBG_GREEN_PIN);
     self.mcycle_start = read_csr(mcycle);
     PT_WAIT_UNTIL(&self.pt, read_csr(mcycle) - self.mcycle_start >= self.on_period);
 
-    gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
+    gpio_bit_set(LED_RBG_GREEN_PORT, LED_RBG_GREEN_PIN);
     self.mcycle_start = read_csr(mcycle);
     PT_WAIT_UNTIL(&self.pt, read_csr(mcycle) - self.mcycle_start >= self.off_period);
 
@@ -108,27 +108,22 @@ void rvl_led_gdb_connect(int connect)
 }
 
 
-void rvl_led_link_run(int on)
-{
-    if (!on) {
-        gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
-    } else {
-        gpio_bit_reset(LED_GREEN_PORT, LED_GREEN_PIN);
-    }
-}
-
-
 void rvl_led_target_run(int on)
 {
     self.target_run = (bool)on;
 }
 
 
+void rvl_led_link_run(int on)
+{
+}
+
+
 void rvl_led_assert(int on)
 {
     if (on) {
-        gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
+        gpio_bit_reset(LED_RBG_RED_PORT, LED_RBG_RED_PIN);
     } else {
-        gpio_bit_set(LED_RED_PORT, LED_RED_PIN);
+        gpio_bit_set(LED_RBG_RED_PORT, LED_RBG_RED_PIN);
     }
 }

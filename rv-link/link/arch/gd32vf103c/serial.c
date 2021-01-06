@@ -26,6 +26,9 @@
 #include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
 #include <pt/pt.h>
 
+/* own component header file includes */
+#include <rv-link/link/led.h>
+
 
 #define RVL_SERIAL_BUFFER_SIZE 64
 
@@ -178,6 +181,7 @@ PT_THREAD(rvl_serial_putchar(uint8_t c))
     PT_WAIT_UNTIL(&self.pt_send, usart_flag_get(UART_ITF, USART_FLAG_TBE));
 
     usart_data_transmit(UART_ITF, c);
+    rvl_led_indicator(RVL_LED_INDICATOR_LINK_SER_TX, true);
 
     PT_END(&self.pt_send);
 }
@@ -230,5 +234,6 @@ void USART2_IRQHandler(void)
         /* read one byte from the receive data register */
         c = (uint8_t)usart_data_receive(UART_ITF);
         rvl_serial_recv_buf_put(c);
+        rvl_led_indicator(RVL_LED_INDICATOR_LINK_SER_RX, true);
     }
 }

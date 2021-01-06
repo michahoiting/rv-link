@@ -26,7 +26,7 @@ typedef struct rvl_led_s
     bool target_run;
     uint32_t on_period;
     uint32_t off_period;
-    uint32_t mcycle_start;
+    uint32_t timer;
 } rvl_led_t;
 
 static rvl_led_t rvl_led_i;
@@ -73,12 +73,12 @@ PT_THREAD(rvl_led_poll(void))
     }
 
     gpio_bit_set(LED1_PORT, LED1_PIN);
-    self.mcycle_start = read_csr(mcycle);
-    PT_WAIT_UNTIL(&self.pt, read_csr(mcycle) - self.mcycle_start >= self.on_period);
+    self.timer = read_csr(mcycle);
+    PT_WAIT_UNTIL(&self.pt, read_csr(mcycle) - self.timer >= self.on_period);
 
     gpio_bit_reset(LED1_PORT, LED1_PIN);
-    self.mcycle_start = read_csr(mcycle);
-    PT_WAIT_UNTIL(&self.pt, read_csr(mcycle) - self.mcycle_start >= self.off_period);
+    self.timer = read_csr(mcycle);
+    PT_WAIT_UNTIL(&self.pt, read_csr(mcycle) - self.timer >= self.off_period);
 
     PT_END(&self.pt);
 }

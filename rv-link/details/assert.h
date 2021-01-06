@@ -30,9 +30,8 @@
       rvl_led_assert(1); \
       for(;;) {} } \
   } while (0)
-
 #else
-#define rvl_assert(cond)
+#define rvl_assert(cond) ((void)0)
 #endif
 
 #endif /* __RV_LINK_DETAILS_ASSERT_H__ */

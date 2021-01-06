@@ -21,7 +21,8 @@
 /* own component header file includes */
 #if defined(RVL_LINK_GD32VF103C_START) || \
     defined(RVL_LINK_LONGAN_NANO) || \
-    defined(RVL_LINK_LONGAN_NANO_ALT)
+    defined(RVL_LINK_LONGAN_NANO_ALT) || \
+    defined(RVL_LINK_RVL_PROBE)
 #include <rv-link/link/arch/gd32vf103c/jtag-inline.h>
 #else
 #error No RVL_LINK_X defined

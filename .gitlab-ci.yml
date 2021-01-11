@@ -2,6 +2,7 @@ image: mhoiting/platformio-cli-gd32v-docker:v0.1.0
 
 stages:
     - build
+    - publish
 
 build:
     stage: build
@@ -15,3 +16,11 @@ build:
             - .pio/build/**/rvlink_fw_*.bin
             - .pio/build/**/rvlink_fw_*.hex
         when: always
+
+publish:
+    stage: publish
+    needs: ["build"]
+    only:
+        - tags
+    except:
+        - branches

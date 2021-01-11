@@ -27,7 +27,6 @@
 #include <pt/pt.h>
 #include <pt/timer.h>
 #include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
-#include <gd32vf103-sdk/RISCV/drivers/riscv_encoding.h>
 
 /* RV-Link assert led */
 #define LED_RGB_RED_PORT            GPIOC
@@ -39,37 +38,30 @@
 #define LED_RGB_GREEN_PIN           GPIO_PIN_1
 #define LED_RGB_GREEN_RCU           RCU_GPIOA
 
-/* unused led */
+/* unused RGB sub-led */
 #define LED_RGB_BLUE_PORT           GPIOA
 #define LED_RGB_BLUE_PIN            GPIO_PIN_2
 #define LED_RGB_BLUE_RCU            RCU_GPIOA
 
-/* USB communication Rx/Tx */
-#define LED_USB_RED_PORT            GPIOA
-#define LED_USB_RED_PIN             GPIO_PIN_4
-#define LED_USB_RED_RCU             RCU_GPIOA
+/* USB communication indicator led */
+#define LED_USB_COM_PORT            GPIOB
+#define LED_USB_COM_PIN             GPIO_PIN_4
+#define LED_USB_COM_RCU             RCU_GPIOB
 
-#define LED_USB_GREEN_PORT          GPIOA
-#define LED_USB_GREEN_PIN           GPIO_PIN_5
-#define LED_USB_GREEN_RCU           RCU_GPIOA
+/* Target CAN bus communication indicator led */
+#define LED_CAN_COM_PORT            GPIOB
+#define LED_CAN_COM_PIN             GPIO_PIN_5
+#define LED_CAN_COM_RCU             RCU_GPIOB
 
-/* Target serial communication Rx/Tx */
-#define LED_SER_RED_PORT            GPIOA
-#define LED_SER_RED_PIN             GPIO_PIN_0
-#define LED_SER_RED_RCU             RCU_GPIOA
+/* Target serial communication RX/TX indicator leds */
+#define LED_SER_RX_PORT             GPIOB
+#define LED_SER_RX_PIN              GPIO_PIN_6
+#define LED_SER_RX_RCU              RCU_GPIOB
 
-#define LED_SER_GREEN_PORT          GPIOA
-#define LED_SER_GREEN_PIN           GPIO_PIN_3
-#define LED_SER_GREEN_RCU           RCU_GPIOA
+#define LED_SER_TX_PORT             GPIOB
+#define LED_SER_TX_PIN              GPIO_PIN_7
+#define LED_SER_TX_RCU              RCU_GPIOB
 
-/* Target CAN bus communication Rx/Tx */
-#define LED_CAN_RED_PORT            GPIOC
-#define LED_CAN_RED_PIN             GPIO_PIN_15
-#define LED_CAN_RED_RCU             RCU_GPIOC
-
-#define LED_CAN_GREEN_PORT          GPIOC
-#define LED_CAN_GREEN_PIN           GPIO_PIN_14
-#define LED_CAN_GREEN_RCU           RCU_GPIOC
 
 
 typedef struct rvl_led_state
@@ -103,17 +95,15 @@ const static struct led_config {
     /* RVL-Link internal failure */
     {LED_RGB_RED_PORT, LED_RGB_RED_PIN, LED_RGB_RED_RCU},
 
-    /* USB communication Tx/Rx */
-    {LED_USB_GREEN_PORT, LED_USB_GREEN_PIN, LED_USB_GREEN_RCU},
-    {LED_USB_RED_PORT, LED_USB_RED_PIN, LED_USB_RED_RCU},
+    /* USB communication */
+    {LED_USB_COM_PORT, LED_USB_COM_PIN, LED_USB_COM_RCU},
+
+    /* Target CAN bus communication */
+    {LED_CAN_COM_PORT, LED_CAN_COM_PIN, LED_CAN_COM_RCU},
 
     /* Target serial communication Tx/Rx */
-    {LED_SER_GREEN_PORT, LED_SER_GREEN_PIN, LED_SER_GREEN_RCU},
-    {LED_SER_RED_PORT, LED_SER_RED_PIN, LED_SER_RED_RCU},
-
-    /* Target CAN bus communication Tx/Rx */
-    {LED_CAN_GREEN_PORT, LED_CAN_GREEN_PIN, LED_CAN_GREEN_RCU},
-    {LED_CAN_RED_PORT, LED_CAN_RED_PIN, LED_CAN_RED_RCU},
+    {LED_SER_RX_PORT, LED_SER_RX_PIN, LED_SER_RX_RCU},
+    {LED_SER_TX_PORT, LED_SER_TX_PIN, LED_SER_TX_RCU},
 
     /* Unused led */
     {LED_RGB_BLUE_PORT, LED_RGB_BLUE_PIN, LED_RGB_BLUE_RCU},
@@ -192,7 +182,7 @@ void rvl_led_indicator(rvl_led_indicator_enum_t ind, int on)
 static void rvl_led_init_gpio(uint32_t port, uint32_t pin, rcu_periph_enum rcu)
 {
     rcu_periph_clock_enable(rcu);
-    gpio_init(port, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, pin);
+    gpio_init(port, GPIO_MODE_OUT_OD, GPIO_OSPEED_2MHZ, pin);
     gpio_bit_set(port, pin);
 }
 
@@ -216,8 +206,8 @@ static PT_THREAD(rvl_led_indicator_poll(rvl_led_indicator_enum_t ind, rvl_led_st
     led_state->on = false;
 
     /* pulse led */
-#define RVL_LED_INDICATOR_PULSE_ON_PERIOD  (20 * 1000)
-#define RVL_LED_INDICATOR_PULSE_OFF_PERIOD (10 * 1000)
+#define RVL_LED_INDICATOR_PULSE_ON_PERIOD  (200 * 1000)
+#define RVL_LED_INDICATOR_PULSE_OFF_PERIOD (100 * 1000)
 
     gpio_bit_reset(LED[ind].port, LED[ind].pin);
     timer_set(&led_state->timer, RVL_LED_INDICATOR_PULSE_ON_PERIOD);
@@ -250,10 +240,12 @@ static PT_THREAD(rvl_led_gdb_connect_poll(rvl_led_indicator_enum_t ind, rvl_led_
     }
 
     gpio_bit_reset(LED[RVL_LED_INDICATOR_GDB_CONNECT].port, LED[RVL_LED_INDICATOR_GDB_CONNECT].pin);
+
     timer_set(&led_state->timer, led_state->on_period);
     PT_WAIT_UNTIL(&led_state->pt, timer_expired(&led_state->timer));
 
     gpio_bit_set(LED[RVL_LED_INDICATOR_GDB_CONNECT].port, LED[RVL_LED_INDICATOR_GDB_CONNECT].pin);
+
     timer_set(&led_state->timer, led_state->off_period);
     PT_WAIT_UNTIL(&led_state->pt, timer_expired(&led_state->timer));
 

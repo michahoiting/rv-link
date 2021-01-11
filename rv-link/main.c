@@ -21,15 +21,18 @@
 /* other project header file includes */
 #include <rv-link/gdb-server/gdb-packet.h>
 #include <rv-link/gdb-server/gdb-server.h>
+#include <rv-link/link/can.h>
 #include <rv-link/link/led.h>
 #include <rv-link/link/usb-serial.h>
 
 int main(void)
 {
-    gdb_server_init();
     rvl_led_init();
+    rvl_can_init();
     rvl_usb_serial_init();
     rvl_usb_serial1_init();
+
+    gdb_server_init();
 
     for(;;) {
         (void) PT_SCHEDULE(rvl_led_poll());

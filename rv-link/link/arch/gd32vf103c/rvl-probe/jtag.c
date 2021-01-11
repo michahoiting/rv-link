@@ -29,33 +29,49 @@
 
 void rvl_jtag_init(void)
 {
+#if RVL_LINK_TMS_CLK == RCU_GPIOA || \
+    RVL_LINK_TCK_CLK == RCU_GPIOA || \
+    RVL_LINK_TDO_CLK == RCU_GPIOA || \
+    RVL_LINK_TDI_CLK == RCU_GPIOA
     rcu_periph_clock_enable(RCU_GPIOA);
+#endif
+
+#if RVL_LINK_TMS_CLK == RCU_GPIOB || \
+    RVL_LINK_TCK_CLK == RCU_GPIOB || \
+    RVL_LINK_TDO_CLK == RCU_GPIOB || \
+    RVL_LINK_TDI_CLK == RCU_GPIOB
     rcu_periph_clock_enable(RCU_GPIOB);
+#endif
+
     rcu_periph_clock_enable(RCU_AF);
 
-    gpio_init(RVL_LINK_TCK_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, RVL_LINK_TCK_PIN);
     gpio_init(RVL_LINK_TMS_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, RVL_LINK_TMS_PIN);
-    gpio_init(RVL_LINK_TDI_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, RVL_LINK_TDI_PIN);
+    gpio_init(RVL_LINK_TCK_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, RVL_LINK_TCK_PIN);
     gpio_init(RVL_LINK_TDO_PORT, GPIO_MODE_IPU, 0, RVL_LINK_TDO_PIN);
+    gpio_init(RVL_LINK_TDI_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, RVL_LINK_TDI_PIN);
 }
 
 
 void rvl_jtag_fini(void)
 {
-    gpio_init(RVL_LINK_TCK_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TCK_PIN);
     gpio_init(RVL_LINK_TMS_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TMS_PIN);
-    gpio_init(RVL_LINK_TDI_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TDI_PIN);
+    gpio_init(RVL_LINK_TCK_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TCK_PIN);
     gpio_init(RVL_LINK_TDO_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TDO_PIN);
+    gpio_init(RVL_LINK_TDI_PORT, GPIO_MODE_AIN, 0, RVL_LINK_TDI_PIN);
+#if defined(RVL_LINK_SRST_PORT)
     gpio_init(RVL_LINK_SRST_PORT, GPIO_MODE_AIN, 0, RVL_LINK_SRST_PIN);
+#endif
 }
 
 
 void rvl_jtag_srst_put(int srst)
 {
+#if defined(RVL_LINK_SRST_PORT)
     if (srst) {
         gpio_init(RVL_LINK_SRST_PORT, GPIO_MODE_AIN, 0, RVL_LINK_SRST_PIN);
     } else {
         gpio_bit_reset(RVL_LINK_SRST_PORT, RVL_LINK_SRST_PIN);
         gpio_init(RVL_LINK_SRST_PORT, GPIO_MODE_OUT_OD, GPIO_OSPEED_10MHZ, RVL_LINK_SRST_PIN);
     }
+#endif
 }

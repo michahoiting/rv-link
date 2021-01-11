@@ -11,7 +11,6 @@
  */
 
 /* system library header file includes */
-#include <stdbool.h>
 #include <stdint.h>
 
 /* other library header file includes */

@@ -105,7 +105,7 @@ PT_THREAD(rvl_usb_serial_recv_poll(void))
         usbd_ep_recev(&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, (uint8_t*)(usb_serial_recv_buffer), CDC_ACM_DATA_PACKET_SIZE);
 
         PT_WAIT_UNTIL(&self.pt_recv, cdc_acm0_packet_received);
-        rvl_led_indicator(RVL_LED_INDICATOR_LINK_USB_RX, true);
+        rvl_led_indicator(RVL_LED_INDICATOR_LINK_USB, true);
 
         PT_WAIT_UNTIL(&self.pt_recv, gdb_packet_process_command(usb_serial_recv_buffer, cdc_acm0_packet_length));
     }
@@ -127,7 +127,7 @@ PT_THREAD(rvl_usb_serial_send_poll(void))
         usbd_ep_send(&USB_OTG_dev, CDC_ACM_DATA_IN_EP, (uint8_t*)(self.send_buffer), self.send_len);
 
         PT_WAIT_UNTIL(&self.pt_send, cdc_acm0_packet_sent);
-        rvl_led_indicator(RVL_LED_INDICATOR_LINK_USB_TX, true);
+        rvl_led_indicator(RVL_LED_INDICATOR_LINK_USB, true);
 
         gdb_packet_release_response();
     }

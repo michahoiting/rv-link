@@ -37,7 +37,6 @@ OF SUCH DAMAGE.
 
 // #include "gd32vf103_adc.h"
 // #include "gd32vf103_bkp.h"
-// #include "gd32vf103_can.h"
 // #include "gd32vf103_crc.h"
 // #include "gd32vf103_dac.h"
 // #include "gd32vf103_dma.h"
@@ -48,6 +47,7 @@ OF SUCH DAMAGE.
 // #include "gd32vf103_rtc.h"
 // #include "gd32vf103_spi.h"
 // #include "gd32vf103_wwdgt.h"
+#include "gd32vf103_can.h"
 #include "gd32vf103_dbg.h"
 #include "gd32vf103_eclic.h"
 #include "gd32vf103_exti.h"

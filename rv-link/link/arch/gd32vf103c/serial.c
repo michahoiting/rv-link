@@ -32,12 +32,13 @@
 
 #define RVL_SERIAL_BUFFER_SIZE 64
 
-#if defined(RVL_SERIAL_USING_UART0)
+#if defined(RVL_SERIAL_USING_UART0_NO_REMAP)
     #define UART_ITF                       USART0
     #define UART_TX_PIN                    GPIO_PIN_9
     #define UART_RX_PIN                    GPIO_PIN_10
     #define UART_GPIO_PORT                 GPIOA
     #define UART_GPIO_CLK                  RCU_GPIOA
+    #undef UART_GPIO_REMAP
     #define UART_CLK                       RCU_USART0
     #define UART_IRQ                       USART0_IRQn
 #elif defined(RVL_SERIAL_USING_UART0_REMAP)
@@ -49,12 +50,13 @@
     #define UART_GPIO_REMAP                GPIO_USART0_REMAP
     #define UART_CLK                       RCU_USART0
     #define UART_IRQ                       USART0_IRQn
-#elif defined(RVL_SERIAL_USING_UART1)
+#elif defined(RVL_SERIAL_USING_UART1_NO_REMAP)
     #define UART_ITF                       USART1
     #define UART_TX_PIN                    GPIO_PIN_2
     #define UART_RX_PIN                    GPIO_PIN_3
     #define UART_GPIO_PORT                 GPIOA
     #define UART_GPIO_CLK                  RCU_GPIOA
+    #undef UART_GPIO_REMAP
     #define UART_CLK                       RCU_USART0
     #define UART_IRQ                       USART1_IRQn
 #elif defined(RVL_SERIAL_USING_UART1_REMAP)
@@ -67,13 +69,14 @@
     #define UART_GPIO_REMAP                GPIO_USART1_REMAP
     #define UART_CLK                       RCU_USART1
     #define UART_IRQ                       USART1_IRQn
-#elif defined(RVL_SERIAL_USING_UART2)
+#elif defined(RVL_SERIAL_USING_UART2_NO_REMAP)
     /* Remap available for 48-pin, 64-pin, 100-pin */
     #define UART_ITF                       USART2
     #define UART_TX_PIN                    GPIO_PIN_10
     #define UART_RX_PIN                    GPIO_PIN_11
     #define UART_GPIO_PORT                 GPIOB
     #define UART_GPIO_CLK                  RCU_GPIOB
+    #undef UART_GPIO_REMAP
     #define UART_CLK                       RCU_USART2
     #define UART_IRQ                       USART2_IRQn
 #elif defined(RVL_SERIAL_USING_UART2_PARTIAL_REMAP)
@@ -134,15 +137,15 @@ void rvl_serial_init(void)
     /* enable USART clock */
     rcu_periph_clock_enable(UART_CLK);
 
-#ifdef UART_GPIO_REMAP
     rcu_periph_clock_enable(RCU_AF);
 
+#ifdef UART_GPIO_REMAP
     /* enable USART GPIO remapping */
     gpio_pin_remap_config(UART_GPIO_REMAP, ENABLE);
 #endif
 
     /* connect port to USARTx_Tx */
-    gpio_init(UART_GPIO_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_10MHZ, UART_TX_PIN);
+    gpio_init(UART_GPIO_PORT, GPIO_MODE_AF_OD, GPIO_OSPEED_10MHZ, UART_TX_PIN);
 
     /* connect port to USARTx_Rx */
     gpio_init(UART_GPIO_PORT, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_10MHZ, UART_RX_PIN);
@@ -217,11 +220,11 @@ static void rvl_serial_recv_buf_put(uint8_t c)
 }
 
 
-#if defined(RVL_SERIAL_USING_UART0) || defined(RVL_SERIAL_USING_UART0_REMAP)
+#if defined(RVL_SERIAL_USING_UART0_NO_REMAP) || defined(RVL_SERIAL_USING_UART0_REMAP)
 void USART0_IRQHandler(void)
-#elif defined(RVL_SERIAL_USING_UART1) || defined(RVL_SERIAL_USING_UART1_REMAP)
+#elif defined(RVL_SERIAL_USING_UART1_NO_REMAP) || defined(RVL_SERIAL_USING_UART1_REMAP)
 void USART1_IRQHandler(void)
-#elif defined(RVL_SERIAL_USING_UART2) || \
+#elif defined(RVL_SERIAL_USING_UART2_NO_REMAP) || \
       defined(RVL_SERIAL_USING_UART2_PARTIAL_REMAP) || \
       defined(RVL_SERIAL_USING_UART2_FULL_REMAP)
 void USART2_IRQHandler(void)

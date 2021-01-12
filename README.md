@@ -100,4 +100,4 @@ This project aims to improve the original RL-LINK firmware with the following fe
 
 ## Notes
 [This](https://gitlab.melroy.org/micha/rv-link) repository originally based on the **RV-LINK** project of *Zoomdy* and was forked from the repository at https://gitee.com/zoomdy/RV-LINK at the v0.2.1 tag.
-It is mirrored to [GitHub](https://github.com/michahoiting/rv-link) and [Gitee](https://gitee.com/michahoiting/RV-LINK).
+It is mirrored to [GitHub](https://github.com/michahoiting/rv-link) and [Gitee](https://gitee.com/michahoiting/rv-link).

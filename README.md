@@ -55,7 +55,7 @@ The RV-Link firmware provides the following features when connected to a RISC-V 
 ## Building from source
 This project currently *only* supports the PlatformIO build system, so you will need to install [PlatformIO](https://docs.platformio.org/en/latest/what-is-platformio.html).
 
-Run the following commands to build all firmware variants and upload the RV-Link firware to e.g. the Sipeed Longan Nano RISC-V development board:
+Run the following commands to build all firmware variants and upload the RV-Link firmware to e.g. the Sipeed Longan Nano RISC-V development board:
 ```
 $ pio run
 $ pio run -e sipeed-longan-nano -t upload
@@ -89,10 +89,10 @@ This project aims to improve the original RL-LINK firmware with the following fe
 - Support for JTAG over SPI+DMA;
 - Additional diagnostics of the JTAG interface;
 - Support for a second USB to serial adapter;
-- A CAN bus logger;
+- A *CAN bus* logger;
 - Easy updating of the RV-Link firmware;
 - Support of running RL-Link on other host platforms (e.g. Linux PC+FT323 / Raspberry Pi);
-- Additional *mon* commands;
+- Additional `mon` commands;
 - Additional NVM configurable items.
 
 ## Downloads

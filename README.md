@@ -71,7 +71,7 @@ The pins that are used for the JTAG/TAP hardware interface are configured during
 - **rvl-probe**
   - `TMS = PA4/NSS0, TCK = PA5/SCK0, TDO = PA6/MISO0, TDI = PA7MOSI0, SRST = N/A`
 
-Optionally, the *UART0*('TX-PA9', 'RX-PA10') of the RV-Link can be connected to a UART of the target board.
+Optionally, the `UART0` serial interface of the RV-Link (`TX-PA9`, `RX-PA10`) can be connected to a UART of the target board.
 
 ***Note***
 >   When the JTAG pins are not properly connected, it is very likely that you will see the following ouput:

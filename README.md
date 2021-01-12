@@ -84,14 +84,14 @@ Optionally, the `UART0` serial interface of the RV-Link (`TX-PA9`, `RX-PA10`) ca
 >   ```
 
 ## Suggested improvements
-This project aims to improve the original RL-LINK firmware with the following features:
+This project aims to improve the original RV-LINK firmware with the following features:
 - Support for a newly designed hardware board with specific features, called *RVL-Probe*
 - Support for JTAG over SPI+DMA;
 - Additional diagnostics of the JTAG interface;
 - Support for a second USB to serial adapter;
 - A *CAN bus* logger;
 - Easy updating of the RV-Link firmware;
-- Support of running RL-Link on other host platforms (e.g. Linux PC+FT323 / Raspberry Pi);
+- Support of running RV-Link on other host platforms (e.g. Linux PC+FT323 / Raspberry Pi);
 - Additional `mon` commands;
 - Additional NVM configurable items.
 

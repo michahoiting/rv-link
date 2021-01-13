@@ -32,11 +32,11 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/drv_usb_hw.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/drv_usb_hw.h>
 
 #define TIM_MSEC_DELAY                          0x01
 #define TIM_USEC_DELAY                          0x02

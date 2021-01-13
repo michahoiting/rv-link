@@ -12,7 +12,7 @@
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
  * You may obtain a copy of Mulan PSL v1 at:
  *     http://license.coscl.org.cn/MulanPSL
- * 
+ *
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
@@ -38,10 +38,7 @@
 /* own component header file includes */
 #include <rv-link/link/arch/gd32vf103c/details/cdc_acm_core.h>
 
-
-int rvl_vcom_enable(void);
-
-usb_core_driver USB_OTG_dev;
+usb_core_driver USB_OTG_dev = {0};
 
 typedef struct rvl_usb_serial_s
 {
@@ -57,8 +54,9 @@ static rvl_usb_serial_t rvl_usb_serial_i;
 
 static uint8_t usb_serial_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
 
-PT_THREAD(rvl_usb_serial_recv_poll(void));
-PT_THREAD(rvl_usb_serial_send_poll(void));
+static PT_THREAD(rvl_usb_serial_recv_poll(void));
+static PT_THREAD(rvl_usb_serial_send_poll(void));
+
 
 void rvl_usb_serial_init(void)
 {
@@ -68,18 +66,14 @@ void rvl_usb_serial_init(void)
 
     eclic_global_interrupt_enable();
     eclic_priority_group_set(ECLIC_PRIGROUP_LEVEL2_PRIO2);
+
     usb_rcu_config();
     usb_timer_init();
     usb_intr_config();
 
-    int vcom = rvl_vcom_enable(); /* TODO: make sure gdb-server has been initialized */
-    USB_OTG_dev.dev.desc.dev_desc = (uint8_t*)&device_descriptor;
-    USB_OTG_dev.dev.desc.config_desc = 
-        vcom ? (uint8_t *) &configuration_descriptor_vcom_enable:
-               (uint8_t *) &configuration_descriptor_vcom_disable;
-    USB_OTG_dev.dev.desc.strings =
-        vcom ? usbd_strings_vcom_enable:usbd_strings_vcom_disable;
-    usbd_init(&USB_OTG_dev, USB_CORE_ENUM_FS, &usbd_cdc_cb);
+    cdc_acm_init_desc(&USB_OTG_dev.dev.desc);
+
+    usbd_init(&USB_OTG_dev, USB_CORE_ENUM_FS, &cdc_acm_usb_class_core);
 }
 
 
@@ -94,7 +88,7 @@ PT_THREAD(rvl_usb_serial_poll(void))
 }
 
 
-PT_THREAD(rvl_usb_serial_recv_poll(void))
+static PT_THREAD(rvl_usb_serial_recv_poll(void))
 {
     PT_BEGIN(&self.pt_recv);
 

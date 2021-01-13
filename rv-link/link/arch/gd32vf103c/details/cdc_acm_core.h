@@ -29,8 +29,8 @@
  * OF SUCH DAMAGE.
  */
 
-#ifndef __CDC_ACM_CORE_H__
-#define __CDC_ACM_CORE_H__
+#ifndef __RV_LINK_LINK_ARCH_G32VF103C_DETAILS_CDC_ACM_CORE_H__
+#define __RV_LINK_LINK_ARCH_G32VF103C_DETAILS_CDC_ACM_CORE_H__
 
 #include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/usb_ch9_std.h>
 #include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/usbd_enum.h>
@@ -127,13 +127,10 @@ typedef struct
     usb_descriptor_cdc_set_struct_vcom_enable         cdc[2];
 } usb_descriptor_configuration_set_struct_vcom_enable;
 
-extern void* const usbd_strings_vcom_disable[USB_STRING_COUNT-1];
-extern void* const usbd_strings_vcom_enable[USB_STRING_COUNT];
-extern const usb_desc_dev device_descriptor;
-extern const usb_descriptor_configuration_set_struct_vcom_disable configuration_descriptor_vcom_disable;
-extern const usb_descriptor_configuration_set_struct_vcom_enable configuration_descriptor_vcom_enable;
-
-extern usb_class_core usbd_cdc_cb;
+extern const usb_desc_dev cdc_acm_device_descriptor;
+extern const usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration_descriptor_vcom_disable;
+extern const usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_descriptor_vcom_enable;
+extern usb_class_core cdc_acm_usb_class_core;
 
 extern __IO uint8_t cdc_acm0_packet_received;
 extern __IO uint8_t cdc_acm0_packet_sent;
@@ -148,22 +145,6 @@ extern __IO uint8_t cdc_acm2_packet_sent;
 extern __IO uint32_t cdc_acm2_packet_length;
 
 /* function declarations */
+void cdc_acm_init_desc(usb_desc *desc);
 
-/* initialize the CDC ACM device */
-uint8_t cdc_acm_init(usb_dev *pudev, uint8_t config_index);
-/* de-initialize the CDC ACM device */
-uint8_t cdc_acm_deinit(usb_dev *pudev, uint8_t config_index);
-/* handle the CDC ACM class-specific requests */
-uint8_t cdc_acm_req_handler(usb_dev *pudev, usb_req *req);
-/* handle CDC ACM data */
-uint8_t cdc_acm_data_in_handler(usb_dev *pudev, uint8_t ep_id);
-uint8_t cdc_acm_data_out_handler(usb_dev *pudev, uint8_t ep_id);
-
-/* receive CDC ACM data */
-void cdc_acm_data_receive(usb_dev *pudev);
-/* send CDC ACM data */
-void cdc_acm_data_send(usb_dev *pudev, uint32_t data_len);
-/* command data received on control endpoint */
-uint8_t cdc_acm_EP0_RxReady(usb_dev  *pudev);
-
-#endif  /* __CDC_ACM_CORE_H__ */
+#endif  /* __RV_LINK_LINK_ARCH_G32VF103C_DETAILS_CDC_ACM_CORE_H__ */

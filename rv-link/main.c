@@ -29,10 +29,12 @@ int main(void)
 {
     rvl_led_init();
     rvl_can_init();
+
+    /* Due to nvm-config init-dependency, the gdb server must be initialized first */
+    gdb_server_init();
+
     rvl_usb_serial_init();
     rvl_usb_serial1_init();
-
-    gdb_server_init();
 
     for(;;) {
         (void) PT_SCHEDULE(rvl_led_poll());

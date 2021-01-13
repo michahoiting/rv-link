@@ -10,11 +10,15 @@ PURPOSE.
 See the Mulan PSL v1 for more details.
  */
 
+/* own header file include */
+#include <rv-link/link/link.h>
+
+/* own component header file includes */
 #include <rv-link/link/button.h>
 #include <rv-link/link/led.h>
 
+/* other library header file includes */
 #include <pt/pt.h>
-
 
 __attribute__((weak)) void rvl_button_init(void)
 {
@@ -68,3 +72,7 @@ __attribute__((weak)) int rvl_vcom_enable(void)
     return 0;
 }
 
+__attribute__((weak))  const char* rvl_link_get_unique_dev_id(char *str, size_t len)
+{
+    return "GD32XXX-3.0.0-7z8x9yer";
+}

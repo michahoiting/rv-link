@@ -30,7 +30,6 @@
 #include <rv-link/link/arch/gd32vf103c/details/cdc_acm_core.h>
 #include <rv-link/link/serial.h>
 
-
 extern usb_core_driver USB_OTG_dev;
 
 typedef struct usb_serial1_s

@@ -39,7 +39,7 @@ The RV-Link firmware provides the following features when connected to a RISC-V 
   ```
   $ pio device monitor -p /dev/ttyACM1 -b 115200
   ```
-  Before the USB-to-serial adapter feature can used, it must be activated with the GDB command `mon rvl vcom on` and subsequently the RV-Link must be power cycled to take effect. *Note*, this setting persistent across power cycles, as it is stored in the build-in Flash memory of the RV-Link.
+  Before the USB-to-serial adapter feature can used, it must be activated with the GDB command `mon rvl vcom on` and subsequently the RV-Link must be power cycled to take effect. *Note*, this setting is persistent across power cycles, as it is stored in the build-in Flash memory of the RV-Link.
 
 ## More resources
 - [Turn the Longan Nano development board into a RISC-V emulator](https://gitee.com/zoomdy/RV-LINK/wikis/%E5%B0%86%20Longan%20Nano%20%E5%BC%80%E5%8F%91%E6%9D%BF%E5%8F%98%E6%88%90%20RISC-V%20%E4%BB%BF%E7%9C%9F%E5%99%A8?sort_id=1667644)

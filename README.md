@@ -2,7 +2,7 @@
 [![Travis Build Status](https://travis-ci.com/michahoiting/rv-link.svg?branch=master)](https://travis-ci.com/michahoiting/rv-link)
 [![GitLab Build Status](https://gitlab.melroy.org/micha/rv-link/badges/master/pipeline.svg)](https://gitlab.melroy.org/micha/rv-link/badges/master/pipeline.svg)
 
-An JTAG emulator/debugger for RISC-V micro-controllers that runs on a RISC-V development board (Sipeed Longan Nano for example). 
+A JTAG emulator/debugger for RISC-V micro-controllers that runs on a RISC-V development board (Sipeed Longan Nano for example). 
 
 >JTAG emulators are the "umbilical cord" between PC software tools and MCU/DSP boards during development. Typically connecting to the host PC via parallel port or USB port, the JTAG emulator provides a standard, simple way to give the development tool software a direct connection to one or more MCU/DSP devices on the target board.
 
@@ -86,7 +86,7 @@ Optionally, the `UART0` serial interface of the RV-Link (`TX-PA9`, `RX-PA10`) ca
 >   ```
 
 ### A wiring example
-Here is an example of a Sipeed Longan Nano running the RV-Link firmware (*env:sipeed-longan-nano*) that is debugging an Sipeed Longan Nano running the RV-Link firmware (*env:rvl-probe*) that is debugging a third Sipeed Longan Nano running a *blink* application...
+Here is an example of a Sipeed Longan Nano running the RV-Link firmware (*env:sipeed-longan-nano*) that is debugging a Sipeed Longan Nano running the RV-Link firmware (*env:rvl-probe*) that is debugging a third Sipeed Longan Nano running a *blink* application...
 
 <img src="docs/rvl-link.jpg" style="zoom: 80%;" />
 

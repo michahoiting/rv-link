@@ -1,23 +1,33 @@
-/*
-Copyright (c) 2019 zoomdy@163.com
-RV-LINK is licensed under the Mulan PSL v1.
-You can use this software according to the terms and conditions of the Mulan PSL v1.
-You may obtain a copy of Mulan PSL v1 at:
-    http://license.coscl.org.cn/MulanPSL
-THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
-PURPOSE.
-See the Mulan PSL v1 for more details.
+/**
+ * Copyright (c) 2019 zoomdy@163.com
+ * Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
+ *
+ * \file  rv-link/link/arch/gd32vf103c/rvl-probe/led.c
+ * \brief Led handling for the GD32VF103C-START board.
+ *
+ * RV-LINK is licensed under the Mulan PSL v1.
+ * You can use this software according to the terms and conditions of the Mulan PSL v1.
+ * You may obtain a copy of Mulan PSL v1 at:
+ *     http://license.coscl.org.cn/MulanPSL
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
+ * PURPOSE.
+ * See the Mulan PSL v1 for more details.
  */
 
+/* own header file include */
 #include <rv-link/link/led.h>
 
+/* system library header file includes */
 #include <stdbool.h>
 #include <stdint.h>
 
+/* other library header file includes */
 #include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
 #include <gd32vf103-sdk/RISCV/drivers/riscv_encoding.h>
 #include <pt/pt.h>
+
 
 typedef struct rvl_led_s
 {
@@ -42,8 +52,8 @@ static rvl_led_t rvl_led_i;
 void rvl_led_init(void)
 {
     PT_INIT(&self.pt);
-    self.gdb_connect = FALSE;
-    self.target_run = FALSE;
+    self.gdb_connect = false;
+    self.target_run = false;
 
     rcu_periph_clock_enable(RCU_GPIOA);
 

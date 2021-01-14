@@ -1,9 +1,9 @@
-/*
+/**
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
  * \file  rv-link/link/arch/gd32vf103c/rvl-probe/led.c
- * \brief Led handling for the Longan Nano board.
+ * \brief Led handling for the RVL-Probe board.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -24,9 +24,10 @@
 #include <stdint.h>
 
 /* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
 #include <pt/pt.h>
 #include <pt/timer.h>
-#include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
+
 
 /* RV-Link assert led */
 #define LED_RGB_RED_PORT            GPIOC
@@ -63,7 +64,6 @@
 #define LED_SER_TX_RCU              RCU_GPIOB
 
 
-
 typedef struct rvl_led_state
 {
     struct pt pt;
@@ -84,7 +84,10 @@ static rvl_led_t rvl_led_i;
 #define self rvl_led_i
 
 const static struct led_config {
-    uint32_t port; uint32_t pin; rcu_periph_enum rcu;} LED[] = {
+    uint32_t port;
+    uint32_t pin;
+    rcu_periph_enum rcu;
+} LED[] = {
 
     /* GDB connected */
     {LED_RGB_GREEN_PORT, LED_RGB_GREEN_PIN, LED_RGB_GREEN_RCU},

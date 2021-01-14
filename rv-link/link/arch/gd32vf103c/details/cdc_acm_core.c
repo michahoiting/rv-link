@@ -1,5 +1,6 @@
 /**
  *     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+ *     Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
  *
  *     \file  rv-link/link/arch/gd32vf103c/details/cdc_acm_core.c
  *     \brief CDC ACM driver.
@@ -29,27 +30,35 @@
  * OF SUCH DAMAGE.
  */
 
-#include <stdlib.h>
-#include <string.h>
-
+/* own header file include */
 #include <rv-link/link/arch/gd32vf103c/details/cdc_acm_core.h>
+
+/* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/usbd_core.h>
+#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/usbd_enum.h>
+
+/* own component header file includes */
+#include <rv-link/link/arch/gd32vf103c/details/cdc_acm_descriptors.h>
 #include <rv-link/link/details/link-config.h>
 #include <rv-link/link/serial.h>
+
+/* dependencies with external functions */
+extern int rvl_vcom_enable(void);
 
 #define USBD_VID                          0x28e9
 #define USBD_PID                          0x018a
 
+__IO uint8_t cdc_acm_ep0_packet_sent = 1U;
+__IO uint8_t cdc_acm_ep0_packet_received = 1U;
+__IO uint32_t cdc_acm_ep0_packet_length = 0U;
+
+__IO uint8_t cdc_acm_ep1_packet_sent = 1U;
+__IO uint8_t cdc_acm_ep1_packet_received = 1U;
+__IO uint32_t cdc_acm_ep1_packet_length = 0U;
+
 static uint32_t cdc_cmd = 0xFFU;
 
 static uint8_t usb_cmd_buffer[CDC_ACM_CMD_PACKET_SIZE];
-
-__IO uint8_t cdc_acm0_packet_sent = 1U;
-__IO uint8_t cdc_acm0_packet_received = 1U;
-__IO uint32_t cdc_acm0_packet_length = 0U;
-
-__IO uint8_t cdc_acm1_packet_sent = 1U;
-__IO uint8_t cdc_acm1_packet_received = 1U;
-__IO uint32_t cdc_acm1_packet_length = 0U;
 
 typedef struct
 {
@@ -59,17 +68,13 @@ typedef struct
     uint8_t  bDataBits;   /* data bits */
 } line_coding_struct;
 
-line_coding_struct linecoding =
+static line_coding_struct linecoding =
 {
     115200, /* baud rate     */
     0x00,   /* stop bits - 1 */
     0x00,   /* parity - none */
     0x08    /* num of bits 8 */
 };
-
-/* dependencies with external functions */
-extern const void* cdc_acm_get_dev_strings_desc(void);
-extern int rvl_vcom_enable(void);
 
 /* command data received on control endpoint */
 static uint8_t cdc_acm_EP0_RxReady(usb_dev  *pudev);
@@ -84,17 +89,16 @@ static uint8_t cdc_acm_EP0_RxReady(usb_dev  *pudev);
 */
 static uint8_t cdc_acm_init(usb_dev *pudev, uint8_t config_index)
 {
-
     /* initialize the data Tx/Rx endpoint */
     if (rvl_vcom_enable()) {
-        usbd_ep_setup(pudev, &(cdc_acm_configuration_descriptor_vcom_enable.cdc[0].ep_data_in));
-        usbd_ep_setup(pudev, &(cdc_acm_configuration_descriptor_vcom_enable.cdc[0].ep_data_out));
+        usbd_ep_setup(pudev, (usb_desc_ep*) &(cdc_acm_configuration_descriptor_vcom_enable.cdc[0].ep_data_in));
+        usbd_ep_setup(pudev, (usb_desc_ep*) &(cdc_acm_configuration_descriptor_vcom_enable.cdc[0].ep_data_out));
 
-        usbd_ep_setup(pudev, &(cdc_acm_configuration_descriptor_vcom_enable.cdc[1].ep_data_in));
-        usbd_ep_setup(pudev, &(cdc_acm_configuration_descriptor_vcom_enable.cdc[1].ep_data_out));
+        usbd_ep_setup(pudev, (usb_desc_ep*) &(cdc_acm_configuration_descriptor_vcom_enable.cdc[1].ep_data_in));
+        usbd_ep_setup(pudev, (usb_desc_ep*) &(cdc_acm_configuration_descriptor_vcom_enable.cdc[1].ep_data_out));
     } else {
-        usbd_ep_setup(pudev, &(cdc_acm_configuration_descriptor_vcom_disable.cdc[0].ep_data_in));
-        usbd_ep_setup(pudev, &(cdc_acm_configuration_descriptor_vcom_disable.cdc[0].ep_data_out));
+        usbd_ep_setup(pudev, (usb_desc_ep*) &(cdc_acm_configuration_descriptor_vcom_disable.cdc[0].ep_data_in));
+        usbd_ep_setup(pudev, (usb_desc_ep*) &(cdc_acm_configuration_descriptor_vcom_disable.cdc[0].ep_data_out));
     }
 
     return USBD_OK;
@@ -141,15 +145,15 @@ static uint8_t cdc_acm_data_out_handler(usb_dev *pudev, uint8_t ep_id)
     }
     else if ((CDC_ACM_DATA_OUT_EP & 0x7F) == ep_id)
     {
-        cdc_acm0_packet_received = 1;
-        cdc_acm0_packet_length = usbd_rxcount_get(pudev, CDC_ACM_DATA_OUT_EP);
+        cdc_acm_ep0_packet_received = 1;
+        cdc_acm_ep0_packet_length = usbd_rxcount_get(pudev, CDC_ACM_DATA_OUT_EP);
 
         return USBD_OK;
     }
     else if ((CDC_ACM1_DATA_OUT_EP & 0x7F) == ep_id)
     {
-        cdc_acm1_packet_received = 1;
-        cdc_acm1_packet_length = usbd_rxcount_get(pudev, CDC_ACM1_DATA_OUT_EP);
+        cdc_acm_ep1_packet_received = 1;
+        cdc_acm_ep1_packet_length = usbd_rxcount_get(pudev, CDC_ACM1_DATA_OUT_EP);
 
         return USBD_OK;
     }
@@ -167,7 +171,7 @@ static uint8_t cdc_acm_data_in_handler(usb_dev *pudev, uint8_t ep_id)
         if ((transc->xfer_len % transc->max_len == 0) && (transc->xfer_len != 0)) {
             usbd_ep_send (pudev, ep_id, NULL, 0U);
         } else {
-            cdc_acm0_packet_sent = 1;
+            cdc_acm_ep0_packet_sent = 1;
         }
         return USBD_OK;
     }
@@ -178,7 +182,7 @@ static uint8_t cdc_acm_data_in_handler(usb_dev *pudev, uint8_t ep_id)
         if ((transc->xfer_len % transc->max_len == 0) && (transc->xfer_len != 0)) {
             usbd_ep_send (pudev, ep_id, NULL, 0U);
         } else {
-            cdc_acm1_packet_sent = 1;
+            cdc_acm_ep1_packet_sent = 1;
         }
         return USBD_OK;
     }
@@ -281,7 +285,7 @@ void cdc_acm_init_desc(usb_desc *desc)
 }
 
 
-usb_class_core cdc_acm_usb_class_core = {
+__IO usb_class_core cdc_acm_usb_class_core = {
     .command         = NO_CMD,
     .alter_set       = 0,
     .init            = cdc_acm_init,

@@ -1,12 +1,11 @@
+#ifndef __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_GD32VF103_IT_H__
+#define __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_GD32VF103_IT_H__
 /*!
-    \file  gd32vf103_it.h
-    \brief the header file of the ISR
-
-    \version 2019-6-5, V1.0.0, demo for GD32VF103
-*/
-
-/*
     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+    Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
+
+    \file  rv-link/link/arch/gd32vf103c/details/gd32vf103_it.h
+    \brief the header file of the ISR
 
     Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -32,15 +31,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32VF103_IT_H
-#define GD32VF103_IT_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/usbd_core.h>
-
 /* function declarations */
 
 /* this function handles USB wakeup interrupt handler */
@@ -49,8 +39,4 @@ void USBFS_WKUP_IRQHandler(void);
 /* this function handles USBFS IRQ Handler */
 void USBFS_IRQHandler(void);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* GD32VF103_IT_H */
+#endif /* __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_GD32VF103_IT_H__ */

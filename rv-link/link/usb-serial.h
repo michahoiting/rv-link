@@ -1,6 +1,6 @@
 #ifndef __RV_LINK_LINK_USB_SERIAL_H__
 #define __RV_LINK_LINK_USB_SERIAL_H__
-/*
+/**
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
@@ -21,7 +21,6 @@
 /* system library header file includes */
 #include <pt/pt.h>
 
-
 /*
  * The following functions are called by the main function of app and
  * implemented by the USB Serial component of link:
@@ -41,12 +40,11 @@ PT_THREAD(rvl_usb_serial_poll(void));
 void rvl_usb_serial1_init(void);
 PT_THREAD(rvl_usb_serial1_poll(void));
 
-
 /* - rvl_usb_serial2_*
  *      corresponds to the third serial port /dev/ttyACM2, the standard input
  *      and output of RV-LINK are redirected to this serial port.
  */
 void rvl_usb_serial2_init(void);
-void rvl_usb_serial2_poll(void);
+PT_THREAD(rvl_usb_serial2_poll(void));
 
 #endif /* __RV_LINK_LINK_USB_SERIAL_H__ */

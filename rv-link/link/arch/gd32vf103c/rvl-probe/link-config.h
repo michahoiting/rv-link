@@ -1,6 +1,6 @@
 #ifndef __RV_LINK_LINK_ARCH_GD32VF103C_RVL_PROBE_LINK_CONFIG_H__
 #define __RV_LINK_LINK_ARCH_GD32VF103C_RVL_PROBE_LINK_CONFIG_H__
-/*
+/**
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
@@ -19,11 +19,10 @@
  * See the Mulan PSL v1 for more details.
  */
 
-/* other project header file includes */
-#include <gd32vf103-sdk/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h>
+/* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
 
 #define RVL_LINK_CONFIG_NAME                "RVL-Probe"
-
 
 #if defined(RVL_PROBE_LINK_CONFIG_SPI1_NO_REMAP)
     /* JTAG TMS pin definition */

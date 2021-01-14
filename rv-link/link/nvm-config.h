@@ -1,6 +1,6 @@
 #ifndef __RV_LINK_LINK_NVM_CONFIG_H__
 #define __RV_LINK_LINK_NVM_CONFIG_H__
-/*
+/**
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *

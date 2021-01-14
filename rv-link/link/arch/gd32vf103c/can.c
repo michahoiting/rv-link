@@ -5,8 +5,13 @@
  *     \brief RV-Link CAN bus handling
  */
 
+/* own header file include */
+#include <rv-link/link/can.h>
+
+/* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
+
 /* own component header file includes */
-#include <rv-link/link/arch/gd32vf103c/gd32vf103_libopt.h>
 #include <rv-link/link/led.h>
 
 /* select can */

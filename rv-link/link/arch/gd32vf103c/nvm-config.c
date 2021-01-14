@@ -1,19 +1,34 @@
-/*
-Copyright (c) 2019 zoomdy@163.com
-RV-LINK is licensed under the Mulan PSL v1.
-You can use this software according to the terms and conditions of the Mulan PSL v1.
-You may obtain a copy of Mulan PSL v1 at:
-    http://license.coscl.org.cn/MulanPSL
-THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
-PURPOSE.
-See the Mulan PSL v1 for more details.
+/**
+ * Copyright (c) 2019 zoomdy@163.com
+ * Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
+ *
+ * \file  rv-link/link/arch/gd32vf103c/rvl-probe/led.c
+ * \brief Led handling for the Longan Nano board.
+ *
+ * RV-LINK is licensed under the Mulan PSL v1.
+ * You can use this software according to the terms and conditions of the Mulan PSL v1.
+ * You may obtain a copy of Mulan PSL v1 at:
+ *     http://license.coscl.org.cn/MulanPSL
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
+ * PURPOSE.
+ * See the Mulan PSL v1 for more details.
  */
 
+/* own header file include */
 #include <rv-link/link/nvm-config.h>
 
+/* system library header file includes */
+#include <stddef.h>
+#include <stdint.h>
+
+/* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
+
+/* other project header file includes */
 #include <rv-link/details/assert.h>
-#include <gd32vf103-sdk/GD32VF103_standard_peripheral/Include/gd32vf103_fmc.h>
+
 
 #define RVL_CONFIG_BASE         0x0801FC00
 #define RVL_CONFIG_NOT_BASE     (RVL_CONFIG_BASE + 512)
@@ -116,4 +131,3 @@ int rvl_config_read(uint32_t* config, size_t size)
 
     return (int)size;
 }
-

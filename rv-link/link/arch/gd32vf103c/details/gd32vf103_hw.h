@@ -1,12 +1,11 @@
+#ifndef __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_GD32VF103_HW_H__
+#define __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_GD32VF103_HW_H__
 /*!
-    \file  gd32vf103_libopt.h
-    \brief Library optional for gd32vf103..
-
-    \version 2019-6-5, V1.0.0, demo for GD32VF103
-*/
-
-/*
     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+    Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
+
+    \file  rv-link/link/arch/gd32vf103c/details/gd32vf103_hw.h
+    \brief the header file of the HW functions
 
     Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -32,30 +31,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#ifndef GD32VF103_LIBOPT_H
-#define GD32VF103_LIBOPT_H
+/* system library header file includes */
+#include <stdint.h>
 
-// #include "gd32vf103_adc.h"
-// #include "gd32vf103_bkp.h"
-// #include "gd32vf103_crc.h"
-// #include "gd32vf103_dac.h"
-// #include "gd32vf103_dma.h"
-// #include "gd32vf103_exmc.h"
-// #include "gd32vf103_fmc.h"
-// #include "gd32vf103_fwdgt.h"
-// #include "gd32vf103_i2c.h"
-// #include "gd32vf103_rtc.h"
-// #include "gd32vf103_spi.h"
-// #include "gd32vf103_wwdgt.h"
-#include "gd32vf103_can.h"
-#include "gd32vf103_dbg.h"
-#include "gd32vf103_eclic.h"
-#include "gd32vf103_exti.h"
-#include "gd32vf103_gpio.h"
-#include "gd32vf103_pmu.h"
-#include "gd32vf103_rcu.h"
-#include "gd32vf103_timer.h"
-#include "gd32vf103_usart.h"
-#include "n200_func.h"
+/* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
+#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/drv_usb_hw.h>
 
-#endif /* GD32VF103_LIBOPT_H */
+extern __IO uint32_t usbfs_prescaler;
+
+void usb_timer_irq(void);
+
+#endif /* __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_GD32VF103_HW_H__ */

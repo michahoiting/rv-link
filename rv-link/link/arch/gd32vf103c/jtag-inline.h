@@ -1,6 +1,6 @@
 #ifndef __RV_LINK_LINK_ARCH_GD32VF193C_JTAG_INLINE_H__
 #define __RV_LINK_LINK_ARCH_GD32VF193C_JTAG_INLINE_H__
-/*
+/**
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
@@ -21,9 +21,9 @@
 /* system library header file includes */
 #include <stdint.h>
 
-/* other project header file includes */
+/* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
 #include <gd32vf103-sdk/RISCV/drivers/riscv_encoding.h>
-#include <gd32vf103-sdk/GD32VF103_standard_peripheral/Include/gd32vf103_gpio.h>
 
 /* own component header file includes */
 #include <rv-link/link/arch/gd32vf103c/link-config.h>

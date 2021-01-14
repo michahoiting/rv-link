@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
@@ -21,9 +21,10 @@
 
 /* system library header file includes */
 #include <stdbool.h>
+#include <stdint.h>
 
 /* other library header file includes */
-#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/drv_usb_hw.h>
+#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/usbd_enum.h>
 #include <pt/pt.h>
 
 /* own component header file includes */
@@ -78,12 +79,12 @@ PT_THREAD(rvl_usb_serial1_recv_poll(void))
     PT_WAIT_UNTIL(&self.pt_recv, USB_OTG_dev.dev.cur_status == USBD_CONFIGURED);
 
     for (;;) {
-        cdc_acm1_packet_received = 0;
+        cdc_acm_ep1_packet_received = 0;
         usbd_ep_recev(&USB_OTG_dev, CDC_ACM1_DATA_OUT_EP, (uint8_t*) self.usb_recv_buffer, CDC_ACM_DATA_PACKET_SIZE);
 
-        PT_WAIT_UNTIL(&self.pt_recv, cdc_acm1_packet_received);
+        PT_WAIT_UNTIL(&self.pt_recv, cdc_acm_ep1_packet_received);
 
-        for (self.i_usb_recv_buffer = 0; self.i_usb_recv_buffer < cdc_acm1_packet_length; self.i_usb_recv_buffer++) {
+        for (self.i_usb_recv_buffer = 0; self.i_usb_recv_buffer < cdc_acm_ep1_packet_length; self.i_usb_recv_buffer++) {
             PT_WAIT_THREAD(&self.pt_recv, rvl_serial_putchar(self.usb_recv_buffer[self.i_usb_recv_buffer]));
         }
     }
@@ -113,10 +114,10 @@ PT_THREAD(rvl_usb_serial1_send_poll(void))
             /* Continue collecting received characters until pt blocks */
         } while (!PT_SCHEDULE(rvl_serial_getchar(&c)));
 
-        cdc_acm1_packet_sent = 0;
+        cdc_acm_ep1_packet_sent = 0;
         usbd_ep_send(&USB_OTG_dev, CDC_ACM1_DATA_IN_EP, (uint8_t*)(self.usb_send_buffer), i);
 
-        PT_WAIT_UNTIL(&self.pt_send, cdc_acm1_packet_sent);
+        PT_WAIT_UNTIL(&self.pt_send, cdc_acm_ep1_packet_sent);
     }
 
     PT_END(&self.pt_send);

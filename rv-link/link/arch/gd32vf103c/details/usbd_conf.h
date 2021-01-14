@@ -1,9 +1,12 @@
+#ifndef __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USBD_CONF_H__
+#define __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USBD_CONF_H__
 /**
  *     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+ *     Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
  *
- *     \file  rv-link/link/arch/gd32vf103c/usbd_conf.h
+ *     \file  rv-link/link/arch/gd32vf103c/details/usbd_conf.h
  *     \brief The header file of USB device-mode configuration.
- *     \version 2019-6-5, V1.0.0, demo for GD32VF103
+ *            This file is needed by the firmware for GD32 USBFS&USBHS.
  *
  *     Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -29,10 +32,8 @@
  * OF SUCH DAMAGE.
  */
 
-#ifndef __USBD_CONF_H__
-#define __USBD_CONF_H__
-
-#include <rv-link/link/arch/gd32vf103c/usb_conf.h>
+/* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/drv_usb_regs.h>
 
 #define USBD_CFG_MAX_NUM                    1
 #define USBD_ITF_MAX_NUM                    6
@@ -56,4 +57,4 @@
 #define CDC_ACM_CMD_PACKET_SIZE            8
 #define CDC_ACM_DATA_PACKET_SIZE           64
 
-#endif /* __USBD_CONF_H__ */
+#endif /* __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USBD_CONF_H__ */

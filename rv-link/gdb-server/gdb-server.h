@@ -1,6 +1,6 @@
 #ifndef __RV_LINK_GDB_SERVER_GDB_SERVER_H__
 #define __RV_LINK_GDB_SERVER_GDB_SERVER_H__
-/*
+/**
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *

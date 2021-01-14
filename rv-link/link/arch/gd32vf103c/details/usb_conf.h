@@ -1,9 +1,12 @@
+#ifndef __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USB_CONF_H__
+#define __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USB_CONF_H__
 /**
  *     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+ *     Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
  *
- *     \file  rv-link/link/arch/gd32vf103c/usb_conf.h
+ *     \file  rv-link/link/arch/gd32vf103c/details/usb_conf.h
  *     \brief USBFS driver basic configuration.
- *     \version 2019-6-5, V1.0.0, demo for GD32VF103
+ *            This file is needed by the firmware for GD32 USBFS&USBHS.
  *
  *     Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -29,11 +32,7 @@
  * OF SUCH DAMAGE.
  */
 
-#ifndef __USB_CONF_H__
-#define __USB_CONF_H__
-
-#include <stddef.h>
-
+/* other library header file includes */
 #include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
 
 #ifdef USE_USB_FS
@@ -117,4 +116,4 @@
     #define __ALIGN_END
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 
-#endif /* __USB_CONF_H__ */
+#endif /* __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USB_CONF_H__ */

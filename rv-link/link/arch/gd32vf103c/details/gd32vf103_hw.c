@@ -1,12 +1,9 @@
 /*!
-    \file  rv-link/link/arch/gd32vf103c/details/gd32vf103_hw.c
-    \brief USB hardware configuration for GD32VF103.
-
-    \version 2019-6-5, V1.0.0, demo for GD32VF103
-*/
-
-/*
     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+    Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
+
+    \file  rv-link/link/arch/gd32vf103c/details/gd32vf103_hw.c
+    \brief Implements the USB interface drv_usb_hw.h
 
     Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -32,21 +29,25 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/* own header file include */
+#include <rv-link/link/arch/gd32vf103c/details/gd32vf103_hw.h>
 
-#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/drv_usb_hw.h>
+/* system library header file includes */
+#include <stdint.h>
+
+/* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_standard_peripheral/gd32vf103.h>
 
 #define TIM_MSEC_DELAY                          0x01
 #define TIM_USEC_DELAY                          0x02
 
-__IO uint32_t delay_time = 0;
-__IO uint32_t timer_prescaler;
 __IO uint32_t usbfs_prescaler = 0;
 
-static void hw_time_set (uint8_t unit);
-static void hw_delay    (uint32_t ntime, uint8_t unit);
+static __IO uint32_t delay_time = 0;
+static __IO uint32_t timer_prescaler = 0;
+
+static void hw_time_set(uint8_t unit);
+static void hw_delay(uint32_t ntime, uint8_t unit);
 
 
 /*!
@@ -103,7 +104,7 @@ void usb_intr_config(void)
     \param[out] none
     \retval     none
 */
-void usb_timer_init (void)
+void usb_timer_init(void)
 {
     rcu_periph_clock_enable(RCU_TIMER2);
 
@@ -116,7 +117,7 @@ void usb_timer_init (void)
     \param[out] none
     \retval     none
 */
-void usb_udelay (const uint32_t usec)
+void usb_udelay(const uint32_t usec)
 {
     hw_delay(usec, TIM_USEC_DELAY);
 }
@@ -127,7 +128,7 @@ void usb_udelay (const uint32_t usec)
     \param[out] none
     \retval     none
 */
-void usb_mdelay (const uint32_t msec)
+void usb_mdelay(const uint32_t msec)
 {
     hw_delay(msec, TIM_MSEC_DELAY);
 }
@@ -138,7 +139,7 @@ void usb_mdelay (const uint32_t msec)
     \param[out] none
     \retval     none
 */
-void usb_timer_irq (void)
+void usb_timer_irq(void)
 {
     if (RESET != timer_flag_get(TIMER2, TIMER_FLAG_UP)){
         timer_flag_clear(TIMER2, TIMER_FLAG_UP);

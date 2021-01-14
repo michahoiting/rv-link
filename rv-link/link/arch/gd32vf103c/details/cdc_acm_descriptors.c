@@ -1,9 +1,9 @@
 /**
  *     Copyright (c) 2019, GigaDevice Semiconductor Inc.
+ *     Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
  *
  *     \file  rv-link/link/arch/gd32vf103c/details/cdc_acm_descriptors.c
- *     \brief CDC ACM driver.
- *     \version 2019-6-5, V1.0.0, demo for GD32VF103
+ *     \brief The implementation file of CDC ACM descriptors.
  *
  *     Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -30,10 +30,14 @@
  */
 
 /* own header file include */
-#include <rv-link/link/arch/gd32vf103c/details/cdc_acm_core.h>
+#include <rv-link/link/arch/gd32vf103c/details/cdc_acm_descriptors.h>
 
 /* system library header file includes */
+#include <stddef.h>
 #include <stdio.h>
+
+/* other library header file includes */
+#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/usbd_enum.h>
 
 /* own component header file includes */
 #include <rv-link/link/details/link-config.h>
@@ -47,7 +51,7 @@ static size_t stowcs(wchar_t *dest, const char *str, size_t max);
 
 /* note:it should use the C99 standard when compiling the below codes */
 /* USB standard device descriptor */
-const usb_desc_dev cdc_acm_device_descriptor =
+__I usb_desc_dev cdc_acm_device_descriptor =
 {
     .header =
      {
@@ -69,7 +73,7 @@ const usb_desc_dev cdc_acm_device_descriptor =
 };
 
 /* USB device configuration descriptor */
-const usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration_descriptor_vcom_disable =
+__I usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration_descriptor_vcom_disable =
 {
     .config =
     {
@@ -206,7 +210,7 @@ const usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration
 
 
 /* USB device configuration descriptor */
-const usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_descriptor_vcom_enable =
+__I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_descriptor_vcom_enable =
 {
     .config =
     {
@@ -505,14 +509,13 @@ typedef struct usb_string_descriptor {
 
 usb_string_descriptor usb_string_desc_serial = {0};
 
-const void* usbd_strings[STR_IDX_MAX] = {
+const void *usbd_strings[STR_IDX_MAX] = {
     [STR_IDX_LANGID]  = (uint8_t*) &usbd_language_id_desc,
     [STR_IDX_MFC]     = USBD_STRING_DESC("RV-LINK"),
     [STR_IDX_PRODUCT] = USBD_STRING_DESC(RVL_LINK_CONFIG_NAME),
     [STR_IDX_SERIAL]  = (uint8_t*) &usb_string_desc_serial,
     [STR_IDX_CONFIG]  = USBD_STRING_DESC("RV-Link GDB Server"),
     [STR_IDX_ITF]     = USBD_STRING_DESC("RV-Link COM Port"),
-    NULL,
 };
 
 
@@ -555,7 +558,7 @@ static void cdc_acm_set_string(usb_string_descriptor *desc, const char *str)
     \param[out] none
     \retval     none
 */
-const void* cdc_acm_get_dev_strings_desc(void)
+const void *cdc_acm_get_dev_strings_desc(void)
 {
     char tmp[32];
 

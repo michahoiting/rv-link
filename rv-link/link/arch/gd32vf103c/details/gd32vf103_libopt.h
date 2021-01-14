@@ -1,6 +1,6 @@
 /*!
-    \file  rv-link/link/arch/gd32vf103c/details/gd32vf103_it.c
-    \brief Main interrupt service routines.
+    \file  gd32vf103_libopt.h
+    \brief Library optional for gd32vf103..
 
     \version 2019-6-5, V1.0.0, demo for GD32VF103
 */
@@ -32,66 +32,30 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-/* own header file include */
-#include <rv-link/link/arch/gd32vf103c/details/gd32vf103_it.h>
+#ifndef GD32VF103_LIBOPT_H
+#define GD32VF103_LIBOPT_H
 
-/* other library header file includes */
-#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/drv_usb_hw.h>
-#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/drv_usbd_int.h>
+// #include "gd32vf103_adc.h"
+// #include "gd32vf103_bkp.h"
+// #include "gd32vf103_crc.h"
+// #include "gd32vf103_dac.h"
+// #include "gd32vf103_dma.h"
+// #include "gd32vf103_exmc.h"
+// #include "gd32vf103_fwdgt.h"
+// #include "gd32vf103_i2c.h"
+// #include "gd32vf103_rtc.h"
+// #include "gd32vf103_spi.h"
+// #include "gd32vf103_wwdgt.h"
+#include "gd32vf103_can.h"
+#include "gd32vf103_dbg.h"
+#include "gd32vf103_eclic.h"
+#include "gd32vf103_exti.h"
+#include "gd32vf103_fmc.h"
+#include "gd32vf103_gpio.h"
+#include "gd32vf103_pmu.h"
+#include "gd32vf103_rcu.h"
+#include "gd32vf103_timer.h"
+#include "gd32vf103_usart.h"
+#include "n200_func.h"
 
-/* own component header file includes */
-#include <rv-link/link/arch/gd32vf103c/details/gd32vf103_hw.h>
-
-extern usb_core_driver USB_OTG_dev;
-
-/*!
-    \brief      this function handles USBD interrupt
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-void  USBFS_IRQHandler (void)
-{
-    usbd_isr(&USB_OTG_dev);
-}
-
-/*!
-    \brief      this function handles EXTI0_IRQ Handler
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-void EXTI0_IRQHandler(void)
-{
-
-}
-
-/*!
-    \brief      this function handles USBD wakeup interrupt request.
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-void USBFS_WKUP_IRQHandler(void)
-{
-    if (USB_OTG_dev.bp.low_power) {
-        SystemInit();
-
-        rcu_usb_clock_config(usbfs_prescaler);
-        rcu_periph_clock_enable(RCU_USBFS);
-        usb_clock_active(&USB_OTG_dev);
-    }
-
-    exti_interrupt_flag_clear(EXTI_18);
-}
-
-/*!
-    \brief      this function handles Timer0 updata interrupt request.
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-void TIMER2_IRQHandler(void)
-{
-    usb_timer_irq();
-}
+#endif /* GD32VF103_LIBOPT_H */

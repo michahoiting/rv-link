@@ -1,17 +1,25 @@
-/*
-Copyright (c) 2019 zoomdy@163.com
-RV-LINK is licensed under the Mulan PSL v1.
-You can use this software according to the terms and conditions of the Mulan PSL v1.
-You may obtain a copy of Mulan PSL v1 at:
-    http://license.coscl.org.cn/MulanPSL
-THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
-PURPOSE.
-See the Mulan PSL v1 for more details.
+/**
+ * Copyright (c) 2019 zoomdy@163.com
+ * Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
+ *
+ * \file  rv-link/link/arch/gd32vf103c/gd32vf103c-start/button.c
+ * \brief Button handling for the GD32VF103C-START board.
+ *
+ * RV-LINK is licensed under the Mulan PSL v1.
+ * You can use this software according to the terms and conditions of the Mulan PSL v1.
+ * You may obtain a copy of Mulan PSL v1 at:
+ *     http://license.coscl.org.cn/MulanPSL
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
+ * PURPOSE.
+ * See the Mulan PSL v1 for more details.
  */
 
+/* own header file include */
 #include <rv-link/link/button.h>
 
+/* other library header file includes */
 #include <GD32VF103_standard_peripheral/gd32vf103.h>
 
 #define BUTTON_PORT    GPIOA

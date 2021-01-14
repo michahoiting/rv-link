@@ -1,6 +1,4 @@
-
-
-/*
+/**
  * Copyright (c) 2019 zoomdy@163.com
  * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
  *
@@ -23,20 +21,24 @@
 #include <rv-link/link/usb-serial.h>
 
 /* system library header file includes */
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 /* other library header file includes */
-#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/drv_usb_hw.h>
+#include <gd32vf103-sdk/GD32VF103_usbfs_driver/Include/usbd_enum.h>
 #include <pt/pt.h>
 
 /* other project header file includes */
 #include <rv-link/gdb-server/gdb-packet.h>
-#include <rv-link/link/led.h>
 
 /* own component header file includes */
 #include <rv-link/link/arch/gd32vf103c/details/cdc_acm_core.h>
+#include <rv-link/link/arch/gd32vf103c/details/gd32vf103_hw.h>
+#include <rv-link/link/led.h>
 
 usb_core_driver USB_OTG_dev = {0};
 
@@ -73,7 +75,7 @@ void rvl_usb_serial_init(void)
 
     cdc_acm_init_desc(&USB_OTG_dev.dev.desc);
 
-    usbd_init(&USB_OTG_dev, USB_CORE_ENUM_FS, &cdc_acm_usb_class_core);
+    usbd_init(&USB_OTG_dev, USB_CORE_ENUM_FS, (usb_class_core*) &cdc_acm_usb_class_core);
 }
 
 
@@ -95,13 +97,13 @@ static PT_THREAD(rvl_usb_serial_recv_poll(void))
     PT_WAIT_UNTIL(&self.pt_recv, USBD_CONFIGURED == USB_OTG_dev.dev.cur_status);
 
     for (;;) {
-        cdc_acm0_packet_received = 0;
+        cdc_acm_ep0_packet_received = 0;
         usbd_ep_recev(&USB_OTG_dev, CDC_ACM_DATA_OUT_EP, (uint8_t*)(usb_serial_recv_buffer), CDC_ACM_DATA_PACKET_SIZE);
 
-        PT_WAIT_UNTIL(&self.pt_recv, cdc_acm0_packet_received);
+        PT_WAIT_UNTIL(&self.pt_recv, cdc_acm_ep0_packet_received);
         rvl_led_indicator(RVL_LED_INDICATOR_LINK_USB, true);
 
-        PT_WAIT_UNTIL(&self.pt_recv, gdb_packet_process_command(usb_serial_recv_buffer, cdc_acm0_packet_length));
+        PT_WAIT_UNTIL(&self.pt_recv, gdb_packet_process_command(usb_serial_recv_buffer, cdc_acm_ep0_packet_length));
     }
 
     PT_END(&self.pt_recv);
@@ -117,10 +119,10 @@ PT_THREAD(rvl_usb_serial_send_poll(void))
     for (;;) {
         PT_WAIT_UNTIL(&self.pt_send, (self.send_buffer = gdb_packet_get_response(&self.send_len)) != NULL);
 
-        cdc_acm0_packet_sent = 0;
+        cdc_acm_ep0_packet_sent = 0;
         usbd_ep_send(&USB_OTG_dev, CDC_ACM_DATA_IN_EP, (uint8_t*)(self.send_buffer), self.send_len);
 
-        PT_WAIT_UNTIL(&self.pt_send, cdc_acm0_packet_sent);
+        PT_WAIT_UNTIL(&self.pt_send, cdc_acm_ep0_packet_sent);
         rvl_led_indicator(RVL_LED_INDICATOR_LINK_USB, true);
 
         gdb_packet_release_response();

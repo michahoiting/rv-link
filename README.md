@@ -1,6 +1,6 @@
 # RV-Link
 [![Travis Build Status](https://travis-ci.com/michahoiting/rv-link.svg?branch=master)](https://travis-ci.com/michahoiting/rv-link)
-[![GitLab Build Status](https://gitlab.melroy.org/micha/rv-link/badges/master/pipeline.svg)](https://gitlab.melroy.org/micha/rv-link/badges/master/pipeline.svg)
+[![GitLab Build Status](https://gitlab.melroy.org/micha/rv-link/badges/master/pipeline.svg)](https://gitlab.melroy.org/micha/rv-link/pipelines/latest)
 
 A JTAG emulator/debugger for RISC-V micro-controllers that runs on a RISC-V development board (Sipeed Longan Nano for example). 
 

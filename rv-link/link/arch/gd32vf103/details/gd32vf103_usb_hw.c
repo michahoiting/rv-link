@@ -278,9 +278,6 @@ static void hwp_time_set(uint8_t unit)
     timer_interrupt_enable(TIMER2,TIMER_INT_UP);
     timer_update_source_config(TIMER2, TIMER_UPDATE_SRC_GLOBAL);
 
-extern void diagnose_irq(void);
-    diagnose_irq();
-
     /* timer2 enable counter */
     timer_enable(TIMER2);
     __enable_irq();

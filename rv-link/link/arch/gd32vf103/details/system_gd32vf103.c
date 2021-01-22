@@ -546,8 +546,6 @@ void SystemBannerPrint(void)
     printf("RV-Link (C) 2021, version %s\r\n", "0.3"); // TODO
     printf("Nuclei SDK Build Time: %s, %s\r\n", __DATE__, __TIME__);
     printf("Download Mode: %s\r\n", download_modes[DOWNLOAD_MODE]);
-    printf("CPU Frequency: %lu Hz\r\n", SystemCoreClock);
-    printf("System clock: %lu Hz\r\n", rcu_clock_freq_get(CK_SYS));
 #endif
 }
 
@@ -670,27 +668,3 @@ void _fini(void)
 }
 
 /** @} */ /* End of Doxygen Group NMSIS_Core_SystemAndClock */
-
-void diagnose_irq(void)
-{
-    printf("get_nonvec_entry: %08lx\n", __get_nonvec_entry());
-    printf("CSR_MSTATUS: %08lx\n", __RV_CSR_READ(CSR_MSTATUS));
-
-    printf("ECLIC_GetInfoVer(): %lx\n", ECLIC_GetInfoVer());
-    printf("ECLIC_GetInfoCtlbits(): %08lx\n", ECLIC_GetInfoCtlbits());
-    printf("ECLIC_GetCfgNlbits(): %08lx\n", ECLIC_GetCfgNlbits());
-    printf("ECLIC_GetMth(): %d\n", ECLIC_GetMth());
-    printf("ECLIC_GetInfoNum(): %lu\n", ECLIC_GetInfoNum());
-
-    printf("ECLIC_GetVector(TIMER2_IRQn): %08lx\n", ECLIC_GetVector(TIMER2_IRQn));
-    printf("ECLIC_GetPriorityIRQ(TIMER2_IRQn): %d\n", ECLIC_GetPriorityIRQ(TIMER2_IRQn));
-    printf("ECLIC_GetCtrlIRQ(TIMER2_IRQn): %08x\n", ECLIC_GetCtrlIRQ(TIMER2_IRQn));
-    printf("ECLIC_GetEnableIRQ(TIMER2_IRQn): %ld\n", ECLIC_GetEnableIRQ(TIMER2_IRQn));
-
-    printf("ECLIC_GetVector(CAN1_RX0_IRQn): %08lx\n", ECLIC_GetVector(CAN1_RX0_IRQn));
-    printf("ECLIC_GetVector(CAN1_RX1_IRQn): %08lx\n", ECLIC_GetVector(CAN1_RX1_IRQn));
-    printf("ECLIC_GetPriorityIRQ(CAN1_RX0_IRQn): %d\n", ECLIC_GetPriorityIRQ(CAN1_RX0_IRQn));
-    printf("ECLIC_GetPriorityIRQ(CAN1_RX1_IRQn): %d\n", ECLIC_GetPriorityIRQ(CAN1_RX1_IRQn));
-    printf("ECLIC_GetEnableIRQ(CAN1_RX0_IRQn): %ld\n", ECLIC_GetEnableIRQ(CAN1_RX0_IRQn));
-    printf("ECLIC_GetEnableIRQ(CAN1_RX1_IRQn): %ld\n", ECLIC_GetEnableIRQ(CAN1_RX1_IRQn));
-}

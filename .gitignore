@@ -8,3 +8,4 @@ output/
 .pio
 .vscode
 *.code-workspace
+.gdbinit

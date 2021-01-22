@@ -3,7 +3,7 @@
 /**
  *     Copyright (c) 2021, Micha Hoiting.
  *
- *     \file  rv-link/link/arch/gd32vf103c/can.c
+ *     \file  rv-link/link/arch/gd32vf103/can.c
  *     \brief RV-Link CAN bus interface
  */
 

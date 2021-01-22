@@ -27,4 +27,4 @@ def dump_env_to_file(source, target, env):
     env_file.write("\n\nprojenv.Dump()\n--------------\n" + str(projenv.Dump()))
     env_file.close()
 
-env.AddPostAction("$BUILD_DIR/${PROGNAME}.elf", dump_env_to_file)
+#env.AddPostAction("$BUILD_DIR/${PROGNAME}.elf", dump_env_to_file)

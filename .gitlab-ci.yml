@@ -1,4 +1,4 @@
-image: mhoiting/platformio-cli-gd32v-docker:latest
+image: mhoiting/platformio-cli-gd32v-docker:v0.2.0
 
 stages:
     - build
@@ -7,7 +7,7 @@ stages:
 build:
     stage: build
     script:
-        - pio run
+        - pio --no-ansi run -e gd32vf103c-start -e sipeed-longan-nano -e sipeed-longan-nano-alt -e rvl-probe
     artifacts:
         name: "firmware"
         expire_in: 1 week

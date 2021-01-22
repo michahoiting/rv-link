@@ -25,7 +25,7 @@
 #include <string.h>
 
 /* other library header file includes */
-#include <gd32vf103-sdk/RISCV/drivers/riscv_encoding.h>
+#include "riscv_encoding.h"
 
 /* other project header file includes */
 #include <rv-link/details/assert.h>

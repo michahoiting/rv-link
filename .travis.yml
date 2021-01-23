@@ -14,4 +14,4 @@ install:
     - pio update
     - pio platform update
 script:
-    - pio run --no-ansi run -e gd32vf103c-start -e sipeed-longan-nano -e sipeed-longan-nano-alt -e rvl-probe
+    - pio --no-ansi run -e gd32vf103c-start -e sipeed-longan-nano -e sipeed-longan-nano-alt -e rvl-probe

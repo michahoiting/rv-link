@@ -4,10 +4,7 @@ stages:
     - build
     - publish
 
-build:
-    stage: build
-    script:
-        - pio --no-ansi run -e gd32vf103c-start -e sipeed-longan-nano -e sipeed-longan-nano-alt -e rvl-probe
+default:
     artifacts:
         name: "firmware"
         expire_in: 1 week
@@ -17,9 +14,29 @@ build:
             - .pio/build/**/rvlink_fw_*.hex
         when: always
 
+build:gd32vf103c-start:
+    stage: build
+    script:
+        - pio --no-ansi run -e gd32vf103c-start
+
+
+build:sipeed-longan-nano:
+    stage: build
+    script:
+        - pio --no-ansi run -e sipeed-longan-nano
+
+build:sipeed-longan-nano-alt:
+    stage: build
+    script:
+        - pio --no-ansi run -e sipeed-longan-nano-alt
+
+build:rvl-probe:
+    stage: build
+    script:
+        - pio --no-ansi run -e rvl-probe
+
 publish:
     stage: publish
-    needs: ["build"]
     only:
         - tags
     except:

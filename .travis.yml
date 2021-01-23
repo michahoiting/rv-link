@@ -12,7 +12,6 @@ cache:
 install:
     - pip install -U platformio
     - pio update
-    - pio platform install --with-package tool-dfuutil gd32v
     - pio platform update
 script:
-    - pio run
+    - pio run --no-ansi run -e gd32vf103c-start -e sipeed-longan-nano -e sipeed-longan-nano-alt -e rvl-probe

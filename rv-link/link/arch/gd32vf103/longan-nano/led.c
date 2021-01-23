@@ -24,10 +24,10 @@
 #include <stdint.h>
 
 /* other library header file includes */
-#include "nuclei_sdk_soc.h"
-#include "riscv_encoding.h"
 #include <pt/pt.h>
 #include <pt/timer.h>
+#include "nuclei_sdk_soc.h"
+#include "riscv_encoding.h"
 
 typedef struct rvl_led_s
 {

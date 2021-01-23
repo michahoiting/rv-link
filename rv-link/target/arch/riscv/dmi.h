@@ -1,21 +1,28 @@
-/*
-Copyright (c) 2019 zoomdy@163.com
-RV-LINK is licensed under the Mulan PSL v1.
-You can use this software according to the terms and conditions of the Mulan PSL v1.
-You may obtain a copy of Mulan PSL v1 at:
-    http://license.coscl.org.cn/MulanPSL
-THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
-PURPOSE.
-See the Mulan PSL v1 for more details.
+#ifndef __RV_LINK_TARGET_ARCH_RISCV_DMI_H__
+#define __RV_LINK_TARGET_ARCH_RISCV_DMI_H__
+/**
+ * Copyright (c) 2019 zoomdy@163.com
+ * Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
+ *
+ * \file  rv-link/target/arch/riscv/dmi.h
+ * \brief Handling of the RISC-V Debug Module Interface (DMI) interface.
+ *
+ * RV-LINK is licensed under the Mulan PSL v1.
+ * You can use this software according to the terms and conditions of the Mulan PSL v1.
+ * You may obtain a copy of Mulan PSL v1 at:
+ *     http://license.coscl.org.cn/MulanPSL
+ *
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
+ * PURPOSE.
+ * See the Mulan PSL v1 for more details.
  */
-#ifndef __RV_LINK_TARGET_ARCH_RISCV_RISCV_DMI_H__
-#define __RV_LINK_TARGET_ARCH_RISCV_RISCV_DMI_H__
 
+/* system library header file includes */
 #include <stdint.h>
 
+/* other library header file includes */
 #include <pt/pt.h>
-
 #include <rv-link/target/target-config.h>
 
 /*
@@ -46,4 +53,4 @@ PT_THREAD(rvl_dmi_write(uint32_t addr, rvl_dmi_reg_t data, uint32_t *result));
 PT_THREAD(rvl_dmi_read_vector(uint32_t start_addr, rvl_dmi_reg_t* buffer, uint32_t len, uint32_t *result));
 PT_THREAD(rvl_dmi_write_vector(uint32_t start_addr, const rvl_dmi_reg_t* buffer, uint32_t len, uint32_t *result));
 
-#endif /* __RV_LINK_TARGET_ARCH_RISCV_RISCV_DMI_H__ */
+#endif /* __RV_LINK_TARGET_ARCH_RISCV_DMI_H__ */

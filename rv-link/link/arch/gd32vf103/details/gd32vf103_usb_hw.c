@@ -39,6 +39,8 @@ OF SUCH DAMAGE.
 #include <string.h>
 
 /* other library header file includes */
+#include <rv-link/link/arch/gd32vf103/details/usbd_conf.h>
+#include "drv_usb_dev.h"
 #include "drv_usb_hw.h"
 #include "drv_usbd_int.h"
 #include "nuclei_sdk_soc.h"

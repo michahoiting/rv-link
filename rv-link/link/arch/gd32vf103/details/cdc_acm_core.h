@@ -33,7 +33,7 @@
  */
 
 /* other library header file includes */
-#include "usbd_conf.h"
+#include <rv-link/link/arch/gd32vf103/details/usbd_conf.h>
 #include "drv_usb_dev.h"
 #include "nuclei_sdk_soc.h"
 

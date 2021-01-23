@@ -24,9 +24,10 @@
 #include <stdint.h>
 
 /* other library header file includes */
-#include "usbd_conf.h"
-#include "usbd_enum.h"
 #include <pt/pt.h>
+#include <rv-link/link/arch/gd32vf103/details/usbd_conf.h>
+#include "drv_usb_dev.h"
+#include "usbd_enum.h"
 
 /* own component header file includes */
 #include <rv-link/link/arch/gd32vf103/details/cdc_acm_core.h>

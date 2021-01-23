@@ -1,5 +1,5 @@
-#ifndef __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USBD_CONF_H__
-#define __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USBD_CONF_H__
+#ifndef __USBD_CONF_H
+#define __USBD_CONF_H
 /**
  *     Copyright (c) 2019, GigaDevice Semiconductor Inc.
  *     Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
@@ -33,6 +33,7 @@
  */
 
 /* other library header file includes */
+#include <rv-link/link/arch/gd32vf103/details/usb_conf.h>
 #include "drv_usb_regs.h"
 
 #define USBD_CFG_MAX_NUM                    1
@@ -57,4 +58,4 @@
 #define CDC_ACM_CMD_PACKET_SIZE            8
 #define CDC_ACM_DATA_PACKET_SIZE           64
 
-#endif /* __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USBD_CONF_H__ */
+#endif /* __USBD_CONF_H */

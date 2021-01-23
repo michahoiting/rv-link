@@ -24,9 +24,9 @@
 #include <stdint.h>
 
 /* other library header file includes */
-#include "nuclei_sdk_soc.h"
 #include <pt/pt.h>
 #include <pt/timer.h>
+#include "nuclei_sdk_soc.h"
 
 /* RV-Link assert led */
 #define LED_RGB_RED_PORT            GPIOC

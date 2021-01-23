@@ -29,11 +29,12 @@
 #include <string.h>
 
 /* other library header file includes */
-#include "usbd_conf.h"
+#include <pt/pt.h>
+#include <rv-link/link/arch/gd32vf103/details/usbd_conf.h>
+#include "drv_usb_dev.h"
 #include "drv_usb_hw.h"
 #include "nuclei_sdk_soc.h"
 #include "usbd_enum.h"
-#include <pt/pt.h>
 
 /* other project header file includes */
 #include <rv-link/gdb-server/gdb-packet.h>

@@ -23,8 +23,8 @@
 #include <stdbool.h>
 
 /* other library header file includes */
-#include "nuclei_sdk_soc.h"
 #include <pt/pt.h>
+#include "nuclei_sdk_soc.h"
 
 /* own component header file includes */
 #include <rv-link/link/led.h>

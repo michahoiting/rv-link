@@ -1,5 +1,5 @@
-#ifndef __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USB_CONF_H__
-#define __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USB_CONF_H__
+#ifndef __USB_CONF_H
+#define __USB_CONF_H
 /**
  *     Copyright (c) 2019, GigaDevice Semiconductor Inc.
  *     Copyright (c) 2021, Micha Hoiting <micha.hoiting@gmail.com>
@@ -33,7 +33,8 @@
  */
 
 /* other library header file includes */
-#include "nuclei_sdk_soc.h"
+#include <stddef.h>
+#include "gd32vf103.h"
 
 #define USE_USB_FS
 
@@ -136,4 +137,4 @@
     #define __ALIGN_END
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 
-#endif /* __RV_LINK_LINK_ARCH_GD32VF103C_DETAILS_USB_CONF_H__ */
+#endif /* __USB_CONF_H */

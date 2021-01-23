@@ -37,6 +37,7 @@
 #include <stdio.h>
 
 /* other library header file includes */
+#include <rv-link/link/arch/gd32vf103/details/usbd_conf.h>
 #include "usbd_enum.h"
 
 /* own component header file includes */

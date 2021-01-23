@@ -102,8 +102,10 @@ This project aims to improve the original RV-LINK firmware with the following fe
 - Additional `mon` commands;
 - Additional NVM configurable items.
 
-## Downloads
-[Download firmware artifacts](https://gitlab.melroy.org/micha/rv-link/-/jobs/artifacts/master/download?job=build)
+## Download firmware files
+- [GD32VF103C-START firmware](https://gitlab.melroy.org/micha/rv-link/-/jobs/artifacts/master/download?job=build:gd32vf103c-start)
+- [Sipeed Longan Nano firmware](https://gitlab.melroy.org/micha/rv-link/-/jobs/artifacts/master/download?job=build:sipeed-longan-nano)
+- [Sipeed Longan Nano Alt firmware](https://gitlab.melroy.org/micha/rv-link/-/jobs/artifacts/master/download?job=build:sipeed-longan-nano-alt)
 
 ## Notes
 [This](https://gitlab.melroy.org/micha/rv-link) repository originally based on the **RV-LINK** project of *Zoomdy* and was forked from the repository at https://gitee.com/zoomdy/RV-LINK at the v0.2.1 tag.

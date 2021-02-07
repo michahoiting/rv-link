@@ -30,7 +30,7 @@
 #include <stdio.h>
 
 /* other library header file includes */
-#include "nuclei_sdk_hal.h"
+#include "gd32vf103_soc_sdk.h"
 
 /* other component header file includes */
 #include <rv-link/details/assert.h>

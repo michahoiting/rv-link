@@ -19,7 +19,7 @@
  */
 
 /* other library header file includes */
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_soc_sdk.h"
 
 #define RVL_LINK_CONFIG_NAME                "Longan Nano"
 

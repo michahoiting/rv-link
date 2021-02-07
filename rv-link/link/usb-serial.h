@@ -25,26 +25,26 @@
  * The following functions are called by the main function of app and
  * implemented by the USB Serial component of link:
  *
- * - rvl_usb_serial_*
+ * - rvl_usb_serial0_*
  *      corresponds to the first serial port /dev/ttyACM0 to
  *      realize GDB server and connect to GDB;
- */
-void rvl_usb_serial_init(void);
-PT_THREAD(rvl_usb_serial_poll(void));
-
-/* - rvl_usb_serial1_*
- *      corresponds to the second serial port /dev/ttyACM1,
- *      realizes the serial connection with a (configurable)
- *      UART of target machine, and uses it as a virtual serial port;
  */
 void rvl_usb_serial1_init(void);
 PT_THREAD(rvl_usb_serial1_poll(void));
 
 /* - rvl_usb_serial2_*
- *      corresponds to the third serial port /dev/ttyACM2, the standard input
- *      and output of RV-LINK are redirected to this serial port.
+ *      corresponds to the second serial port /dev/ttyACM1,
+ *      realizes the serial connection with a (configurable)
+ *      UART of target machine, and uses it as a virtual serial port;
  */
 void rvl_usb_serial2_init(void);
 PT_THREAD(rvl_usb_serial2_poll(void));
+
+/* - rvl_usb_serial3_*
+ *      corresponds to the third serial port /dev/ttyACM2, the standard input
+ *      and output of RV-LINK are redirected to this serial port.
+ */
+void rvl_usb_serial3_init(void);
+PT_THREAD(rvl_usb_serial3_poll(void));
 
 #endif /* __RV_LINK_LINK_USB_SERIAL_H__ */

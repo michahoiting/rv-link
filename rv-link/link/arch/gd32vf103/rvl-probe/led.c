@@ -26,7 +26,7 @@
 /* other library header file includes */
 #include <pt/pt.h>
 #include <pt/timer.h>
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_soc_sdk.h"
 
 /* RV-Link assert led */
 #define LED_RGB_RED_PORT            GPIOC
@@ -87,15 +87,6 @@ const static struct led_config {
     rcu_periph_enum rcu;
 } LED[] = {
 
-    /* GDB connected */
-    {LED_RGB_GREEN_PORT, LED_RGB_GREEN_PIN, LED_RGB_GREEN_RCU},
-
-    /* Target running (also mapped onto the GDB connected led) */
-    {LED_RGB_GREEN_PORT, LED_RGB_GREEN_PIN, LED_RGB_GREEN_RCU},
-
-    /* RVL-Link internal failure */
-    {LED_RGB_RED_PORT, LED_RGB_RED_PIN, LED_RGB_RED_RCU},
-
     /* USB communication */
     {LED_USB_COM_PORT, LED_USB_COM_PIN, LED_USB_COM_RCU},
 
@@ -105,6 +96,18 @@ const static struct led_config {
     /* Target serial communication Tx/Rx */
     {LED_SER_RX_PORT, LED_SER_RX_PIN, LED_SER_RX_RCU},
     {LED_SER_TX_PORT, LED_SER_TX_PIN, LED_SER_TX_RCU},
+
+    /* GDB connected */
+    {LED_RGB_GREEN_PORT, LED_RGB_GREEN_PIN, LED_RGB_GREEN_RCU},
+
+    /* Target running (also mapped onto the GDB connected led) */
+    {LED_RGB_GREEN_PORT, LED_RGB_GREEN_PIN, LED_RGB_GREEN_RCU},
+
+    /* RVL-Link internal failure */
+    {LED_RGB_RED_PORT, LED_RGB_RED_PIN, LED_RGB_RED_RCU},
+
+    /* RVL-Link internal failure */
+    {LED_RGB_BLUE_PORT, LED_RGB_BLUE_PIN, LED_RGB_BLUE_RCU},
 
     /* Unused led */
     {LED_RGB_BLUE_PORT, LED_RGB_BLUE_PIN, LED_RGB_BLUE_RCU},

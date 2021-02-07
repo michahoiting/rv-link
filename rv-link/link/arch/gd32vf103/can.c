@@ -9,8 +9,7 @@
 #include <rv-link/link/can.h>
 
 /* other library header file includes */
-#include "nuclei_sdk_soc.h"
-#include "core_feature_eclic.h"
+#include "gd32vf103_soc_sdk.h"
 
 /* own component header file includes */
 #include <rv-link/link/led.h>
@@ -173,6 +172,48 @@ static void can_networking_init(void)
     \param[out] none
     \retval     none
 */
+#ifdef GD32VF103_SDK
+static void can_eclic_config(void)
+{
+    eclic_priority_group_set(ECLIC_PRIGROUP_LEVEL2_PRIO2);
+
+    eclic_global_interrupt_enable();
+
+#if defined(CAN0_USED)
+    /* configure CAN0 CLIC FIFO0 */
+    eclic_irq_enable(CAN0_RX0_IRQn, 1, 0);
+
+    /* configure CAN0 CLIC FIFO1 */
+    eclic_irq_enable(CAN0_RX1_IRQn, 1, 0);
+#elif defined(CAN1_USED)
+    /* configure CAN1 CLIC FIFO0 */
+    eclic_irq_enable(CAN1_RX0_IRQn, 1, ECLIC_PRIGROUP_LEVEL2_PRIO2);
+
+    /* configure CAN1 CLIC FIFO1 */
+    eclic_irq_enable(CAN1_RX1_IRQn, 1, ECLIC_PRIGROUP_LEVEL2_PRIO2);
+#else
+#error No CANx_USED defined
+#endif
+
+    /* configure CAN1 CLIC FIFO0 */
+    eclic_irq_enable(CAN0_RX0_IRQn, 1, 0 /* ECLIC_PRIGROUP_LEVEL2_PRIO2 */);
+
+    /* configure CAN1 CLIC FIFO1 */
+    eclic_irq_enable(CAN0_RX1_IRQn, 1, 0 /* ECLIC_PRIGROUP_LEVEL2_PRIO2 */);
+
+    /* enable can receive FIFO0 not empty interrupt */
+    can_interrupt_enable(CANX, CAN_INT_RFNE0);
+
+    /* enable can receive FIFO1 not empty interrupt */
+    can_interrupt_enable(CANX, CAN_INT_RFNE1);
+
+    /* enable can receive FIFO0 not empty interrupt */
+    can_interrupt_enable(CAN0, CAN_INT_RFNE0);
+
+    /* enable can receive FIFO1 not empty interrupt */
+    can_interrupt_enable(CAN0, CAN_INT_RFNE1);
+}
+#else
 static void can_eclic_config(void)
 {
     ECLIC_SetCfgNlbits(2);
@@ -182,24 +223,20 @@ static void can_eclic_config(void)
 
 #if defined(CAN0_USED)
     /* configure CAN0 CLIC FIFO0 */
-    (void) ECLIC_Register_IRQ(CAN0_RX0_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, NULL);
+    (void) ECLIC_Register_IRQ(CAN0_RX0_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, CAN0_RX0_IRQHandler); // ECLIC_EnableIRQ(CAN0_RX0_IRQn);
 
     /* configure CAN0 CLIC FIFO1 */
-    (void) ECLIC_Register_IRQ(CAN0_RX1_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, NULL);
+    (void) ECLIC_Register_IRQ(CAN0_RX1_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, CAN0_RX1_IRQHandler); // ECLIC_EnableIRQ(CAN0_RX1_IRQn);
 
-//    (void) ECLIC_Register_IRQ(CAN0_TX_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, NULL);
-//    ECLIC_EnableIRQ(CAN0_TX_IRQn);
+    (void) ECLIC_Register_IRQ(CAN0_TX_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, CAN0_TX_IRQHandler); // ECLIC_EnableIRQ(CAN0_TX_IRQn);
 #elif defined(CAN1_USED)
     /* configure CAN1 CLIC FIFO0 */
-    (void) ECLIC_Register_IRQ(CAN1_RX0_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, NULL);
-//    ECLIC_EnableIRQ(CAN1_RX0_IRQn);
+    (void) ECLIC_Register_IRQ(CAN1_RX0_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, CAN1_RX0_IRQHandler); // ECLIC_EnableIRQ(CAN1_RX0_IRQn);
 
     /* configure CAN1 CLIC FIFO1 */
-    (void) ECLIC_Register_IRQ(CAN1_RX1_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, NULL);
-//    ECLIC_EnableIRQ(CAN1_RX1_IRQn);
+    (void) ECLIC_Register_IRQ(CAN1_RX1_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, CAN1_RX1_IRQHandler); // ECLIC_EnableIRQ(CAN1_RX1_IRQn);
 
-//    (void) ECLIC_Register_IRQ(CAN1_TX_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, NULL);
-//    ECLIC_EnableIRQ(CAN1_TX_IRQn);
+    (void) ECLIC_Register_IRQ(CAN1_TX_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, CAN1_TX_IRQHandler); // ECLIC_EnableIRQ(CAN1_TX_IRQn);
 #else
 #error No CANx_USED defined
 #endif
@@ -216,6 +253,7 @@ static void can_eclic_config(void)
     /* enable can receive FIFO1 not empty interrupt */
     can_interrupt_enable(CAN0, CAN_INT_RFNE1);
 }
+#endif
 
 /*!
     \brief      configure GPIO
@@ -242,6 +280,16 @@ static void can_gpio_config(void)
 #error No CANx_USED defined
 #endif
 
+#ifndef CANX_GPIO_MODE_RX
+//#define CANX_GPIO_MODE_RX GPIO_MODE_IPU
+#define CANX_GPIO_MODE_RX GPIO_MODE_IN_FLOATING
+#endif
+
+#ifndef CANX_GPIO_MODE_TX
+//#define CANX_GPIO_MODE_TX GPIO_MODE_AF_PP
+#define CANX_GPIO_MODE_TX GPIO_MODE_AF_OD
+#endif
+
     /*********************************************************************************************
      * CAN0
      */
@@ -249,15 +297,15 @@ static void can_gpio_config(void)
 #ifdef CAN0_NO_REMAP
     /* configure CAN0 GPIO NO remap: A11/A12 */
     rcu_periph_clock_enable(RCU_GPIOA);
-    gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_11); /* A11: CAN0_RX - WHITE - PIN-4 */
-    gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_12); /* A12: CAN0_TX - YELLOW - PIN-1 */
+    gpio_init(GPIOA, CANX_GPIO_MODE_RX, GPIO_OSPEED_50MHZ, GPIO_PIN_11); /* A11: CAN0_RX - WHITE - PIN-4 */
+    gpio_init(GPIOA, CANX_GPIO_MODE_TX, GPIO_OSPEED_50MHZ, GPIO_PIN_12); /* A12: CAN0_TX - YELLOW - PIN-1 */
 #endif
 
 #ifdef CAN0_PARTIAL_REMAP
     /* configure CAN0 GPIO GPIO_CAN0_PARTIAL_REMAP: B8/B9 */
     rcu_periph_clock_enable(RCU_GPIOB);
-    gpio_init(GPIOB, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, GPIO_PIN_8); /* B8: CAN0_RX - WHITE - PIN-4 */
-    gpio_init(GPIOB, GPIO_MODE_AF_OD, GPIO_OSPEED_50MHZ, GPIO_PIN_9); /* B9: CAN0_TX - YELLOW - PIN-1 */
+    gpio_init(GPIOB, CANX_GPIO_MODE_RX, GPIO_OSPEED_50MHZ, GPIO_PIN_8); /* B8: CAN0_RX - WHITE - PIN-4 */
+    gpio_init(GPIOB, CANX_GPIO_MODE_TX, GPIO_OSPEED_50MHZ, GPIO_PIN_9); /* B9: CAN0_TX - YELLOW - PIN-1 */
     gpio_pin_remap_config(GPIO_CAN0_PARTIAL_REMAP, ENABLE);
 #endif
 
@@ -267,8 +315,8 @@ static void can_gpio_config(void)
      */
     /* configure CAN0 GPIO GPIO_CAN0_FULL_REMAP: D0/D1 */
     rcu_periph_clock_enable(RCU_GPIOD);
-    gpio_init(GPIOD, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_0); /* D0: CAN0_RX - WHITE - PIN-4 */
-    gpio_init(GPIOD, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_1); /* D1: CAN0_TX - YELLOW - PIN-1 */
+    gpio_init(GPIOD, CANX_GPIO_MODE_RX, GPIO_OSPEED_50MHZ, GPIO_PIN_0); /* D0: CAN0_RX - WHITE - PIN-4 */
+    gpio_init(GPIOD, CANX_GPIO_MODE_TX, GPIO_OSPEED_50MHZ, GPIO_PIN_1); /* D1: CAN0_TX - YELLOW - PIN-1 */
     gpio_pin_remap_config(GPIO_CAN0_FULL_REMAP, ENABLE);
 #endif
 
@@ -278,19 +326,18 @@ static void can_gpio_config(void)
 
 #ifdef CAN1_NO_REMAP
     /* configure CAN1 GPIO NO remap: B12/B13 */
-    gpio_init(GPIOB, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, GPIO_PIN_12); /* B12: CAN1_RX - WHITE - MCP-2551-PIN-4 */
-    gpio_init(GPIOB, GPIO_MODE_AF_OD, GPIO_OSPEED_50MHZ, GPIO_PIN_13); /* B13: CAN1_TX - YELLOW - MCP-2551-PIN-1 */
+    gpio_init(GPIOB, CANX_GPIO_MODE_RX, GPIO_OSPEED_50MHZ, GPIO_PIN_12); /* B12: CAN1_RX - WHITE - MCP-2551-PIN-4 */
+    gpio_init(GPIOB, CANX_GPIO_MODE_TX, GPIO_OSPEED_50MHZ, GPIO_PIN_13); /* B13: CAN1_TX - YELLOW - MCP-2551-PIN-1 */
 #endif
 
 #ifdef CAN1_REMAP
     /* configure CAN1 GPIO GPIO_CAN1_REMAP: B5/B6 */
     rcu_periph_clock_enable(RCU_GPIOB);
-    gpio_init(GPIOB, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, GPIO_PIN_5); /* B5: CAN1_RX - WHITE - PIN-4 */
-    gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_6); /* B6: CAN1_TX - YELLOW - PIN-1 */
+    gpio_init(GPIOB, CANX_GPIO_MODE_RX, GPIO_OSPEED_50MHZ, GPIO_PIN_5); /* B5: CAN1_RX - WHITE - PIN-4 */
+    gpio_init(GPIOB, CANX_GPIO_MODE_TX, GPIO_OSPEED_50MHZ, GPIO_PIN_6); /* B6: CAN1_TX - YELLOW - PIN-1 */
     gpio_pin_remap_config(GPIO_CAN1_REMAP, ENABLE);
 #endif
 }
-
 
 static void can_message_transmit_color(void)
 {

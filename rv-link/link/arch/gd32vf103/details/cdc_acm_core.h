@@ -35,23 +35,23 @@
 /* other library header file includes */
 #include <rv-link/link/arch/gd32vf103/details/usbd_conf.h>
 #include "drv_usb_dev.h"
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_soc_sdk.h"
 
 extern __IO usb_class_core cdc_acm_usb_class_core;
 
-extern __IO uint8_t cdc_acm_ep0_packet_received;
-extern __IO uint8_t cdc_acm_ep0_packet_sent;
-extern __IO uint32_t cdc_acm_ep0_packet_length;
+extern __IO uint8_t cdc_acm1_ep_packet_received;
+extern __IO uint8_t cdc_acm1_ep_packet_sent;
+extern __IO uint32_t cdc_acm1_ep_packet_length;
 
-extern __IO uint8_t cdc_acm_ep1_packet_received;
-extern __IO uint8_t cdc_acm_ep1_packet_sent;
-extern __IO uint32_t cdc_acm_ep1_packet_length;
+extern __IO uint8_t cdc_acm2_ep_packet_received;
+extern __IO uint8_t cdc_acm2_ep_packet_sent;
+extern __IO uint32_t cdc_acm2_ep_packet_length;
 
-extern __IO uint8_t cdc_acm_ep2_packet_received;
-extern __IO uint8_t cdc_acm_ep2_packet_sent;
-extern __IO uint32_t cdc_acm_ep2_packet_length;
+extern __IO uint8_t cdc_acm3_ep_packet_received;
+extern __IO uint8_t cdc_acm3_ep_packet_sent;
+extern __IO uint32_t cdc_acm3_ep_packet_length;
 
 /* function declarations */
-void cdc_acm_init_desc(usb_desc *desc);
+void cdc_acm_core_init_desc(usb_desc *desc);
 
 #endif  /* __RV_LINK_LINK_ARCH_G32VF103C_DETAILS_CDC_ACM_CORE_H__ */

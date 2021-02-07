@@ -8,10 +8,19 @@
  */
 
 #ifdef RVL_DEBUG_EN
-#define RVL_DEBUG_LOG(pt, message)
-// TODO Log to usb-serial2 or in GDB in response to 'O XX...'
+
+void rvl_debug_log(const char *fmt, ...);
+
+// TODO remove the `pt` parameter
+#define RVL_DEBUG_LOG(pt, message)                                      \
+do {                                                                    \
+    rvl_debug_log message ;                                             \
+} while (0)
+
 #else
+
 #define RVL_DEBUG_LOG(pt, message)
+
 #endif
 
 #endif /* __RV_LINK_DETAILS_DEBUG_H__ */

@@ -22,7 +22,7 @@
 #include <stdint.h>
 
 /* other library header file includes */
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_soc_sdk.h"
 
 /* own component header file includes */
 #include <rv-link/link/arch/gd32vf103/link-config.h>
@@ -85,20 +85,34 @@ static inline void rvl_jtag_tck_put(int tck)
 #endif
 
 static inline void rvl_jtag_tck_high_delay()
+#ifdef GD32VF103_SDK
+{
+    uint32_t start = read_csr(mcycle);
+
+    while (read_csr(mcycle) - start < RVL_JTAG_TCK_HIGH_DELAY) ;
+}
+#else
 {
     uint32_t start = __RV_CSR_READ(mcycle);
 
     while (__RV_CSR_READ(mcycle) - start < RVL_JTAG_TCK_HIGH_DELAY) ;
 }
-
+#endif /* GD32VF103_SDK */
 
 static inline void rvl_jtag_tck_low_delay()
+#ifdef GD32VF103_SDK
+{
+    uint32_t start = read_csr(mcycle);
+
+    while (read_csr(mcycle) - start < RVL_JTAG_TCK_LOW_DELAY) ;
+}
+#else
 {
     uint32_t start = __RV_CSR_READ(mcycle);
 
     while (__RV_CSR_READ(mcycle) - start < RVL_JTAG_TCK_LOW_DELAY) ;
 }
-
+#endif /* GD32VF103_SDK */
 
 static inline int rvl_jtag_tdo_get()
 {

@@ -36,8 +36,6 @@
 #include <stddef.h>
 #include "gd32vf103.h"
 
-#define USE_USB_FS
-
 #ifndef USE_USB_FS
 #define USE_USB_HS
 #endif
@@ -88,12 +86,12 @@
 
 //#define VBUS_SENSING_ENABLED
 
-#define USB_SOF_OUTPUT                                     1
+//#define USB_SOF_OUTPUT                                     1
 #ifndef USB_SOF_OUTPUT
 #define USB_SOF_OUTPUT                                     0
 #endif
 
-#define USB_LOW_POWER                                      1
+//#define USB_LOW_POWER                                      1
 #ifndef USB_LOW_POWER
 #define USB_LOW_POWER                                      0
 #endif

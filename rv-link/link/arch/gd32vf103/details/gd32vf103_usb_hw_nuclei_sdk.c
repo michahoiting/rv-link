@@ -43,7 +43,7 @@ OF SUCH DAMAGE.
 #include "drv_usb_dev.h"
 #include "drv_usb_hw.h"
 #include "drv_usbd_int.h"
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_soc_sdk.h"
 
 /* other component header file includes */
 #include <rv-link/details/assert.h>
@@ -55,14 +55,18 @@ OF SUCH DAMAGE.
 #define HOST_POWERSW_PORT                       GPIOD
 #define HOST_POWERSW_VBUS                       GPIO_PIN_13
 
-__IO uint32_t delay_time = 0;
-__IO uint32_t usbfs_prescaler = 0;
-__IO uint32_t timer_prescaler = 5;
+static __IO uint32_t usbfs_prescaler = 0;
+static __IO uint32_t delay_time = 0;
+static __IO uint32_t timer_prescaler = 5;
 
 extern usb_core_driver USB_OTG_dev;
 
-static void hwp_time_set(uint8_t unit);
-static void hwp_delay(uint32_t ntime, uint8_t unit);
+void TIMER2_IRQHandler(void);
+void USBFS_IRQHandler(void);
+void USBFS_WKUP_IRQHandler(void);
+
+static void hw_time_set(uint8_t unit);
+static void hw_delay(uint32_t ntime, uint8_t unit);
 
 /*!
     \brief      configure USB clock
@@ -100,10 +104,14 @@ void usb_rcu_config(void)
 */
 void usb_intr_config(void)
 {
-    ECLIC_SetLevelIRQ(USBFS_IRQn,1);
-    ECLIC_SetPriorityIRQ(USBFS_IRQn,0);
-    ECLIC_EnableIRQ(USBFS_IRQn);
+    // ECLIC_SetLevelIRQ(USBFS_IRQn,1);
+    // ECLIC_SetPriorityIRQ(USBFS_IRQn,0);
+//    ECLIC_EnableIRQ(USBFS_IRQn);
+    ECLIC_Register_IRQ(USBFS_IRQn, ECLIC_NON_VECTOR_INTERRUPT,
+                                   ECLIC_LEVEL_TRIGGER, 1, 0,
+                                   USBFS_IRQHandler);
 
+#define USB_OTG_FS_LOW_PWR_MGMT_SUPPORT /* TODO: enabled in Zoomdy */
 #ifdef USB_OTG_FS_LOW_PWR_MGMT_SUPPORT
 
     /* enable the power module clock */
@@ -174,7 +182,7 @@ void usb_timer_init(void)
 
     ECLIC_Register_IRQ(TIMER2_IRQn, ECLIC_NON_VECTOR_INTERRUPT,
                                     ECLIC_LEVEL_TRIGGER, 2, 0,
-                                    NULL /*TIMER2_IRQHandler*/);
+                                    TIMER2_IRQHandler);
 }
 
 /*!
@@ -185,7 +193,7 @@ void usb_timer_init(void)
 */
 void usb_udelay(const uint32_t usec)
 {
-    hwp_delay(usec, TIM_USEC_DELAY);
+    hw_delay(usec, TIM_USEC_DELAY);
 }
 
 /*!
@@ -196,7 +204,7 @@ void usb_udelay(const uint32_t usec)
 */
 void usb_mdelay(const uint32_t msec)
 {
-    hwp_delay(msec, TIM_MSEC_DELAY);
+    hw_delay(msec, TIM_MSEC_DELAY);
 }
 
 /*!
@@ -207,7 +215,7 @@ void usb_mdelay(const uint32_t msec)
 */
 void usb_timer_irq(void)
 {
-    if (timer_interrupt_flag_get(TIMER2, TIMER_INT_UP) != RESET){
+    if (timer_interrupt_flag_get(TIMER2, TIMER_INT_UP) != RESET) {
         timer_interrupt_flag_clear(TIMER2, TIMER_INT_UP);
 
         if (delay_time > 0x00U){
@@ -225,13 +233,13 @@ void usb_timer_irq(void)
     \param[out] none
     \retval     none
 */
-static void hwp_delay(uint32_t ntime, uint8_t unit)
+static void hw_delay(uint32_t ntime, uint8_t unit)
 {
     delay_time = ntime;
 
-    hwp_time_set(unit);
+    hw_time_set(unit);
 
-    while(delay_time) ;
+    while (delay_time) ;
 
     timer_disable(TIMER2);
 }
@@ -242,7 +250,7 @@ static void hwp_delay(uint32_t ntime, uint8_t unit)
     \param[out] none
     \retval     none
 */
-static void hwp_time_set(uint8_t unit)
+static void hw_time_set(uint8_t unit)
 {
     timer_parameter_struct timer_basestructure = {0};
 
@@ -254,7 +262,7 @@ static void hwp_time_set(uint8_t unit)
 
     if (unit == TIM_USEC_DELAY) {
         timer_basestructure.period = 11;
-    } else if(unit == TIM_MSEC_DELAY) {
+    } else if (unit == TIM_MSEC_DELAY) {
         timer_basestructure.period = 11999;
     } else {
         /* no operation */

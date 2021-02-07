@@ -18,20 +18,24 @@
  * See the Mulan PSL v1 for more details.
  */
 
-/* other project header file includes */
-#include <rv-link/link/led.h>
-#include <rv-link/link/serial.h>
+/* system library header file includes */
+#include <stddef.h>
 
 #ifdef RVL_ASSERT_EN
-// TODO Also log using RVL_DEBUG_LOG()
-#define rvl_assert(cond) \
-  do { \
-    if (!(cond)) {  \
-      rvl_led_assert(1); \
-      for(;;) {} } \
-  } while (0)
+
+void rvl_assert_handler(const char *cond, const char *func, size_t line);
+
+#define rvl_assert(cond)                                                \
+do {                                                                    \
+  if (!(cond)) {                                                        \
+    rvl_assert_handler(#cond, __FUNCTION__, __LINE__);                  \
+  }                                                                     \
+} while(0)
+
 #else
+
 #define rvl_assert(cond) ((void)0)
+
 #endif
 
 #endif /* __RV_LINK_DETAILS_ASSERT_H__ */

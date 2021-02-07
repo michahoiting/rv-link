@@ -26,7 +26,7 @@
 /* other library header file includes */
 #include <pt/pt.h>
 #include <pt/timer.h>
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_soc_sdk.h"
 #include "riscv_encoding.h"
 
 typedef struct rvl_led_s

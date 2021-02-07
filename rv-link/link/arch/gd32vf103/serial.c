@@ -24,7 +24,7 @@
 
 /* other library header file includes */
 #include <pt/pt.h>
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_soc_sdk.h"
 
 /* own component header file includes */
 #include <rv-link/link/led.h>
@@ -40,6 +40,7 @@
     #undef UART_GPIO_REMAP
     #define UART_CLK                       RCU_USART0
     #define UART_IRQ                       USART0_IRQn
+    #define UART_IRQ_ISR                   USART0_IRQHandler
 #elif defined(RVL_SERIAL_USING_UART0_REMAP)
     #define UART_ITF                       USART0
     #define UART_TX_PIN                    GPIO_PIN_6
@@ -49,6 +50,7 @@
     #define UART_GPIO_REMAP                GPIO_USART0_REMAP
     #define UART_CLK                       RCU_USART0
     #define UART_IRQ                       USART0_IRQn
+    #define UART_IRQ_ISR                   USART0_IRQHandler
 #elif defined(RVL_SERIAL_USING_UART1_NO_REMAP)
     #define UART_ITF                       USART1
     #define UART_TX_PIN                    GPIO_PIN_2
@@ -58,6 +60,7 @@
     #undef UART_GPIO_REMAP
     #define UART_CLK                       RCU_USART0
     #define UART_IRQ                       USART1_IRQn
+    #define UART_IRQ_ISR                   USART1_IRQHandler
 #elif defined(RVL_SERIAL_USING_UART1_REMAP)
     /* Remap available only for 100-pin */
     #define UART_ITF                       USART1
@@ -68,6 +71,7 @@
     #define UART_GPIO_REMAP                GPIO_USART1_REMAP
     #define UART_CLK                       RCU_USART1
     #define UART_IRQ                       USART1_IRQn
+    #define UART_IRQ_ISR                   USART1_IRQHandler
 #elif defined(RVL_SERIAL_USING_UART2_NO_REMAP)
     /* Remap available for 48-pin, 64-pin, 100-pin */
     #define UART_ITF                       USART2
@@ -78,6 +82,7 @@
     #undef UART_GPIO_REMAP
     #define UART_CLK                       RCU_USART2
     #define UART_IRQ                       USART2_IRQn
+    #define UART_IRQ_ISR                   USART2_IRQHandler
 #elif defined(RVL_SERIAL_USING_UART2_PARTIAL_REMAP)
     /* Remap available only for 64-pin, 100-pin */
     #define UART_ITF                       USART2
@@ -88,6 +93,7 @@
     #define UART_GPIO_REMAP                GPIO_USART2_PARTIAL_REMAP
     #define UART_CLK                       RCU_USART2
     #define UART_IRQ                       USART2_IRQn
+    #define UART_IRQ_ISR                   USART2_IRQHandler
 #elif defined(RVL_SERIAL_USING_UART2_FULL_REMAP)
     /* Remap available only for 100-pin */
     #define UART_ITF                       USART2
@@ -98,13 +104,14 @@
     #define UART_GPIO_REMAP                GPIO_USART2_FULL_REMAP
     #define UART_CLK                       RCU_USART2
     #define UART_IRQ                       USART2_IRQn
+    #define UART_IRQ_ISR                   USART2_IRQHandler
 #else
 #error No RVL_SERIAL_USING_USARTx defined
 #endif
 
 typedef struct buffer_s
 {
-    uint8_t buffer[RVL_SERIAL_BUFFER_SIZE];
+    uint8_t buffer[RVL_SERIAL_BUFFER_SIZE * 2 ]; // TODO
     int head;
     int tail;
 } buffer_t;
@@ -119,8 +126,11 @@ typedef struct rvl_serial_s
 static rvl_serial_s rvl_serial_i;
 #define self rvl_serial_i
 
+void USART0_IRQHandler(void);
+void USART1_IRQHandler(void);
+void USART2_IRQHandler(void);
+
 static void rvl_serial_recv_buf_put(uint8_t c);
-static void rvl_serial_irq_handler(void);
 
 void rvl_serial_init(void)
 {
@@ -144,10 +154,11 @@ void rvl_serial_init(void)
 #endif
 
     /* connect port to USARTx_Tx */
-    gpio_init(UART_GPIO_PORT, GPIO_MODE_AF_OD, GPIO_OSPEED_10MHZ, UART_TX_PIN);
+    gpio_init(UART_GPIO_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_10MHZ, UART_TX_PIN);
 
     /* connect port to USARTx_Rx */
-    gpio_init(UART_GPIO_PORT, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_10MHZ, UART_RX_PIN);
+//    gpio_init(UART_GPIO_PORT, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_10MHZ, UART_RX_PIN);
+    gpio_init(UART_GPIO_PORT, GPIO_MODE_IPU, GPIO_OSPEED_10MHZ, UART_RX_PIN);
 
     /* USART configure */
     usart_deinit(UART_ITF);
@@ -161,13 +172,15 @@ void rvl_serial_init(void)
     usart_transmit_config(UART_ITF, USART_TRANSMIT_ENABLE);
     usart_enable(UART_ITF);
 
-    // eclic_irq_enable(UART_IRQ, 1, ECLIC_PRIGROUP_LEVEL2_PRIO2);
-    (void) ECLIC_Register_IRQ(UART_IRQ, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, NULL /*rvl_serial_irq_handler*/);
+#ifdef GD32VF103_SDK
+    eclic_irq_enable(UART_IRQ, 1, ECLIC_PRIGROUP_LEVEL2_PRIO2);
+#else
+    (void) ECLIC_Register_IRQ(UART_IRQ, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 1, 0, UART_IRQ_ISR);
+#endif /* GD32VF103_SDK */
 
     /* enable USART receive interrupt */
     usart_interrupt_enable(UART_ITF, USART_INT_RBNE);
 }
-
 
 void rvl_serial_set_line_coding(uint32_t baudrate, uint32_t data_bits, uint32_t stop_bits, uint32_t parity)
 {
@@ -176,7 +189,6 @@ void rvl_serial_set_line_coding(uint32_t baudrate, uint32_t data_bits, uint32_t 
     /* TODO implement setting of data_bits,  stop_bits, and parity */
     usart_enable(UART_ITF);
 }
-
 
 PT_THREAD(rvl_serial_putchar(uint8_t c))
 {
@@ -189,7 +201,6 @@ PT_THREAD(rvl_serial_putchar(uint8_t c))
 
     PT_END(&self.pt_send);
 }
-
 
 PT_THREAD(rvl_serial_getchar(uint8_t *c))
 {
@@ -208,7 +219,6 @@ PT_THREAD(rvl_serial_getchar(uint8_t *c))
     PT_END(&self.pt_recv);
 }
 
-
 static void rvl_serial_recv_buf_put(uint8_t c)
 {
     int head = self.recv_buf.head + 1;
@@ -220,19 +230,17 @@ static void rvl_serial_recv_buf_put(uint8_t c)
     }
 }
 
-
 #if defined(RVL_SERIAL_USING_UART0_NO_REMAP) || defined(RVL_SERIAL_USING_UART0_REMAP)
-void USART0_IRQHandler(void) {rvl_serial_irq_handler();}
+void USART0_IRQHandler(void)
 #elif defined(RVL_SERIAL_USING_UART1_NO_REMAP) || defined(RVL_SERIAL_USING_UART1_REMAP)
-void USART1_IRQHandler(void) {rvl_serial_irq_handler();}
+void USART1_IRQHandler(void)
 #elif defined(RVL_SERIAL_USING_UART2_NO_REMAP) || \
       defined(RVL_SERIAL_USING_UART2_PARTIAL_REMAP) || \
       defined(RVL_SERIAL_USING_UART2_FULL_REMAP)
-void USART2_IRQHandler(void) {rvl_serial_irq_handler();}
+void USART2_IRQHandler(void)
 #else
 #errro No RVL_SERIAL_USING_USARTx defined
 #endif
-static void rvl_serial_irq_handler(void)
 {
     uint8_t c;
     if (usart_interrupt_flag_get(UART_ITF, USART_INT_FLAG_RBNE) != RESET) {
@@ -240,5 +248,8 @@ static void rvl_serial_irq_handler(void)
         c = (uint8_t)usart_data_receive(UART_ITF);
         rvl_serial_recv_buf_put(c);
         rvl_led_indicator(RVL_LED_INDICATOR_LINK_SER_RX, true);
+
+        /* copy to console */
+        //usart_data_transmit(USART0, c);
     }
 }

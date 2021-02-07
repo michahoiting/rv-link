@@ -20,7 +20,7 @@
 #include <rv-link/link/button.h>
 
 /* other library header file includes */
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_soc_sdk.h"
 
 #define BUTTON_PORT    GPIOA
 #define BUTTON_PIN     GPIO_PIN_0

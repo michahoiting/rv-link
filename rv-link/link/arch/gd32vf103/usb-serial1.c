@@ -1,9 +1,10 @@
 /**
  * Copyright (c) 2019 zoomdy@163.com
- * Copyright (c) 2020, Micha Hoiting <micha.hoiting@gmail.com>
+ * Copyright (c) 2020 Micha Hoiting <micha.hoiting@gmail.com>
  *
- * \file  rv-link/link/arch/gd32vf103/usb-serial1.c
- * \brief Handling of CDC_ACM1_DATA EP of the CDC ACM USB device.
+ * \file  rv-link/link/arch/gd32vf103/usb-serial.c
+ * \brief Application defined handling of the CDC ACM USB driver and handling of
+ *        CDC_ACM1_DATA EP of the CDC ACM USB device.
  *
  * RV-LINK is licensed under the Mulan PSL v1.
  * You can use this software according to the terms and conditions of the Mulan PSL v1.
@@ -21,36 +22,45 @@
 
 /* system library header file includes */
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* other library header file includes */
 #include <pt/pt.h>
 #include <rv-link/link/arch/gd32vf103/details/usbd_conf.h>
 #include "drv_usb_dev.h"
+#include "drv_usb_hw.h"
+#include "gd32vf103_soc_sdk.h"
 #include "usbd_enum.h"
+
+/* other project header file includes */
+#include <rv-link/gdb-server/gdb-packet.h>
 
 /* own component header file includes */
 #include <rv-link/link/arch/gd32vf103/details/cdc_acm_core.h>
-#include <rv-link/link/serial.h>
+#include <rv-link/link/led.h>
 
-extern usb_core_driver USB_OTG_dev;
+usb_core_driver USB_OTG_dev = {0};
 
-typedef struct usb_serial1_s
+typedef struct rvl_usb_serial1_s
 {
     struct pt pt_poll;
     struct pt pt_recv;
     struct pt pt_send;
-    int i_usb_recv_buffer;
-    uint8_t usb_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
-    uint8_t usb_send_buffer[CDC_ACM_DATA_PACKET_SIZE];
-} usb_serial1_t;
+    const uint8_t *send_buffer;
+    size_t send_len;
+} rvl_usb_serial1_t;
 
-static usb_serial1_t usb_serial1_i;
-#define self usb_serial1_i
+static rvl_usb_serial1_t rvl_usb_serial1_i;
+#define self rvl_usb_serial1_i
 
-PT_THREAD(rvl_usb_serial1_recv_poll(void));
-PT_THREAD(rvl_usb_serial1_send_poll(void));
+static uint8_t usb_serial1_recv_buffer[CDC_ACM_DATA_PACKET_SIZE];
 
+static PT_THREAD(rvl_usb_serial1_recv_poll(void));
+static PT_THREAD(rvl_usb_serial1_send_poll(void));
 
 void rvl_usb_serial1_init(void)
 {
@@ -58,10 +68,23 @@ void rvl_usb_serial1_init(void)
     PT_INIT(&self.pt_recv);
     PT_INIT(&self.pt_send);
 
-    /* initialize the UART to the target machine */
-    rvl_serial_init();
-}
+#ifdef GD32VF103_SDK
+    /* Globally enable interrupt servicing */
+    eclic_global_interrupt_enable();
+    eclic_priority_group_set(ECLIC_PRIGROUP_LEVEL2_PRIO2);
+#else
+    __enable_irq();
+#endif /* GD32VF103_SDK */
 
+    usb_rcu_config();
+    usb_timer_init();
+    usb_intr_config();
+
+    /* NOTE, pre-condition: gdb-server must have been initialized */
+    cdc_acm_core_init_desc(&USB_OTG_dev.dev.desc);
+
+    usbd_init(&USB_OTG_dev, USB_CORE_ENUM_FS, (usb_class_core*) &cdc_acm_usb_class_core);
+}
 
 PT_THREAD(rvl_usb_serial1_poll(void))
 {
@@ -73,53 +96,55 @@ PT_THREAD(rvl_usb_serial1_poll(void))
     PT_END(&self.pt_poll);
 }
 
-
-PT_THREAD(rvl_usb_serial1_recv_poll(void))
+/*!
+    \brief      handle CDC ACM serial data received from host and send data to serial port
+    \param[in]  none
+    \param[in]  none
+    \param[out] none
+    \retval     none
+*/
+static PT_THREAD(rvl_usb_serial1_recv_poll(void))
 {
     PT_BEGIN(&self.pt_recv);
 
-    PT_WAIT_UNTIL(&self.pt_recv, USB_OTG_dev.dev.cur_status == USBD_CONFIGURED);
+    PT_WAIT_UNTIL(&self.pt_recv, USBD_CONFIGURED == USB_OTG_dev.dev.cur_status);
 
     for (;;) {
-        cdc_acm_ep1_packet_received = 0;
-        usbd_ep_recev(&USB_OTG_dev, CDC_ACM1_DATA_OUT_EP, (uint8_t*) self.usb_recv_buffer, CDC_ACM_DATA_PACKET_SIZE);
+        cdc_acm1_ep_packet_received = 0;
+        usbd_ep_recev(&USB_OTG_dev, CDC_ACM1_DATA_OUT_EP, (uint8_t*)(usb_serial1_recv_buffer), CDC_ACM_DATA_PACKET_SIZE);
 
-        PT_WAIT_UNTIL(&self.pt_recv, cdc_acm_ep1_packet_received);
+        PT_WAIT_UNTIL(&self.pt_recv, cdc_acm1_ep_packet_received);
+        rvl_led_indicator(RVL_LED_INDICATOR_LINK_USB, true);
 
-        for (self.i_usb_recv_buffer = 0; self.i_usb_recv_buffer < cdc_acm_ep1_packet_length; self.i_usb_recv_buffer++) {
-            PT_WAIT_THREAD(&self.pt_recv, rvl_serial_putchar(self.usb_recv_buffer[self.i_usb_recv_buffer]));
-        }
+        PT_WAIT_UNTIL(&self.pt_recv, gdb_packet_process_command(usb_serial1_recv_buffer, cdc_acm1_ep_packet_length));
     }
 
     PT_END(&self.pt_recv);
 }
 
-
+/*!
+    \brief      handle CDC ACM serial data requested by host and reply the received data from serial port to serial port
+    \param[in]  none
+    \param[in]  none
+    \param[out] none
+    \retval     none
+*/
 PT_THREAD(rvl_usb_serial1_send_poll(void))
 {
-    uint8_t c;
-    int i;
-
     PT_BEGIN(&self.pt_send);
 
     PT_WAIT_UNTIL(&self.pt_send, USBD_CONFIGURED == USB_OTG_dev.dev.cur_status);
 
     for (;;) {
-        PT_WAIT_THREAD(&self.pt_send, rvl_serial_getchar(&c));
-        i = 0;
-        do {
-            self.usb_send_buffer[i] = c;
-            i++;
-            if (i >= sizeof(self.usb_send_buffer)) {
-                break;
-            }
-            /* Continue collecting received characters until pt blocks */
-        } while (!PT_SCHEDULE(rvl_serial_getchar(&c)));
+        PT_WAIT_UNTIL(&self.pt_send, (self.send_buffer = gdb_packet_get_response(&self.send_len)) != NULL);
 
-        cdc_acm_ep1_packet_sent = 0;
-        usbd_ep_send(&USB_OTG_dev, CDC_ACM1_DATA_IN_EP, (uint8_t*)(self.usb_send_buffer), i);
+        cdc_acm1_ep_packet_sent = 0;
+        usbd_ep_send(&USB_OTG_dev, CDC_ACM1_DATA_IN_EP, (uint8_t*)(self.send_buffer), self.send_len);
+        rvl_led_indicator(RVL_LED_INDICATOR_LINK_USB, true);
 
-        PT_WAIT_UNTIL(&self.pt_send, cdc_acm_ep1_packet_sent);
+        PT_WAIT_UNTIL(&self.pt_send, cdc_acm1_ep_packet_sent);
+
+        gdb_packet_release_response();
     }
 
     PT_END(&self.pt_send);

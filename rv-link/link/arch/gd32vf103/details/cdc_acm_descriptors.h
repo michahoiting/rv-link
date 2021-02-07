@@ -134,7 +134,8 @@ typedef struct
     usb_descriptor_cdc_set_struct_vcom_enable         cdc[2];
 } usb_descriptor_configuration_set_struct_vcom_enable;
 
-extern __I const usb_desc_dev cdc_acm_device_descriptor;
+extern __I const usb_desc_dev cdc_acm_device_descriptor_vcom_enable;
+extern __I const usb_desc_dev cdc_acm_device_descriptor_vcom_disable;
 extern __I const usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration_descriptor_vcom_disable;
 extern __I const usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_descriptor_vcom_enable;
 

@@ -34,13 +34,13 @@ int main(void)
     /* Due to nvm-config init-dependency, the gdb server must be initialized first */
     gdb_server_init();
 
-    rvl_usb_serial_init();
     rvl_usb_serial1_init();
+    rvl_usb_serial2_init();
 
     for(;;) {
         (void) PT_SCHEDULE(rvl_led_poll());
-        (void) PT_SCHEDULE(rvl_usb_serial_poll());
         (void) PT_SCHEDULE(rvl_usb_serial1_poll());
+        (void) PT_SCHEDULE(rvl_usb_serial2_poll());
         (void) PT_SCHEDULE(gdb_server_poll());
     }
 }

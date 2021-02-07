@@ -52,7 +52,7 @@ static size_t stowcs(wchar_t *dest, const char *str, size_t max);
 
 /* note:it should use the C99 standard when compiling the below codes */
 /* USB standard device descriptor */
-__I usb_desc_dev cdc_acm_device_descriptor =
+__I usb_desc_dev cdc_acm_device_descriptor_vcom_enable =
 {
     .header =
      {
@@ -60,17 +60,38 @@ __I usb_desc_dev cdc_acm_device_descriptor =
          .bDescriptorType = USB_DESCTYPE_DEV
      },
     .bcdUSB = 0x0200,
-    .bDeviceClass = 0xef,                   /* Miscellaneous Device */
-    .bDeviceSubClass = 0x02,                /* Common Class */
-    .bDeviceProtocol = 0x01,                /* Interface Association */
+    .bDeviceClass = 0xEF, /* Miscellaneous Device */
+    .bDeviceSubClass = 0x02, /* Common Class */
+    .bDeviceProtocol = 0x01, /* Interface Association */
     .bMaxPacketSize0 = USB_FS_EP0_MAX_LEN,
     .idVendor = USBD_VID,
     .idProduct = USBD_PID,
     .bcdDevice = 0x0100,
-    .iManufacturer = STR_IDX_MFC,
-    .iProduct = STR_IDX_PRODUCT,
-    .iSerialNumber = STR_IDX_SERIAL,
-    .bNumberConfigurations = USBD_CFG_MAX_NUM
+    .iManufacturer = 0x01,
+    .iProduct = 0x02,
+    .iSerialNumber = 0x03,
+    .bNumberConfigurations = 0x01
+};
+
+__I const usb_desc_dev cdc_acm_device_descriptor_vcom_disable =
+{
+    .header =
+     {
+         .bLength = USB_DEV_DESC_LEN,
+         .bDescriptorType = USB_DESCTYPE_DEV
+     },
+    .bcdUSB = 0x0200,
+    .bDeviceClass = 0x02,
+    .bDeviceSubClass = 0x00,
+    .bDeviceProtocol = 0x00,
+    .bMaxPacketSize0 = USB_FS_EP0_MAX_LEN,
+    .idVendor = USBD_VID,
+    .idProduct = USBD_PID,
+    .bcdDevice = 0x0100,
+    .iManufacturer = 0x01,
+    .iProduct = 0x02,
+    .iSerialNumber = 0x03,
+    .bNumberConfigurations = 0x01
 };
 
 /* USB device configuration descriptor */
@@ -138,7 +159,7 @@ __I usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration_d
             .bDescriptorType = USB_DESCTYPE_CS_INTERFACE
          },
         .bDescriptorSubtype = 0x02,
-        .bmCapabilities = 0x02,
+        .bmCapabilities = 0x02
     },
 
     .cdc[0].cdc_union =
@@ -150,7 +171,7 @@ __I usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration_d
          },
         .bDescriptorSubtype = 0x06,
         .bMasterInterface = 0x00,
-        .bSlaveInterface0 = 0x01,
+        .bSlaveInterface0 = 0x01
     },
 
     .cdc[0].ep_cmd_in =
@@ -160,7 +181,7 @@ __I usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration_d
             .bLength = USB_EP_DESC_LEN,
             .bDescriptorType = USB_DESCTYPE_EP
          },
-        .bEndpointAddress = CDC_ACM_CMD_EP,
+        .bEndpointAddress = CDC_ACM1_CMD_EP,
         .bmAttributes = 0x03,
         .wMaxPacketSize = CDC_ACM_CMD_PACKET_SIZE,
         .bInterval = 0xff
@@ -189,7 +210,7 @@ __I usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration_d
              .bLength = USB_EP_DESC_LEN,
              .bDescriptorType = USB_DESCTYPE_EP
          },
-        .bEndpointAddress = CDC_ACM_DATA_OUT_EP,
+        .bEndpointAddress = CDC_ACM1_DATA_OUT_EP,
         .bmAttributes = 0x02,
         .wMaxPacketSize = CDC_ACM_DATA_PACKET_SIZE,
         .bInterval = 0x00
@@ -202,7 +223,7 @@ __I usb_descriptor_configuration_set_struct_vcom_disable cdc_acm_configuration_d
              .bLength = USB_EP_DESC_LEN,
              .bDescriptorType = USB_DESCTYPE_EP
          },
-        .bEndpointAddress = CDC_ACM_DATA_IN_EP,
+        .bEndpointAddress = CDC_ACM1_DATA_IN_EP,
         .bmAttributes = 0x02,
         .wMaxPacketSize = CDC_ACM_DATA_PACKET_SIZE,
         .bInterval = 0x00
@@ -300,7 +321,7 @@ __I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_de
          },
         .bDescriptorSubtype = 0x06,
         .bMasterInterface = 0x00,
-        .bSlaveInterface0 = 0x01,
+        .bSlaveInterface0 = 0x01
     },
 
     .cdc[0].ep_cmd_in =
@@ -310,7 +331,7 @@ __I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_de
             .bLength = USB_EP_DESC_LEN,
             .bDescriptorType = USB_DESCTYPE_EP
          },
-        .bEndpointAddress = CDC_ACM_CMD_EP,
+        .bEndpointAddress = CDC_ACM1_CMD_EP,
         .bmAttributes = 0x03,
         .wMaxPacketSize = CDC_ACM_CMD_PACKET_SIZE,
         .bInterval = 0xff
@@ -339,7 +360,7 @@ __I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_de
              .bLength = USB_EP_DESC_LEN,
              .bDescriptorType = USB_DESCTYPE_EP
          },
-        .bEndpointAddress = CDC_ACM_DATA_OUT_EP,
+        .bEndpointAddress = CDC_ACM1_DATA_OUT_EP,
         .bmAttributes = 0x02,
         .wMaxPacketSize = CDC_ACM_DATA_PACKET_SIZE,
         .bInterval = 0x00
@@ -352,7 +373,7 @@ __I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_de
              .bLength = USB_EP_DESC_LEN,
              .bDescriptorType = USB_DESCTYPE_EP
          },
-        .bEndpointAddress = CDC_ACM_DATA_IN_EP,
+        .bEndpointAddress = CDC_ACM1_DATA_IN_EP,
         .bmAttributes = 0x02,
         .wMaxPacketSize = CDC_ACM_DATA_PACKET_SIZE,
         .bInterval = 0x00
@@ -419,7 +440,7 @@ __I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_de
             .bDescriptorType = USB_DESCTYPE_CS_INTERFACE
          },
         .bDescriptorSubtype = 0x02,
-        .bmCapabilities = 0x02,
+        .bmCapabilities = 0x02
     },
 
     .cdc[1].cdc_union =
@@ -431,7 +452,7 @@ __I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_de
          },
         .bDescriptorSubtype = 0x06,
         .bMasterInterface = 0x02,
-        .bSlaveInterface0 = 0x03,
+        .bSlaveInterface0 = 0x03
     },
 
     .cdc[1].ep_cmd_in =
@@ -441,7 +462,7 @@ __I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_de
             .bLength = USB_EP_DESC_LEN,
             .bDescriptorType = USB_DESCTYPE_EP
          },
-        .bEndpointAddress = CDC_ACM1_CMD_EP,
+        .bEndpointAddress = CDC_ACM2_CMD_EP,
         .bmAttributes = 0x03,
         .wMaxPacketSize = CDC_ACM_CMD_PACKET_SIZE,
         .bInterval = 0xff
@@ -470,7 +491,7 @@ __I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_de
              .bLength = USB_EP_DESC_LEN,
              .bDescriptorType = USB_DESCTYPE_EP
          },
-        .bEndpointAddress = CDC_ACM1_DATA_OUT_EP,
+        .bEndpointAddress = CDC_ACM2_DATA_OUT_EP,
         .bmAttributes = 0x02,
         .wMaxPacketSize = CDC_ACM_DATA_PACKET_SIZE,
         .bInterval = 0x00
@@ -483,7 +504,7 @@ __I usb_descriptor_configuration_set_struct_vcom_enable cdc_acm_configuration_de
              .bLength = USB_EP_DESC_LEN,
              .bDescriptorType = USB_DESCTYPE_EP
          },
-        .bEndpointAddress = CDC_ACM1_DATA_IN_EP,
+        .bEndpointAddress = CDC_ACM2_DATA_IN_EP,
         .bmAttributes = 0x02,
         .wMaxPacketSize = CDC_ACM_DATA_PACKET_SIZE,
         .bInterval = 0x00

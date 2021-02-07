@@ -20,7 +20,7 @@
 #include <rv-link/link/jtag.h>
 
 /* other library header file includes */
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_soc_sdk.h"
 
 /* own component header file includes */
 #include <rv-link/link/arch/gd32vf103/gd32vf103c-start/link-config.h>

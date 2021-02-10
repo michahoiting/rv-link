@@ -65,14 +65,19 @@ $ pio run -e sipeed-longan-nano -t upload
 The pins that are used for the JTAG/TAP hardware interface are configured during the build (determined by *platformio.ini* and *link-config.h*) and are as following:
 - **gd32vf103c-start**
   - `TMS = PB12/NSS1, TCK = PB13/SCK1, TDO = PB14/MISO1, TDI = PB15/MOSI1, SRST = PB0/GPIO`
+  - `VCOM = PA9/UART0_TX, PA10/UART0_RX`
 - **sipeed-longan-nano**
   - `TMS = PA13/GPIO, TCK = PA14/GPIO, TDO = PB3/GPIO, TDI = PB15/GPIO, SRST = N/A`
+  - `VCOM = PA9/UART0_TX, PA10/UART0_RX`
 - **sipeed-longan-nano-alt**
   - `TMS = PB12/NSS1, TCK = PB13/SCK1, TDO = PB14/MISO1, TDI=PB15/MOSI1, SRST = PA8/GPIO`
+  - `VCOM = PA9/UART0_TX, PA10/UART0_RX`
 - **rvl-probe**
   - `TMS = PA4/NSS0, TCK = PA5/SCK0, TDO = PA6/MISO0, TDI = PA7MOSI0, SRST = N/A`
+  - `VCOM = PB10/UART2_TX, PB11/UART2_RX`
+  - `CAN = B12/CAN1_RX, PB13/CAN1_TX`
 
-Optionally, the `UART0` serial interface of the RV-Link (`TX-PA9`, `RX-PA10`) can be connected to a UART of the target board.
+Optionally, the serial interface of the RV-Link can be cross-connected to an UART of the target board.
 
 ***Note***
 
@@ -84,6 +89,7 @@ Optionally, the `UART0` serial interface of the RV-Link (`TX-PA9`, `RX-PA10`) ca
 >   RV-LINK ERROR: the target is not connected!
 >   RV-LINK v0.2: Longan Nano, configed for GD32VF103 family.
 >   ```
+>   If so, check your wiring, optionally add series resistors (of e.g. 100Ohm) in each JTAG signal wire at the RV-Link.
 
 ### A wiring example
 Here is an example of a Sipeed Longan Nano running the RV-Link firmware (*env:sipeed-longan-nano*) that is debugging a Sipeed Longan Nano running the RV-Link firmware (*env:rvl-probe*) that is debugging a third Sipeed Longan Nano running a *blink* application...
